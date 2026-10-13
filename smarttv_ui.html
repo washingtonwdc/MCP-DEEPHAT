@@ -24,6 +24,169 @@
       --warning: #f59e0b;
     }
 
+    /* MODO CLARO (LIGHT THEME) */
+    body.light-theme {
+      --bg-dark: #f8fafc;
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --card-border: rgba(226, 232, 240, 0.85);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      background: radial-gradient(circle at 10% 10%, rgba(139, 92, 246, 0.08) 0%, transparent 45%),
+                  radial-gradient(circle at 90% 90%, rgba(217, 70, 239, 0.07) 0%, transparent 50%),
+                  #f8fafc;
+      color: var(--text-main);
+    }
+
+    body.light-theme h1 {
+      background: linear-gradient(135deg, #0f172a 30%, #334155 70%, #db2777 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    body.light-theme .glass-card {
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+    }
+
+    body.light-theme .master-card {
+      background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+      border: 1px solid rgba(219, 39, 119, 0.3);
+      box-shadow: 0 15px 35px -10px rgba(219, 39, 119, 0.12);
+    }
+
+    body.light-theme .stat-card {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid #e2e8f0;
+    }
+
+    body.light-theme .stat-value {
+      color: #0f172a;
+    }
+
+    body.light-theme input[type="text"],
+    body.light-theme input[type="url"],
+    body.light-theme input[type="number"] {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+    }
+
+    body.light-theme input:focus {
+      background: #ffffff;
+      border-color: #db2777;
+      box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.18);
+    }
+
+    body.light-theme .device-row {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+
+    body.light-theme .device-row:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    body.light-theme .pill-btn {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+    }
+
+    body.light-theme .pill-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    body.light-theme .pill-btn.active {
+      background: linear-gradient(135deg, #8b5cf6, #db2777);
+      color: #ffffff;
+      border-color: transparent;
+    }
+
+    body.light-theme .toggle-wrapper {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+
+    body.light-theme .toggle-info h4 {
+      color: #0f172a;
+    }
+
+    body.light-theme .btn-secondary {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+    }
+
+    body.light-theme .btn-secondary:hover:not(:disabled) {
+      background: #f1f5f9;
+    }
+
+    body.light-theme .btn-icon {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+    }
+
+    body.light-theme .btn-icon:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    body.light-theme .btn-outline-dashed {
+      border-color: #db2777;
+      color: #be185d;
+    }
+
+    body.light-theme .btn-outline-dashed:hover {
+      background: rgba(219, 39, 119, 0.05);
+    }
+
+    body.light-theme table th {
+      background: #f1f5f9;
+      color: #475569;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    body.light-theme table tr td {
+      border-bottom: 1px solid #f1f5f9;
+      color: #1e293b;
+    }
+
+    body.light-theme table tr:hover td {
+      background: #f8fafc;
+    }
+
+    .theme-toggle-btn {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: inherit;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    body.light-theme .theme-toggle-btn {
+      background: rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .theme-toggle-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -42,6 +205,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
     .container {
@@ -500,13 +664,16 @@
     #toast.success { border-left: 4px solid var(--success); }
     #toast.error { border-left: 4px solid var(--error); }
   </style>
-</head>
-<body>
+<body class="light-theme">
 
-  <div class="container">
+  <div class="container" style="position: relative;">
     
     <!-- Top Header -->
-    <header>
+    <header style="position: relative;">
+      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Alternar entre Modo Claro e Escuro">
+        <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">Modo Escuro</span>
+      </button>
+
       <div class="brand-pill">
         <span class="pulse-dot"></span>
         SmartTV Club Multi-Device Sync
@@ -962,7 +1129,39 @@
         `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     }, 1000);
 
-    // Initial Load & Polling
+    // Theme Management (Modo Claro / Modo Escuro)
+    function initTheme() {
+      const savedTheme = localStorage.getItem('smarttv_theme');
+      if (savedTheme === 'dark') {
+        document.body.classList.remove('light-theme');
+        updateThemeBtn(false);
+      } else {
+        // Padrão: Modo Claro
+        document.body.classList.add('light-theme');
+        updateThemeBtn(true);
+      }
+    }
+
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light-theme');
+      localStorage.setItem('smarttv_theme', isLight ? 'light' : 'dark');
+      updateThemeBtn(isLight);
+    }
+
+    function updateThemeBtn(isLight) {
+      const icon = document.getElementById('themeToggleIcon');
+      const text = document.getElementById('themeToggleText');
+      if (isLight) {
+        icon.innerText = '🌙';
+        text.innerText = 'Modo Escuro';
+      } else {
+        icon.innerText = '☀️';
+        text.innerText = 'Modo Claro';
+      }
+    }
+
+    // Inicialização do Tema e Dados
+    initTheme();
     loadStatus();
     setInterval(loadStatus, 10000);
   </script>
