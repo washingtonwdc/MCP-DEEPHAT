@@ -72,6 +72,13 @@ def salvar_config(cfg: Dict[str, Any]):
         json.dump(cfg, f, indent=2, ensure_ascii=False)
 
 
+def calcular_proxima_meia_noite_brasilia() -> datetime:
+    """Calcula o próximo dia às 00:00:00 (Horário Oficial de Brasília)."""
+    agora = datetime.now()
+    amanha = agora.date() + timedelta(days=1)
+    return datetime(amanha.year, amanha.month, amanha.day, 0, 0, 0)
+
+
 def agendar_proxima_execucao(minutos: int):
     """Calcula o próximo horário de execução."""
     global next_run_dt
@@ -279,8 +286,47 @@ async def background_scheduler():
                 sync_mode = cfg.get("sync_mode", "interval")
                 scheduled_str = cfg.get("scheduled_datetime")
 
-                # Modo 1: Data e Hora específica agendada
-                if sync_mode == "datetime" and scheduled_str:
+                # Modo 1 (Principal): Sincronização Diária às 00:00 (Horário de Brasília)
+                if sync_mode == "daily_midnight_brasilia":
+                    if next_run_dt is None:
+                        next_run_dt = calcular_proxima_meia_noite_brasilia()
+                        print(f"[*] Próxima sincronização diária agendada para: {next_run_dt.strftime('%d/%m/%Y às 00:00:00 (Brasília)')}")
+                    elif agora >= next_run_dt and not is_running_batch:
+                        print(f"\n[🕛 00:00 BRASÍLIA] Horário diário atingido! Iniciando ciclo de renovação e sincronização...")
+                        try:
+                            import mailtm_manager
+                            novo_email, _, token = mailtm_manager.criar_email()
+                            cfg["temp_email"] = novo_email
+                            print(f"[📬] Novo e-mail diário criado para receber a playlist: {novo_email}")
+                            
+                            # Verifica mensagens para extrair o link da nova playlist
+                            msgs = mailtm_manager.extrair_links_confirmacao(token)
+                            link_playlist = None
+                            for m in msgs:
+                                for l in m.get("todos_links", []):
+                                    if any(p in l.lower() for p in [".m3u", ".m3u8", "get.php", "type=m3u", "playlist"]):
+                                        link_playlist = l
+                                        break
+                                if link_playlist:
+                                    break
+                            
+                            if link_playlist:
+                                cfg["master_playlist_url"] = link_playlist
+                                cfg["new_playlist_url"] = link_playlist
+                                print(f"[✨] Link da nova playlist extraído do e-mail: {link_playlist}")
+                            cfg["last_playlist_check"] = datetime.now().isoformat()
+                            salvar_config(cfg)
+                        except Exception as e_mail:
+                            print(f"[!] Erro ao processar e-mail diário: {e_mail}")
+
+                        # Sincroniza todos os equipamentos ativos (Celular e iPad de Washington inclusos)
+                        await executar_upload_em_lote()
+                        # Reagenda para a próxima meia-noite
+                        next_run_dt = calcular_proxima_meia_noite_brasilia()
+                        print(f"[*] Próxima sincronização diária reagendada para: {next_run_dt.strftime('%d/%m/%Y às 00:00:00')}")
+
+                # Modo 2: Data e Hora específica agendada
+                elif sync_mode == "datetime" and scheduled_str:
                     try:
                         scheduled_dt = datetime.fromisoformat(scheduled_str)
                         if agora >= scheduled_dt and not is_running_batch:
@@ -294,7 +340,7 @@ async def background_scheduler():
                     except Exception as err:
                         print(f"[!] Erro ao processar data agendada: {err}")
 
-                # Modo 2: Intervalo recorrente em minutos
+                # Modo 3: Intervalo recorrente em minutos (fallback opcional)
                 elif sync_mode == "interval":
                     if next_run_dt is None:
                         agendar_proxima_execucao(cfg.get("interval_minutes", 60))
@@ -367,7 +413,9 @@ async def post_config_handler(request: Request):
         salvar_config(cfg)
 
         if cfg["auto_update_enabled"]:
-            if cfg.get("sync_mode") == "datetime" and cfg.get("scheduled_datetime"):
+            if cfg.get("sync_mode") == "daily_midnight_brasilia":
+                next_run_dt = calcular_proxima_meia_noite_brasilia()
+            elif cfg.get("sync_mode") == "datetime" and cfg.get("scheduled_datetime"):
                 try:
                     next_run_dt = datetime.fromisoformat(cfg["scheduled_datetime"])
                 except Exception:
@@ -380,6 +428,80 @@ async def post_config_handler(request: Request):
         return JSONResponse({"success": True, "message": "Configurações salvas com sucesso!"})
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=400)
+
+
+async def check_playlist_from_email_handler(request: Request):
+    """Verifica e-mails recebidos na conta ativa e extrai automaticamente o link da nova playlist IPTV."""
+    try:
+        import mailtm_manager
+        cfg = carregar_config()
+        email_ativo = cfg.get("temp_email", "")
+        dados = mailtm_manager.carregar_dados()
+        contas = dados.get("contas", [])
+
+        conta = next((c for c in contas if c.get("email") == email_ativo), None)
+        if not conta:
+            for k, v in dados.items():
+                if isinstance(v, dict) and v.get("email") == email_ativo:
+                    conta = v
+                    break
+
+        if not conta or not conta.get("token"):
+            return JSONResponse({"success": False, "error": f"Conta '{email_ativo}' sem token ou não encontrada."}, status_code=404)
+
+        msgs = mailtm_manager.extrair_links_confirmacao(conta["token"])
+        playlist_link = None
+
+        for m in msgs:
+            for l in m.get("todos_links", []):
+                if any(p in l.lower() for p in [".m3u", ".m3u8", "get.php", "type=m3u", "playlist"]):
+                    playlist_link = l
+                    break
+            if playlist_link:
+                break
+
+        cfg["last_playlist_check"] = datetime.now().isoformat()
+
+        if playlist_link:
+            cfg["master_playlist_url"] = playlist_link
+            cfg["new_playlist_url"] = playlist_link
+            salvar_config(cfg)
+            return JSONResponse({
+                "success": True,
+                "found": True,
+                "playlist_url": playlist_link,
+                "message": "Nova playlist identificada e configurada com sucesso para todos os aparelhos!",
+                "total_messages": len(msgs)
+            })
+        else:
+            salvar_config(cfg)
+            return JSONResponse({
+                "success": True,
+                "found": False,
+                "playlist_url": cfg.get("master_playlist_url", ""),
+                "message": "Nenhuma nova playlist identificada nas mensagens recentes ainda.",
+                "total_messages": len(msgs)
+            })
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
+async def renew_daily_email_handler(request: Request):
+    """Gera um novo e-mail no Mail.tm especificamente para o ciclo diário."""
+    try:
+        import mailtm_manager
+        endereco, senha, token = mailtm_manager.criar_email()
+        cfg = carregar_config()
+        cfg["temp_email"] = endereco
+        salvar_config(cfg)
+        return JSONResponse({
+            "success": True,
+            "email": endereco,
+            "password": senha,
+            "message": f"Novo e-mail diário ({endereco}) criado com sucesso para receber a playlist!"
+        })
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
 
 async def create_mailtm_account_handler(request: Request):
@@ -556,9 +678,19 @@ async def trigger_single_device_handler(request: Request):
 @asynccontextmanager
 async def lifespan(app: Starlette):
     """Gerenciador do ciclo de vida da aplicação."""
+    global next_run_dt
     cfg = carregar_config()
     if cfg.get("auto_update_enabled"):
-        agendar_proxima_execucao(cfg.get("interval_minutes", 60))
+        if cfg.get("sync_mode") == "daily_midnight_brasilia":
+            next_run_dt = calcular_proxima_meia_noite_brasilia()
+            print(f"[*] Próxima sincronização diária agendada para: {next_run_dt.strftime('%d/%m/%Y às 00:00:00 (Brasília)')}")
+        elif cfg.get("sync_mode") == "datetime" and cfg.get("scheduled_datetime"):
+            try:
+                next_run_dt = datetime.fromisoformat(cfg["scheduled_datetime"])
+            except Exception:
+                next_run_dt = None
+        else:
+            agendar_proxima_execucao(cfg.get("interval_minutes", 60))
     scheduler_task = asyncio.create_task(background_scheduler())
     yield
     scheduler_task.cancel()
@@ -573,6 +705,8 @@ routes = [
     Route("/api/trigger-all", trigger_all_handler, methods=["POST"]),
     Route("/api/trigger-device", trigger_single_device_handler, methods=["POST"]),
     Route("/api/mailtm/new", create_mailtm_account_handler, methods=["POST"]),
+    Route("/api/mailtm/new-daily", renew_daily_email_handler, methods=["POST"]),
+    Route("/api/mailtm/check-playlist", check_playlist_from_email_handler, methods=["GET", "POST"]),
     Route("/api/mailtm/accounts", list_mailtm_accounts_handler, methods=["GET"]),
     Route("/api/mailtm/messages", get_mailtm_messages_handler, methods=["GET"]),
     Route("/api/mailtm/select", select_mailtm_account_handler, methods=["POST"]),

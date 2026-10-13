@@ -1,10 +1,10 @@
 {
   "master_playlist_url": "",
   "interval_minutes": 60,
-  "auto_update_enabled": false,
-  "sync_mode": "interval",
+  "auto_update_enabled": true,
+  "sync_mode": "daily_midnight_brasilia",
   "scheduled_datetime": "",
-  "temp_email": "teste-2026-10-13-efaa3a@maxxspace.com",
+  "temp_email": "teste-2026-10-13-1c9c79@maxxspace.com",
   "devices": [
     {
       "id": 1,
@@ -16,8 +16,8 @@
     },
     {
       "id": 2,
-      "name": "Equipamento 02 - Quarto Casal",
-      "tv_id": "",
+      "name": "iPad de Washington",
+      "tv_id": "e9b4-9e58-a8b2-da67-25c9-c737",
       "enabled": true,
       "last_sync": null,
       "status": "idle"
@@ -88,5 +88,9 @@
     }
   ],
   "last_run": null,
-  "history": []
+  "history": [],
+  "daily_time": "00:00",
+  "timezone": "America/Sao_Paulo",
+  "new_playlist_url": "",
+  "last_playlist_check": "2026-10-13T20:46:25.609874"
 }

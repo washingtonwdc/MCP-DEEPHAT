@@ -721,33 +721,44 @@
         <input type="url" id="masterPlaylist" class="mono" placeholder="https://servidor-iptv.com/get.php?username=...&type=m3u_plus" autocomplete="off" />
       </div>
 
-      <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.25rem;">
+      <div class="grid-2" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1.5rem; margin-top: 1.25rem;">
         <div>
-          <label>Modo de Agendamento</label>
-          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <button type="button" class="pill-btn active" id="btnModeInterval" onclick="setSyncMode('interval')">⏱️ Por Intervalo</button>
-            <button type="button" class="pill-btn" id="btnModeDate" onclick="setSyncMode('datetime')">📅 Escolher Data e Hora</button>
+          <label style="font-size: 0.95rem; color: #f0abfc;">🕛 Ciclo Diário de Atualização — 00:00 Brasília</label>
+          <div style="background: rgba(219,39,119,0.08); border: 1px solid rgba(219,39,119,0.25); border-radius: 0.85rem; padding: 0.85rem 1rem; margin-top: 0.4rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+              <div>
+                <span style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #be185d; font-size: 0.9rem;">
+                  <span>🇧🇷</span> Atualização Oficial à 00:00 (Meia-Noite)
+                </span>
+                <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">
+                  A cada 00:00, um <strong>novo e-mail</strong> recebe a <strong>nova playlist diária</strong>, que é replicada para o <strong>Celular de Washington</strong>, <strong>iPad de Washington</strong> e todos os demais equipamentos ativos.
+                </p>
+              </div>
+              <span class="badge-status badge-online" style="white-space: nowrap; font-size: 0.75rem;">🕛 00:00 Brasília</span>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap;">
+              <button type="button" class="pill-btn" onclick="checkPlaylistFromEmail()" title="Verificar se a playlist nova já chegou no e-mail">
+                🔍 Checar E-mail & Atualizar Playlist
+              </button>
+              <button type="button" class="pill-btn" onclick="generateDailyMailtmAccount()" title="Gerar um novo e-mail para receber a playlist de hoje">
+                ➕ Gerar Novo E-mail Diário
+              </button>
+            </div>
           </div>
 
-          <div id="intervalContainer">
-            <div class="interval-pills">
-              <button class="pill-btn" onclick="setIntervalVal(15)">15 Min</button>
-              <button class="pill-btn" onclick="setIntervalVal(30)">30 Min</button>
-              <button class="pill-btn active" onclick="setIntervalVal(60)">1 Hora</button>
-              <button class="pill-btn" onclick="setIntervalVal(120)">2 Horas</button>
-              <button class="pill-btn" onclick="setIntervalVal(360)">6 Horas</button>
-              <button class="pill-btn" onclick="setIntervalVal(720)">12 Horas</button>
+          <!-- Banner Destaque do Link da Playlist Recebida -->
+          <div id="newPlaylistBanner" style="margin-top: 0.85rem; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 0.85rem; padding: 0.75rem 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <span style="font-size: 0.75rem; font-weight: 700; color: #059669; text-transform: uppercase;">
+                ✨ Link da Playlist Nova Recebida por E-mail
+              </span>
+              <span id="lastPlaylistCheckTime" style="font-size: 0.7rem; color: var(--text-muted);">Verificado recentemente</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-              <input type="number" id="customMinutes" min="1" max="10080" value="60" style="max-width: 100px; padding: 0.4rem 0.6rem;" onchange="onCustomMinutesChange()" />
-              <span style="font-size: 0.8rem; color: var(--text-muted);">minutos</span>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="text" id="displayPlaylistLink" class="mono" readonly style="font-size: 0.8rem; padding: 0.4rem 0.6rem; background: rgba(0,0,0,0.03); border: 1px solid rgba(16,185,129,0.2); border-radius: 0.5rem; color: inherit; width: 100%;" placeholder="Aguardando link da playlist nova..." />
+              <button class="btn-icon" style="width: 32px; height: 32px; flex-shrink: 0;" title="Copiar Link da Playlist" onclick="copyPlaylistLink()">📋</button>
             </div>
-          </div>
-
-          <div id="datetimeContainer" style="display: none; margin-top: 0.5rem;">
-            <label style="font-size: 0.8rem;">Data e Hora da Sincronização:</label>
-            <input type="datetime-local" id="scheduledDatetime" class="device-input" style="padding: 0.5rem 0.75rem;" onchange="onScheduledDateChange()" />
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">A sincronização ocorrerá automaticamente no horário escolhido.</p>
           </div>
         </div>
 
@@ -755,7 +766,7 @@
           <div class="toggle-wrapper" style="margin-top: 0;">
             <div class="toggle-info">
               <h4 style="font-size: 0.9rem;">Auto-Sincronização Ativa</h4>
-              <p style="font-size: 0.75rem;" id="autoUpdateDesc">Dispara sincronização automática conforme programado.</p>
+              <p style="font-size: 0.75rem;" id="autoUpdateDesc">Dispara automaticamente todos os dias às 00:00 (Brasília).</p>
             </div>
             <label class="switch">
               <input type="checkbox" id="autoUpdateToggle" onchange="saveAllConfig()">
@@ -764,14 +775,14 @@
           </div>
 
           <!-- Caixa de E-mail Temporária (Mail.tm) Integrada -->
-          <div style="margin-top: 1rem; background: rgba(0,0,0,0.03); border: 1px dashed rgba(219,39,119,0.3); border-radius: 0.75rem; padding: 0.75rem 1rem;">
+          <div style="margin-top: 0.85rem; background: rgba(0,0,0,0.03); border: 1px dashed rgba(219,39,119,0.3); border-radius: 0.75rem; padding: 0.75rem 1rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-              <span style="font-size: 0.75rem; font-weight: 700; color: #be185d; text-transform: uppercase;">📬 Conta Mail.tm Temporária</span>
-              <button class="pill-btn" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;" onclick="generateNewMailtmAccount()">➕ Nova Conta</button>
+              <span style="font-size: 0.75rem; font-weight: 700; color: #be185d; text-transform: uppercase;">📬 E-mail Ativo para Receber Playlist</span>
+              <button class="pill-btn" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;" onclick="generateDailyMailtmAccount()">➕ Novo E-mail</button>
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <input type="text" id="mailtmEmail" class="mono" readonly style="font-size: 0.8rem; padding: 0.4rem 0.6rem; background: transparent; border: none; color: inherit;" value="Carregando..." />
-              <button class="btn-icon" style="width: 28px; height: 28px;" title="Copiar e-mail" onclick="copyMailtmEmail()">📋</button>
+              <button class="btn-icon" style="width: 28px; height: 28px; flex-shrink: 0;" title="Copiar e-mail" onclick="copyMailtmEmail()">📋</button>
             </div>
           </div>
         </div>
@@ -923,22 +934,27 @@
         currentConfig = data;
 
         document.getElementById('masterPlaylist').value = data.master_playlist_url || '';
-        document.getElementById('customMinutes').value = data.interval_minutes || 60;
         document.getElementById('autoUpdateToggle').checked = !!data.auto_update_enabled;
+
+        // Link da Playlist Recebida
+        const activePlaylist = data.new_playlist_url || data.master_playlist_url || '';
+        const displayInput = document.getElementById('displayPlaylistLink');
+        if (displayInput) displayInput.value = activePlaylist;
+
+        const checkTimeSpan = document.getElementById('lastPlaylistCheckTime');
+        if (checkTimeSpan) {
+          if (data.last_playlist_check) {
+            checkTimeSpan.innerText = `Checado em ${new Date(data.last_playlist_check).toLocaleTimeString('pt-BR')}`;
+          } else {
+            checkTimeSpan.innerText = 'Aguardando verificação';
+          }
+        }
 
         // E-mail Mail.tm
         if (data.temp_email) {
           document.getElementById('mailtmEmail').value = data.temp_email;
         }
 
-        // Modo de sincronização (Intervalo vs Data Marcada)
-        const syncMode = data.sync_mode || 'interval';
-        setSyncModeUI(syncMode);
-        if (data.scheduled_datetime) {
-          document.getElementById('scheduledDatetime').value = data.scheduled_datetime;
-        }
-
-        updateIntervalPills(data.interval_minutes);
         updateStatusBadge(data.status, data.auto_update_enabled, data.is_syncing);
 
         if (data.next_run) {
@@ -1220,16 +1236,25 @@
       container.innerHTML = devicesList.map((dev, idx) => {
         const statusClass = dev.status || 'idle';
         const statusLabel = statusClass === 'syncing' ? '⏳ Enviando...' : (statusClass === 'success' ? '🟢 OK' : (statusClass === 'error' ? '❌ Erro' : '⏸️ Aguardo'));
-        const isWashington = dev.id === 1 || (dev.tv_id === 'b44a-64c9-2dc8-8b62-593c-11de') || (dev.name && dev.name.toLowerCase().includes('washington'));
+        const isCelularWashington = (dev.tv_id === 'b44a-64c9-2dc8-8b62-593c-11de') || (dev.name && dev.name.toLowerCase().includes('celular'));
+        const isIpadWashington = (dev.tv_id === 'e9b4-9e58-a8b2-da67-25c9-c737') || (dev.name && dev.name.toLowerCase().includes('ipad'));
+        const isWashington = isCelularWashington || isIpadWashington;
+        let washingtonTag = '';
+        if (isCelularWashington) {
+          washingtonTag = '<span style="background: rgba(219,39,119,0.15); color: #db2777; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(219,39,119,0.3); white-space: nowrap;">📱 Celular Washington</span>';
+        } else if (isIpadWashington) {
+          washingtonTag = '<span style="background: rgba(139,92,246,0.15); color: #8b5cf6; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(139,92,246,0.3); white-space: nowrap;">📲 iPad Washington</span>';
+        }
         const lastSyncLabel = dev.last_sync ? `Último sync: ${new Date(dev.last_sync).toLocaleString('pt-BR')}` : 'Aguardando sincronização';
+        const rowStyle = isWashington ? 'border-left: 4px solid #db2777; background: rgba(219,39,119,0.03);' : '';
         
         return `
-          <div class="device-row" id="deviceRow_${dev.id}">
+          <div class="device-row" id="deviceRow_${dev.id}" style="${rowStyle}">
             <div class="device-num">${String(idx + 1).padStart(2, '0')}</div>
             <div>
               <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
                 <input type="text" class="device-input" value="${dev.name || ''}" placeholder="Ex: Smart TV Sala" onchange="updateDeviceField(${dev.id}, 'name', this.value)" style="flex: 1;" />
-                ${isWashington ? '<span style="background: rgba(219,39,119,0.15); color: #db2777; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(219,39,119,0.3); white-space: nowrap;">📱 Celular Washington</span>' : ''}
+                ${washingtonTag}
               </div>
               <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-left: 2px;">${lastSyncLabel}</span>
             </div>
@@ -1293,14 +1318,64 @@
       }
     }
 
+    async function checkPlaylistFromEmail() {
+      showToast('Verificando mensagens no e-mail ativo...', 'info');
+      try {
+        const res = await fetch('/api/mailtm/check-playlist', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          if (data.found) {
+            showToast('✨ Nova playlist capturada com sucesso do e-mail!', 'success');
+            document.getElementById('masterPlaylist').value = data.playlist_url;
+            const displayInput = document.getElementById('displayPlaylistLink');
+            if (displayInput) displayInput.value = data.playlist_url;
+          } else {
+            showToast(data.message || 'Nenhuma playlist encontrada nos e-mails recentes.', 'warning');
+          }
+          await loadStatus();
+        } else {
+          showToast(`Erro: ${data.error || 'Falha ao checar e-mail'}`, 'error');
+        }
+      } catch (err) {
+        showToast(`Erro na requisição: ${err.message}`, 'error');
+      }
+    }
+
+    async function generateDailyMailtmAccount() {
+      showToast('Criando novo e-mail para o ciclo diário...', 'info');
+      try {
+        const res = await fetch('/api/mailtm/new-daily', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Novo e-mail gerado: ${data.email}`, 'success');
+          document.getElementById('mailtmEmail').value = data.email;
+          await loadMailtmAccounts();
+          await loadStatus();
+        } else {
+          showToast(`Erro: ${data.error}`, 'error');
+        }
+      } catch (err) {
+        showToast(`Erro ao criar e-mail: ${err.message}`, 'error');
+      }
+    }
+
+    function copyPlaylistLink() {
+      const link = (document.getElementById('displayPlaylistLink') && document.getElementById('displayPlaylistLink').value) || document.getElementById('masterPlaylist').value;
+      if (!link) {
+        showToast('Nenhum link de playlist configurado ainda.', 'error');
+        return;
+      }
+      navigator.clipboard.writeText(link);
+      showToast('Link da Playlist copiado para a área de transferência!', 'success');
+    }
+
     async function saveAllConfig() {
-      const isDateMode = document.getElementById('btnModeDate').classList.contains('active');
       const payload = {
         master_playlist_url: document.getElementById('masterPlaylist').value.trim(),
-        interval_minutes: parseInt(document.getElementById('customMinutes').value) || 60,
         auto_update_enabled: document.getElementById('autoUpdateToggle').checked,
-        sync_mode: isDateMode ? 'datetime' : 'interval',
-        scheduled_datetime: document.getElementById('scheduledDatetime').value,
+        sync_mode: 'daily_midnight_brasilia',
+        daily_time: '00:00',
+        timezone: 'America/Sao_Paulo',
         temp_email: document.getElementById('mailtmEmail').value,
         devices: devicesList
       };
@@ -1313,7 +1388,7 @@
         });
 
         if (res.ok) {
-          showToast('Todas as alterações foram salvas com sucesso!', 'success');
+          showToast('Configurações diárias salvas com sucesso!', 'success');
           loadStatus();
         } else {
           showToast('Erro ao salvar dados.', 'error');

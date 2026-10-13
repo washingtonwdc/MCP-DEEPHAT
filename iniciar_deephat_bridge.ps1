@@ -7,7 +7,12 @@ param(
 )
 
 $Port = 3095
-$PythonExe = "C:\Users\washingtonpronet\ProjetosDev\MCP-DEEPHAT\.venv\Scripts\python.exe"
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$PythonExe = Join-Path $ScriptDir ".venv\Scripts\python.exe"
+
+if (-not (Test-Path $PythonExe)) {
+    $PythonExe = "python"
+}
 
 $conn = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue | Where-Object { $_.State -eq 'Listen' }
 
@@ -27,7 +32,7 @@ $code = @"
 import subprocess, sys
 subprocess.Popen(
     [sys.executable, 'openai_api.py'],
-    cwd=r'C:\Users\washingtonpronet\ProjetosDev\MCP-DEEPHAT',
+    cwd=r'$ScriptDir',
     creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
 )
 "@

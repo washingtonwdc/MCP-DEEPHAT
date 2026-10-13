@@ -22,9 +22,17 @@ $PortOccupied = Get-NetTCPConnection -LocalPort 5050 -ErrorAction SilentlyContin
 if ($PortOccupied) {
     Write-Host "[*] O Dashboard já está em execução na porta 5050." -ForegroundColor Yellow
 } else {
-    Write-Host "[+] Iniciando servidor Web na porta 5050..." -ForegroundColor Green
-    Start-Process -FilePath $PythonVenv -ArgumentList "`"$ScriptDir\smarttv_web.py`" --port 5050" -WindowStyle Hidden
-    Start-Sleep -Seconds 2
+    Write-Host "[+] Iniciando servidor Web desacoplado permanente na porta 5050..." -ForegroundColor Green
+    $code = @"
+import subprocess, sys
+subprocess.Popen(
+    [sys.executable, 'smarttv_web.py', '--port', '5050'],
+    cwd=r'$ScriptDir',
+    creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+)
+"@
+    & $PythonVenv -c $code
+    Start-Sleep -Seconds 3
 }
 
 Write-Host "[🚀] Abrindo interface no navegador: http://127.0.0.1:5050" -ForegroundColor Cyan
