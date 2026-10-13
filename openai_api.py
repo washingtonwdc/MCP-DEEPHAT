@@ -37,6 +37,26 @@ app.add_middleware(
 client = DeepHatClient()
 
 
+def sanitize_messages(raw_messages):
+    """Garante que todas as mensagens estejam com content em string pura."""
+    sanitized = []
+    for m in raw_messages:
+        role = m.get("role", "user")
+        content = m.get("content", "")
+        if isinstance(content, list):
+            parts = []
+            for item in content:
+                if isinstance(item, dict):
+                    parts.append(item.get("text", str(item)))
+                else:
+                    parts.append(str(item))
+            content_str = " ".join(parts)
+        else:
+            content_str = str(content)
+        sanitized.append({"role": role, "content": content_str})
+    return sanitized
+
+
 async def list_models(request: Request):
     """GET /v1/models"""
     data = [
@@ -69,13 +89,14 @@ async def chat_completions(request: Request):
     except Exception:
         return JSONResponse({"error": {"message": "Invalid JSON"}}, status_code=400)
 
-    messages = body.get("messages", [])
+    raw_messages = body.get("messages", [])
     model = body.get("model", "deephat")
     stream = body.get("stream", False)
 
-    if not messages:
+    if not raw_messages:
         return JSONResponse({"error": {"message": "Nenhuma mensagem fornecida"}}, status_code=400)
 
+    messages = sanitize_messages(raw_messages)
     chat_id = f"chatcmpl-{uuid.uuid4().hex[:12]}"
     created_ts = int(time.time())
 
@@ -87,7 +108,7 @@ async def chat_completions(request: Request):
                 res = await client.chat_web(messages)
                 
                 # Envia o conteúdo em chunks para fluidez no chat
-                chunk_size = 8
+                chunk_size = 6
                 words = res.split(" ")
                 for i in range(0, len(words), chunk_size):
                     part = " ".join(words[i : i + chunk_size])
@@ -201,6 +222,5 @@ app.routes.extend(
 )
 
 if __name__ == "__main__":
-    port = int(Config.DEEPHAT_PORT if hasattr(Config, "DEEPHAT_PORT") else 3095)
-    print(f"🚀 Iniciando Bridge OpenAI DeepHat AI em http://127.0.0.1:{port}...")
+    port = 3095
     uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
