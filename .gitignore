@@ -35,5 +35,6 @@ session.json
 .idea/
 *.swp
 *.swo
-.DS_Store
-Thumbs.db
+# Test Reports
+relatorio_deduplicacao_*
+*.csv
