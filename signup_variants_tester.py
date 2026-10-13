@@ -233,10 +233,24 @@ def main():
     parser.add_argument("--all-phones", action="store_true", help="Se ativado, testa todas as 5 variações de telefone para cada e-mail (matriz completa)")
     parser.add_argument("--max-emails", type=int, default=0, help="Limita o número máximo de e-mails testados (0 = sem limite)")
 
+    parser.add_argument("--use-mailtm", action="store_true", help="Gera uma caixa temporária no Mail.tm e aguarda o link de confirmação após o envio")
+
     args = parser.parse_args()
 
     emails_custom = None
-    if args.emails_file and Path(args.emails_file).exists():
+    mailtm_token = None
+
+    if args.use_mailtm:
+        try:
+            import mailtm_manager
+            email_tm, _, token_tm = mailtm_manager.obter_ou_criar_email_do_dia()
+            emails_custom = [email_tm]
+            mailtm_token = token_tm
+            print(f"[+] Modo Mail.tm Ativo: usando caixa descartável {email_tm}")
+        except Exception as e:
+            print(f"[!] Falha ao inicializar Mail.tm: {e}")
+
+    elif args.emails_file and Path(args.emails_file).exists():
         emails_custom = carregar_emails_arquivo(args.emails_file)
         print(f"[+] Carregados {len(emails_custom)} e-mails do arquivo: {args.emails_file}")
 
@@ -256,6 +270,12 @@ def main():
     )
 
     salvar_relatorios(resultados)
+
+    # Se usou Mail.tm e não foi dry-run, aguarda a chegada do e-mail de ativação
+    if args.use_mailtm and not args.dry_run and mailtm_token:
+        print("\n[📩] Aguardando e-mail de confirmação no Mail.tm...")
+        import mailtm_manager
+        mailtm_manager.monitorar_caixa(mailtm_token, timeout_segundos=60)
 
 
 if __name__ == "__main__":
