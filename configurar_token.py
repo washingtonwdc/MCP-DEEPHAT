@@ -4,7 +4,15 @@ Script interativo para configuração e validação imediata do cookie/token Dee
 
 import asyncio
 import os
+import sys
 from pathlib import Path
+
+# Forçar UTF-8 no Windows Console
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
@@ -12,7 +20,7 @@ from rich.prompt import Prompt
 from client import DeepHatClient
 from config import Config
 
-console = Console()
+console = Console(force_terminal=True, legacy_windows=False)
 BASE_DIR = Path(__file__).resolve().parent
 ENV_PATH = BASE_DIR / ".env"
 

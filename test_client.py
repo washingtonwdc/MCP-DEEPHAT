@@ -5,6 +5,14 @@ Valida autenticação de sessão web (app.deephat.ai), conexão Kindo e execuç�
 
 import asyncio
 import sys
+import io
+
+# Forçar UTF-8 no Windows Console
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -12,7 +20,7 @@ from rich.table import Table
 from config import Config
 from client import DeepHatClient
 
-console = Console()
+console = Console(force_terminal=True, legacy_windows=False)
 
 
 async def main():

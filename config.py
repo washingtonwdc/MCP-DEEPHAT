@@ -47,14 +47,22 @@ class Config:
 
     @classmethod
     def get_cookie_header(cls) -> str:
-        """Monta o header de Cookie priorizando DEEPHAT_COOKIE ou DEEPHAT_SESSION_TOKEN."""
+        """Monta o header de Cookie priorizando DEEPHAT_COOKIE ou DEEPHAT_SESSION_TOKEN com suporte a Auth.js v5 e NextAuth."""
         if cls.DEEPHAT_COOKIE:
             return cls.DEEPHAT_COOKIE
         if cls.DEEPHAT_SESSION_TOKEN:
-            # Testa se já veio com o nome do cookie ou apenas o token puro
-            if "next-auth.session-token=" in cls.DEEPHAT_SESSION_TOKEN:
-                return cls.DEEPHAT_SESSION_TOKEN
-            return f"__Secure-next-auth.session-token={cls.DEEPHAT_SESSION_TOKEN}; next-auth.session-token={cls.DEEPHAT_SESSION_TOKEN}"
+            token = cls.DEEPHAT_SESSION_TOKEN.strip()
+            # Se já veio no formato 'chave=valor', retorna diretamente
+            if "=" in token and ";" in token:
+                return token
+            # Inclui todas as variantes de cookies de sessão (Auth.js v5 e NextAuth)
+            cookies = [
+                f"__Secure-authjs.session-token={token}",
+                f"authjs.session-token={token}",
+                f"__Secure-next-auth.session-token={token}",
+                f"next-auth.session-token={token}",
+            ]
+            return "; ".join(cookies)
         return ""
 
     @classmethod
