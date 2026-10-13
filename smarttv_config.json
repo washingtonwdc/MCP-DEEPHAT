@@ -1,0 +1,8 @@
+{
+  "tv_id": "",
+  "playlist_url": "",
+  "interval_minutes": 60,
+  "auto_update_enabled": false,
+  "last_run": null,
+  "history": []
+}
