@@ -817,6 +817,66 @@
       </div>
     </div>
 
+    <!-- Contas Temporárias Criadas (Mail.tm) Card -->
+    <div class="glass-card" style="border: 1px solid rgba(219, 39, 119, 0.25);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <h2 class="card-title" style="margin-bottom: 0.25rem; color: #db2777;">
+            📬 Contas & Caixas Postais Criadas (Mail.tm) (<span id="accountsCountBadge">0</span>)
+          </h2>
+          <p style="font-size: 0.825rem; color: var(--text-muted); margin: 0;">
+            Histórico de todas as contas temporárias criadas no sistema. Exibe credenciais, senhas e caixa de entrada para confirmação de cadastros.
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="pill-btn active" onclick="generateNewMailtmAccount()">➕ Criar Nova Conta</button>
+          <button class="pill-btn" onclick="loadMailtmAccounts()">🔄 Atualizar Contas</button>
+        </div>
+      </div>
+
+      <!-- Tabela de Contas Criadas -->
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+          <thead>
+            <tr style="color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left;">
+              <th style="padding: 0.75rem;">E-mail Criado</th>
+              <th style="padding: 0.75rem;">Senha de Acesso</th>
+              <th style="padding: 0.75rem;">Data / Criação</th>
+              <th style="padding: 0.75rem; text-align: center;">Status</th>
+              <th style="padding: 0.75rem; text-align: right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="accountsTableBody">
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                Carregando contas cadastradas...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Container Expansível de Caixa de Entrada / Mensagens Recebidas -->
+      <div id="inboxContainer" style="display: none; margin-top: 1.5rem; background: rgba(0,0,0,0.02); border: 1px dashed rgba(219,39,119,0.3); border-radius: 0.75rem; padding: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: #be185d; margin: 0;">
+              📥 Caixa de Entrada: <span id="inboxCurrentEmail" class="mono" style="font-size: 0.85rem; color: inherit;"></span>
+            </h4>
+            <span style="font-size: 0.75rem; color: var(--text-muted);" id="inboxStatusLabel">Carregando mensagens...</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="pill-btn" onclick="refreshCurrentInbox()">🔄 Recarregar Inbox</button>
+            <button class="pill-btn" onclick="closeInboxView()">✖️ Fechar Visualização</button>
+          </div>
+        </div>
+
+        <div id="inboxMessagesList">
+          <!-- Mensagens renderizadas dinamicamente aqui -->
+        </div>
+      </div>
+    </div>
+
     <!-- Logs Table -->
     <div class="glass-card">
       <h2 class="card-title">📜 Histórico Recente de Sincronizações</h2>
@@ -928,6 +988,207 @@
       saveAllConfig();
     }
 
+    let mailtmAccountsList = [];
+    let currentInboxEmail = null;
+    let passwordVisibleMap = {};
+
+    function copyText(text, label = 'Texto') {
+      if (!text) return;
+      navigator.clipboard.writeText(text);
+      showToast(`${label} copiado para a área de transferência!`, 'success');
+    }
+
+    async function loadMailtmAccounts() {
+      try {
+        const res = await fetch('/api/mailtm/accounts');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success) {
+          mailtmAccountsList = data.accounts || [];
+          renderMailtmAccounts(data.active_email);
+        }
+      } catch (err) {
+        console.error('Erro ao carregar contas do Mail.tm:', err);
+      }
+    }
+
+    function renderMailtmAccounts(activeEmail) {
+      const tbody = document.getElementById('accountsTableBody');
+      const badge = document.getElementById('accountsCountBadge');
+      if (badge) badge.innerText = mailtmAccountsList.length;
+
+      if (!mailtmAccountsList || mailtmAccountsList.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+              Nenhuma conta temporária criada ainda. Clique em "➕ Criar Nova Conta" acima.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = mailtmAccountsList.map((acc, idx) => {
+        const dt = acc.criado_em ? new Date(acc.criado_em).toLocaleString('pt-BR') : (acc.data || '--');
+        const isActive = acc.is_active || (acc.email === activeEmail);
+        const isPassVisible = !!passwordVisibleMap[acc.email];
+        const passDisplay = isPassVisible ? acc.senha : '••••••••••••';
+        
+        return `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span class="mono" style="font-size: 0.85rem; font-weight: 600;">${acc.email}</span>
+                <button class="btn-icon" style="width: 26px; height: 26px;" title="Copiar E-mail" onclick="copyText('${acc.email}', 'E-mail')">📋</button>
+                ${isActive ? '<span class="badge-status badge-online" style="font-size: 0.7rem; padding: 2px 8px;">🟢 Ativa</span>' : ''}
+              </div>
+            </td>
+            <td style="padding: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <span class="mono" style="font-size: 0.85rem; color: var(--text-muted);">${passDisplay}</span>
+                <button class="btn-icon" style="width: 26px; height: 26px;" title="${isPassVisible ? 'Ocultar' : 'Revelar'} Senha" onclick="togglePasswordVisibility('${acc.email}')">
+                  ${isPassVisible ? '🙈' : '👁️'}
+                </button>
+                <button class="btn-icon" style="width: 26px; height: 26px;" title="Copiar Senha" onclick="copyText('${acc.senha}', 'Senha')">📋</button>
+              </div>
+            </td>
+            <td style="padding: 0.75rem; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">
+              ${dt}
+            </td>
+            <td style="padding: 0.75rem; text-align: center;">
+              <span class="badge-device success" style="font-size: 0.75rem;">Pronta</span>
+            </td>
+            <td style="padding: 0.75rem; text-align: right;">
+              <div style="display: flex; justify-content: flex-end; gap: 0.4rem; flex-wrap: wrap;">
+                <button class="pill-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="openInboxForEmail('${acc.email}')">
+                  📥 Ver Inbox
+                </button>
+                ${!isActive ? `<button class="pill-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="selectActiveAccount('${acc.email}')">⭐ Ativar</button>` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function togglePasswordVisibility(email) {
+      passwordVisibleMap[email] = !passwordVisibleMap[email];
+      const activeEmail = currentConfig.temp_email || '';
+      renderMailtmAccounts(activeEmail);
+    }
+
+    async function selectActiveAccount(email) {
+      try {
+        const res = await fetch('/api/mailtm/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Conta ativa definida: ${email}`, 'success');
+          document.getElementById('mailtmEmail').value = email;
+          loadMailtmAccounts();
+          loadStatus();
+        } else {
+          showToast('Erro ao selecionar conta.', 'error');
+        }
+      } catch (err) {
+        showToast('Erro de comunicação.', 'error');
+      }
+    }
+
+    async function openInboxForEmail(email) {
+      currentInboxEmail = email;
+      const box = document.getElementById('inboxContainer');
+      const labelEmail = document.getElementById('inboxCurrentEmail');
+      const statusLabel = document.getElementById('inboxStatusLabel');
+      
+      box.style.display = 'block';
+      labelEmail.innerText = email;
+      statusLabel.innerText = 'Buscando mensagens na caixa postal...';
+      
+      // Rola suavemente até o container
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      await refreshCurrentInbox();
+    }
+
+    function closeInboxView() {
+      document.getElementById('inboxContainer').style.display = 'none';
+      currentInboxEmail = null;
+    }
+
+    async function refreshCurrentInbox() {
+      if (!currentInboxEmail) return;
+      const statusLabel = document.getElementById('inboxStatusLabel');
+      const listContainer = document.getElementById('inboxMessagesList');
+
+      statusLabel.innerText = 'Consultando mensagens...';
+
+      try {
+        const res = await fetch(`/api/mailtm/messages?email=${encodeURIComponent(currentInboxEmail)}`);
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          const msgs = data.messages || [];
+          statusLabel.innerText = `${msgs.length} mensagem(ns) encontrada(s)`;
+
+          if (msgs.length === 0) {
+            listContainer.innerHTML = `
+              <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📭</div>
+                <div style="font-weight: 600; font-size: 0.9rem;">Caixa de entrada vazia</div>
+                <p style="font-size: 0.8rem; margin-top: 0.25rem;">Nenhuma mensagem recebida ainda nesta conta temporária. Aguardando links de confirmação e ativação...</p>
+              </div>
+            `;
+            return;
+          }
+
+          listContainer.innerHTML = msgs.map(m => {
+            const dt = m.data_recebimento ? new Date(m.data_recebimento).toLocaleString('pt-BR') : '--';
+            const linksAtivacao = m.links_ativacao || [];
+            
+            return `
+              <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 0.75rem; padding: 1rem; margin-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                  <div>
+                    <span style="font-weight: 700; color: #f8fafc; font-size: 0.9rem;">${m.assunto || '(Sem Assunto)'}</span>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">De: <span class="mono">${m.remetente || '--'}</span></div>
+                  </div>
+                  <span class="mono" style="font-size: 0.75rem; color: var(--text-muted);">${dt}</span>
+                </div>
+
+                ${linksAtivacao.length > 0 ? `
+                  <div style="margin: 0.75rem 0; padding: 0.75rem; background: rgba(219, 39, 119, 0.12); border: 1px solid rgba(219, 39, 119, 0.3); border-radius: 0.5rem;">
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #db2777; text-transform: uppercase; margin-bottom: 0.35rem;">
+                      🔗 Links de Ativação / Confirmação Detectados:
+                    </div>
+                    ${linksAtivacao.map(lk => `
+                      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; flex-wrap: wrap;">
+                        <input type="text" class="mono" readonly value="${lk}" style="flex: 1; min-width: 250px; font-size: 0.75rem; padding: 0.35rem 0.5rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff;" />
+                        <a href="${lk}" target="_blank" rel="noopener noreferrer" class="pill-btn active" style="text-decoration: none; font-size: 0.75rem; padding: 0.35rem 0.75rem;">🌐 Abrir Link</a>
+                        <button class="btn-icon" style="width: 28px; height: 28px;" title="Copiar Link" onclick="copyText('${lk}', 'Link de confirmação')">📋</button>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : ''}
+
+                <div style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.4; white-space: pre-wrap; background: rgba(0,0,0,0.15); padding: 0.5rem 0.75rem; border-radius: 0.4rem; max-height: 150px; overflow-y: auto;">
+                  ${m.texto || '(Mensagem sem texto)'}
+                </div>
+              </div>
+            `;
+          }).join('');
+
+        } else {
+          statusLabel.innerText = 'Falha ao buscar mensagens';
+        }
+      } catch (err) {
+        statusLabel.innerText = 'Erro de conexão com o Mail.tm';
+      }
+    }
+
     async function generateNewMailtmAccount() {
       showToast('Criando nova conta temporária no Mail.tm...', 'info');
       try {
@@ -936,6 +1197,7 @@
         if (res.ok && data.success) {
           document.getElementById('mailtmEmail').value = data.email;
           showToast(`Nova conta criada: ${data.email}`, 'success');
+          await loadMailtmAccounts();
         } else {
           showToast('Erro ao criar conta no Mail.tm.', 'error');
         }
@@ -947,8 +1209,7 @@
     function copyMailtmEmail() {
       const email = document.getElementById('mailtmEmail').value;
       if (email && email !== 'Carregando...') {
-        navigator.clipboard.writeText(email);
-        showToast('E-mail copiado para a área de transferência!', 'success');
+        copyText(email, 'E-mail');
       }
     }
 
@@ -959,15 +1220,24 @@
       container.innerHTML = devicesList.map((dev, idx) => {
         const statusClass = dev.status || 'idle';
         const statusLabel = statusClass === 'syncing' ? '⏳ Enviando...' : (statusClass === 'success' ? '🟢 OK' : (statusClass === 'error' ? '❌ Erro' : '⏸️ Aguardo'));
+        const isWashington = dev.id === 1 || (dev.tv_id === 'b44a-64c9-2dc8-8b62-593c-11de') || (dev.name && dev.name.toLowerCase().includes('washington'));
+        const lastSyncLabel = dev.last_sync ? `Último sync: ${new Date(dev.last_sync).toLocaleString('pt-BR')}` : 'Aguardando sincronização';
         
         return `
           <div class="device-row" id="deviceRow_${dev.id}">
             <div class="device-num">${String(idx + 1).padStart(2, '0')}</div>
             <div>
-              <input type="text" class="device-input" value="${dev.name || ''}" placeholder="Ex: Smart TV Sala" onchange="updateDeviceField(${dev.id}, 'name', this.value)" />
+              <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
+                <input type="text" class="device-input" value="${dev.name || ''}" placeholder="Ex: Smart TV Sala" onchange="updateDeviceField(${dev.id}, 'name', this.value)" style="flex: 1;" />
+                ${isWashington ? '<span style="background: rgba(219,39,119,0.15); color: #db2777; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(219,39,119,0.3); white-space: nowrap;">📱 Celular Washington</span>' : ''}
+              </div>
+              <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-left: 2px;">${lastSyncLabel}</span>
             </div>
             <div>
-              <input type="text" class="device-input mono" value="${dev.tv_id || ''}" placeholder="TV ID (código)" onchange="updateDeviceField(${dev.id}, 'tv_id', this.value)" />
+              <div style="display: flex; align-items: center; gap: 0.35rem;">
+                <input type="text" class="device-input mono" value="${dev.tv_id || ''}" placeholder="TV ID (código)" onchange="updateDeviceField(${dev.id}, 'tv_id', this.value)" style="flex: 1;" />
+                <button class="btn-icon" style="width: 32px; height: 32px; flex-shrink: 0;" title="Copiar TV ID" onclick="copyText('${dev.tv_id}', 'TV ID')">📋</button>
+              </div>
             </div>
             <div style="text-align: center;">
               <span class="badge-device ${statusClass}">${statusLabel}</span>
@@ -991,13 +1261,14 @@
 
     async function addNewDevice() {
       try {
+        const nextNum = String(devicesList.length + 1).padStart(2, '0');
         const res = await fetch('/api/device/add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: `Equipamento ${devicesList.length + 1:02d}`, tv_id: '' })
+          body: JSON.stringify({ name: `Equipamento ${nextNum}`, tv_id: '' })
         });
         if (res.ok) {
-          showToast('Novo equipamento adicionado!', 'success');
+          showToast('Novo equipamento adicionado com sucesso!', 'success');
           loadStatus();
         }
       } catch (err) {
@@ -1253,10 +1524,14 @@
       }
     }
 
-    // Inicialização do Tema e Dados
+    // Inicialização do Tema e Dados em Tempo Real
     initTheme();
     loadStatus();
-    setInterval(loadStatus, 10000);
+    loadMailtmAccounts();
+    setInterval(() => {
+      loadStatus();
+      loadMailtmAccounts();
+    }, 4000);
   </script>
 </body>
 </html>

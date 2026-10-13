@@ -390,9 +390,86 @@ async def create_mailtm_account_handler(request: Request):
         cfg = carregar_config()
         cfg["temp_email"] = endereco
         salvar_config(cfg)
-        return JSONResponse({"success": True, "email": endereco})
+        return JSONResponse({
+            "success": True,
+            "email": endereco,
+            "password": senha,
+            "message": "Conta Mail.tm criada com sucesso!"
+        })
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
+async def list_mailtm_accounts_handler(request: Request):
+    """Retorna todas as contas criadas salvas em emails.json."""
+    try:
+        import mailtm_manager
+        dados = mailtm_manager.carregar_dados()
+        contas = dados.get("contas", [])
+        cfg = carregar_config()
+        email_ativo = cfg.get("temp_email", "")
+
+        resultado = []
+        for c in contas:
+            resultado.append({
+                "email": c.get("email"),
+                "senha": c.get("senha"),
+                "data": c.get("data"),
+                "criado_em": c.get("criado_em"),
+                "is_active": c.get("email") == email_ativo,
+                "has_token": bool(c.get("token"))
+            })
+
+        resultado.sort(key=lambda x: str(x.get("criado_em", "")), reverse=True)
+        return JSONResponse({"success": True, "accounts": resultado, "active_email": email_ativo})
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
+async def get_mailtm_messages_handler(request: Request):
+    """Busca as mensagens recebidas de uma conta Mail.tm específica."""
+    try:
+        import mailtm_manager
+        target_email = request.query_params.get("email", "").strip()
+        dados = mailtm_manager.carregar_dados()
+        contas = dados.get("contas", [])
+
+        if not target_email:
+            cfg = carregar_config()
+            target_email = cfg.get("temp_email", "")
+
+        conta = next((c for c in contas if c.get("email") == target_email), None)
+        if not conta:
+            for k, v in dados.items():
+                if isinstance(v, dict) and v.get("email") == target_email:
+                    conta = v
+                    break
+
+        if not conta or not conta.get("token"):
+            return JSONResponse({"success": False, "error": f"Conta '{target_email}' não encontrada ou sem token de acesso."}, status_code=404)
+
+        token = conta["token"]
+        msgs = mailtm_manager.extrair_links_confirmacao(token)
+        return JSONResponse({"success": True, "email": target_email, "messages": msgs, "total": len(msgs)})
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
+async def select_mailtm_account_handler(request: Request):
+    """Define uma das contas existentes como a conta temporária ativa."""
+    try:
+        body = await request.json()
+        email = body.get("email", "").strip()
+        if not email:
+            return JSONResponse({"success": False, "error": "E-mail não fornecido."}, status_code=400)
+
+        cfg = carregar_config()
+        cfg["temp_email"] = email
+        salvar_config(cfg)
+        return JSONResponse({"success": True, "active_email": email})
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
 
 
 async def add_device_handler(request: Request):
@@ -496,6 +573,9 @@ routes = [
     Route("/api/trigger-all", trigger_all_handler, methods=["POST"]),
     Route("/api/trigger-device", trigger_single_device_handler, methods=["POST"]),
     Route("/api/mailtm/new", create_mailtm_account_handler, methods=["POST"]),
+    Route("/api/mailtm/accounts", list_mailtm_accounts_handler, methods=["GET"]),
+    Route("/api/mailtm/messages", get_mailtm_messages_handler, methods=["GET"]),
+    Route("/api/mailtm/select", select_mailtm_account_handler, methods=["POST"]),
 ]
 
 app = Starlette(debug=True, routes=routes, lifespan=lifespan)
