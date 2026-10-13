@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "deephat": {
+      "command": "C:\\Users\\washingtonpronet\\ProjetosDev\\MCP-DEEPHAT\\.venv\\Scripts\\python.exe",
+      "args": [
+        "C:\\Users\\washingtonpronet\\ProjetosDev\\MCP-DEEPHAT\\server.py"
+      ],
+      "env": {
+        "DEEPHAT_COOKIE": "",
+        "CONNECTION_MODE": "auto"
+      }
+    }
+  }
+}
