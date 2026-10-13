@@ -2,17 +2,90 @@
   "master_playlist_url": "",
   "interval_minutes": 60,
   "auto_update_enabled": false,
+  "sync_mode": "interval",
+  "scheduled_datetime": "",
+  "temp_email": "teste-2026-10-13-efaa3a@maxxspace.com",
   "devices": [
-    {"id": 1, "name": "Equipamento 01 - Sala de Estar", "tv_id": "", "enabled": true, "last_sync": null, "status": "idle"},
-    {"id": 2, "name": "Equipamento 02 - Quarto Casal", "tv_id": "", "enabled": true, "last_sync": null, "status": "idle"},
-    {"id": 3, "name": "Equipamento 03 - Quarto Filhos", "tv_id": "", "enabled": true, "last_sync": null, "status": "idle"},
-    {"id": 4, "name": "Equipamento 04 - Quarto Hóspedes", "tv_id": "", "enabled": true, "last_sync": null, "status": "idle"},
-    {"id": 5, "name": "Equipamento 05 - Área Gourmet / Churrasqueira", "tv_id": "", "enabled": true, "last_sync": null, "status": "idle"},
-    {"id": 6, "name": "Equipamento 06 - Cozinha", "tv_id": "", "enabled": true, "last_sync": null, "status": "idle"},
-    {"id": 7, "name": "Equipamento 07 - Escritório / Home Office", "tv_id": "", "enabled": true, "last_sync": null, "status": "idle"},
-    {"id": 8, "name": "Equipamento 08 - Smart TV Varanda", "tv_id": "", "enabled": true, "last_sync": null, "status": "idle"},
-    {"id": 9, "name": "Equipamento 09 - TV Box Reserva 1", "tv_id": "", "enabled": true, "last_sync": null, "status": "idle"},
-    {"id": 10, "name": "Equipamento 10 - TV Box Reserva 2", "tv_id": "", "enabled": true, "last_sync": null, "status": "idle"}
+    {
+      "id": 1,
+      "name": "Celular de Washington",
+      "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
+      "enabled": true,
+      "last_sync": null,
+      "status": "idle"
+    },
+    {
+      "id": 2,
+      "name": "Equipamento 02 - Quarto Casal",
+      "tv_id": "",
+      "enabled": true,
+      "last_sync": null,
+      "status": "idle"
+    },
+    {
+      "id": 3,
+      "name": "Equipamento 03 - Quarto Filhos",
+      "tv_id": "",
+      "enabled": true,
+      "last_sync": null,
+      "status": "idle"
+    },
+    {
+      "id": 4,
+      "name": "Equipamento 04 - Quarto Hóspedes",
+      "tv_id": "",
+      "enabled": true,
+      "last_sync": null,
+      "status": "idle"
+    },
+    {
+      "id": 5,
+      "name": "Equipamento 05 - Área Gourmet / Churrasqueira",
+      "tv_id": "",
+      "enabled": true,
+      "last_sync": null,
+      "status": "idle"
+    },
+    {
+      "id": 6,
+      "name": "Equipamento 06 - Cozinha",
+      "tv_id": "",
+      "enabled": true,
+      "last_sync": null,
+      "status": "idle"
+    },
+    {
+      "id": 7,
+      "name": "Equipamento 07 - Escritório / Home Office",
+      "tv_id": "",
+      "enabled": true,
+      "last_sync": null,
+      "status": "idle"
+    },
+    {
+      "id": 8,
+      "name": "Equipamento 08 - Smart TV Varanda",
+      "tv_id": "",
+      "enabled": true,
+      "last_sync": null,
+      "status": "idle"
+    },
+    {
+      "id": 9,
+      "name": "Equipamento 09 - TV Box Reserva 1",
+      "tv_id": "",
+      "enabled": true,
+      "last_sync": null,
+      "status": "idle"
+    },
+    {
+      "id": 10,
+      "name": "Equipamento 10 - TV Box Reserva 2",
+      "tv_id": "",
+      "enabled": true,
+      "last_sync": null,
+      "status": "idle"
+    }
   ],
   "last_run": null,
   "history": []

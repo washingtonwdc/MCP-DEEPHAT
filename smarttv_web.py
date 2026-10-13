@@ -265,7 +265,7 @@ async def executar_upload_em_lote() -> List[Dict[str, Any]]:
 
 
 async def background_scheduler():
-    """Loop assíncrono para verificar e disparar atualizações periódicas."""
+    """Loop assíncrono para verificar e disparar atualizações periódicas ou por data agendada."""
     global next_run_dt
     print("[*] Scheduler de atualização contínua iniciado em background.")
 
@@ -276,13 +276,32 @@ async def background_scheduler():
 
             if cfg.get("auto_update_enabled") and cfg.get("master_playlist_url"):
                 agora = datetime.now()
+                sync_mode = cfg.get("sync_mode", "interval")
+                scheduled_str = cfg.get("scheduled_datetime")
 
-                if next_run_dt is None:
-                    agendar_proxima_execucao(cfg.get("interval_minutes", 60))
-                elif agora >= next_run_dt and not is_running_batch:
-                    print(f"\n[⏰] Horário atingido! Disparando atualização automática para todos os equipamentos...")
-                    await executar_upload_em_lote()
-                    agendar_proxima_execucao(cfg.get("interval_minutes", 60))
+                # Modo 1: Data e Hora específica agendada
+                if sync_mode == "datetime" and scheduled_str:
+                    try:
+                        scheduled_dt = datetime.fromisoformat(scheduled_str)
+                        if agora >= scheduled_dt and not is_running_batch:
+                            print(f"\n[📅] Data/Hora Agendada atingida ({scheduled_str})! Disparando sincronização...")
+                            await executar_upload_em_lote()
+                            # Desativa após execução única de data marcada
+                            cfg["auto_update_enabled"] = False
+                            cfg["scheduled_datetime"] = ""
+                            salvar_config(cfg)
+                            next_run_dt = None
+                    except Exception as err:
+                        print(f"[!] Erro ao processar data agendada: {err}")
+
+                # Modo 2: Intervalo recorrente em minutos
+                elif sync_mode == "interval":
+                    if next_run_dt is None:
+                        agendar_proxima_execucao(cfg.get("interval_minutes", 60))
+                    elif agora >= next_run_dt and not is_running_batch:
+                        print(f"\n[⏰] Horário atingido! Disparando atualização automática para todos os equipamentos...")
+                        await executar_upload_em_lote()
+                        agendar_proxima_execucao(cfg.get("interval_minutes", 60))
 
         except Exception as e:
             print(f"[!] Erro no loop do scheduler: {e}")
@@ -305,7 +324,18 @@ async def get_config_handler(request: Request):
     cfg["is_syncing"] = is_running_batch
     cfg["current_device_id"] = current_running_device_id
     cfg["status"] = "running" if is_running_batch else ("online" if cfg.get("auto_update_enabled") else "paused")
-    cfg["next_run"] = next_run_dt.isoformat() if next_run_dt and cfg.get("auto_update_enabled") else None
+    
+    # Próxima execução
+    if cfg.get("auto_update_enabled"):
+        if cfg.get("sync_mode") == "datetime" and cfg.get("scheduled_datetime"):
+            cfg["next_run"] = cfg["scheduled_datetime"]
+        elif next_run_dt:
+            cfg["next_run"] = next_run_dt.isoformat()
+        else:
+            cfg["next_run"] = None
+    else:
+        cfg["next_run"] = None
+
     return JSONResponse(cfg)
 
 
@@ -325,19 +355,44 @@ async def post_config_handler(request: Request):
             cfg["interval_minutes"] = max(1, int(body["interval_minutes"]))
         if "auto_update_enabled" in body:
             cfg["auto_update_enabled"] = bool(body["auto_update_enabled"])
+        if "sync_mode" in body:
+            cfg["sync_mode"] = str(body["sync_mode"])
+        if "scheduled_datetime" in body:
+            cfg["scheduled_datetime"] = str(body["scheduled_datetime"]).strip()
+        if "temp_email" in body:
+            cfg["temp_email"] = str(body["temp_email"]).strip()
         if "devices" in body and isinstance(body["devices"], list):
             cfg["devices"] = body["devices"]
 
         salvar_config(cfg)
 
-        if cfg["auto_update_enabled"] and (not auto_antigo or cfg["interval_minutes"] != intervalo_antigo):
-            agendar_proxima_execucao(cfg["interval_minutes"])
-        elif not cfg["auto_update_enabled"]:
+        if cfg["auto_update_enabled"]:
+            if cfg.get("sync_mode") == "datetime" and cfg.get("scheduled_datetime"):
+                try:
+                    next_run_dt = datetime.fromisoformat(cfg["scheduled_datetime"])
+                except Exception:
+                    next_run_dt = None
+            elif not auto_antigo or cfg["interval_minutes"] != intervalo_antigo:
+                agendar_proxima_execucao(cfg["interval_minutes"])
+        else:
             next_run_dt = None
 
         return JSONResponse({"success": True, "message": "Configurações salvas com sucesso!"})
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=400)
+
+
+async def create_mailtm_account_handler(request: Request):
+    """Cria uma nova conta temporária no Mail.tm sob demanda."""
+    try:
+        import mailtm_manager
+        endereco, senha, token = mailtm_manager.criar_email()
+        cfg = carregar_config()
+        cfg["temp_email"] = endereco
+        salvar_config(cfg)
+        return JSONResponse({"success": True, "email": endereco})
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
 
 async def add_device_handler(request: Request):
@@ -440,6 +495,7 @@ routes = [
     Route("/api/device/delete", delete_device_handler, methods=["POST"]),
     Route("/api/trigger-all", trigger_all_handler, methods=["POST"]),
     Route("/api/trigger-device", trigger_single_device_handler, methods=["POST"]),
+    Route("/api/mailtm/new", create_mailtm_account_handler, methods=["POST"]),
 ]
 
 app = Starlette(debug=True, routes=routes, lifespan=lifespan)
