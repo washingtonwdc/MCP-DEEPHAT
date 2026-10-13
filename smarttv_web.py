@@ -1,6 +1,7 @@
 """
-SmartTV Club Auto-Sync Web Server.
-Interface web moderna com agendador autônomo em background para upload contínuo de playlists.
+SmartTV Club Auto-Sync Web Server (Multi-Equipamento).
+Gerencia múltiplos equipamentos (TV IDs), compartilha a mesma Playlist IPTV
+e executa atualizações automáticas e manuais periódicas via Playwright.
 Porta padrão: 5050 (http://127.0.0.1:5050)
 """
 
@@ -12,7 +13,7 @@ import os
 from pathlib import Path
 import sys
 import time
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -31,7 +32,8 @@ CONFIG_FILE = BASE_DIR / "smarttv_config.json"
 UI_FILE = BASE_DIR / "smarttv_ui.html"
 
 # Estado em memória
-is_running_upload = False
+is_running_batch = False
+current_running_device_id: Optional[int] = None
 next_run_dt: Optional[datetime] = None
 
 
@@ -40,15 +42,25 @@ def carregar_config() -> Dict[str, Any]:
     if CONFIG_FILE.exists():
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                # Garante chaves padrões
+                if "devices" not in data:
+                    data["devices"] = []
+                if "master_playlist_url" not in data:
+                    data["master_playlist_url"] = data.get("playlist_url", "")
+                return data
         except Exception as e:
             print(f"[!] Erro ao carregar {CONFIG_FILE}: {e}")
 
+    # Config padrão com 10 equipamentos iniciais
     return {
-        "tv_id": "",
-        "playlist_url": "",
+        "master_playlist_url": "",
         "interval_minutes": 60,
         "auto_update_enabled": False,
+        "devices": [
+            {"id": i, "name": f"Equipamento {i:02d}", "tv_id": "", "enabled": True, "last_sync": None, "status": "idle"}
+            for i in range(1, 11)
+        ],
         "last_run": None,
         "history": [],
     }
@@ -67,46 +79,50 @@ def agendar_proxima_execucao(minutos: int):
     print(f"[*] Próxima atualização automática agendada para: {next_run_dt.strftime('%H:%M:%S')}")
 
 
-async def executar_upload_smarttv(tv_id: str, playlist_url: str) -> Dict[str, Any]:
+async def executar_upload_individual(device: Dict[str, Any], playlist_url: str) -> Dict[str, Any]:
     """
-    Executa a automação de envio da playlist para o SmartTV Club via Playwright.
+    Executa a automação de envio da playlist para um equipamento individual no SmartTV Club.
     """
-    global is_running_upload
-    if is_running_upload:
-        return {"success": False, "message": "Um envio já está em andamento."}
+    tv_id = device.get("tv_id", "").strip()
+    device_name = device.get("name", f"Equipamento #{device.get('id')}")
 
-    is_running_upload = True
-    inicio = time.time()
     resultado = {
-        "timestamp": datetime.now().isoformat(),
+        "device_id": device.get("id"),
+        "device_name": device_name,
         "tv_id": tv_id,
         "playlist_url": playlist_url,
+        "timestamp": datetime.now().isoformat(),
         "success": False,
         "message": "",
         "duration_ms": 0,
     }
 
+    if not tv_id:
+        resultado["message"] = "TV ID vazio. Preencha o código do equipamento."
+        return resultado
+
+    if not playlist_url:
+        resultado["message"] = "Playlist URL mestre não configurada."
+        return resultado
+
+    inicio = time.time()
+    print(f"[🚀] Enviando playlist para {device_name} (TV ID: {tv_id})...")
+
     try:
         from playwright.async_api import async_playwright
     except ImportError:
-        # Fallback se playwright ainda não estiver disponível
-        resultado["message"] = "Playwright não instalado no ambiente Python."
-        resultado["duration_ms"] = int((time.time() - inicio) * 1000)
-        is_running_upload = False
+        resultado["message"] = "Playwright não instalado no ambiente."
         return resultado
 
-    print(f"\n[🚀] Iniciando upload para SmartTV Club | TV ID: {tv_id}")
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
             page = await browser.new_page()
 
-            # Navega até o formulário do SmartTV Club
             await page.goto("https://smarttv.club/upload-channels/", wait_until="networkidle", timeout=30000)
-            await asyncio.sleep(2)
+            await asyncio.sleep(1.5)
 
             # Localiza campo TV ID
-            # Pode ser input com placeholder ou após texto TV ID
             tv_input = None
             for sel in ["input[placeholder*='TV ID']", "input[placeholder*='code']", "input[type='text']"]:
                 loc = page.locator(sel).first
@@ -117,7 +133,6 @@ async def executar_upload_smarttv(tv_id: str, playlist_url: str) -> Dict[str, An
             if tv_input:
                 await tv_input.fill(tv_id)
             else:
-                # Tenta primeiro input visível
                 inputs = page.locator("input:visible")
                 if await inputs.count() > 0:
                     await inputs.first.fill(tv_id)
@@ -137,7 +152,7 @@ async def executar_upload_smarttv(tv_id: str, playlist_url: str) -> Dict[str, An
                 if await inputs.count() > 1:
                     await inputs.nth(1).fill(playlist_url)
 
-            # Marcar "Agree to all" ou checkboxes
+            # Marcar checkboxes ("Agree to all")
             checkboxes = page.locator("input[type='checkbox']")
             count_cb = await checkboxes.count()
             if count_cb > 0:
@@ -149,7 +164,6 @@ async def executar_upload_smarttv(tv_id: str, playlist_url: str) -> Dict[str, An
                         except Exception:
                             await cb.click(force=True)
 
-            # Também clica no texto/label "Agree to all" se existir
             agree_label = page.locator("text='Agree to all'").first
             if await agree_label.count() > 0 and await agree_label.is_visible():
                 try:
@@ -157,11 +171,11 @@ async def executar_upload_smarttv(tv_id: str, playlist_url: str) -> Dict[str, An
                 except Exception:
                     pass
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
 
-            # Localiza e clica no botão "Send playlist to TV"
+            # Clica no botão "Send playlist to TV"
             btn_send = None
-            for b_sel in ["button:has-text('Send playlist to TV')", "button:has-text('Send playlist')", "button:has-text('Upload')", "button[type='submit']"]:
+            for b_sel in ["button:has-text('Send playlist to TV')", "button:has-text('Send playlist')", "button[type='submit']"]:
                 b = page.locator(b_sel).first
                 if await b.count() > 0 and await b.is_visible():
                     btn_send = b
@@ -169,43 +183,85 @@ async def executar_upload_smarttv(tv_id: str, playlist_url: str) -> Dict[str, An
 
             if btn_send:
                 await btn_send.click()
-                print("[*] Botão 'Send playlist to TV' clicado. Aguardando resposta...")
-                await asyncio.sleep(4)
+                await asyncio.sleep(3)
 
-                # Captura mensagem na tela ou toast
                 conteudo_tela = await page.content()
                 if any(w in conteudo_tela.lower() for w in ["success", "uploaded", "sucesso", "sent", "channel"]):
                     resultado["success"] = True
-                    resultado["message"] = "Playlist enviada com sucesso para o SmartTV Club!"
+                    resultado["message"] = "Playlist enviada com sucesso!"
                 else:
                     resultado["success"] = True
-                    resultado["message"] = "Comando submetido com sucesso no formulário."
+                    resultado["message"] = "Formulário submetido com sucesso."
             else:
                 resultado["success"] = False
-                resultado["message"] = "Botão 'Send playlist to TV' não foi localizado na página."
+                resultado["message"] = "Botão 'Send playlist to TV' não localizado."
 
             await browser.close()
 
     except Exception as e:
         resultado["success"] = False
-        resultado["message"] = f"Erro na automação: {str(e)}"
-        print(f"[!] Erro no envio SmartTV: {e}")
+        resultado["message"] = f"Erro no envio: {str(e)}"
+        print(f"[!] Erro ao enviar para {device_name}: {e}")
 
     finally:
-        is_running_upload = False
         resultado["duration_ms"] = int((time.time() - inicio) * 1000)
 
-    # Atualiza configuração com o resultado
+    return resultado
+
+
+async def executar_upload_em_lote() -> List[Dict[str, Any]]:
+    """
+    Executa o upload da Playlist Mestre para TODOS os equipamentos ativos.
+    """
+    global is_running_batch, current_running_device_id
+    if is_running_batch:
+        return []
+
+    is_running_batch = True
     cfg = carregar_config()
-    cfg["last_run"] = resultado
+    playlist_mestre = cfg.get("master_playlist_url", "").strip()
+    dispositivos = cfg.get("devices", [])
+    resultados = []
+
+    if not playlist_mestre:
+        print("[!] Não é possível sincronizar: Nenhuma Playlist Mestre configurada.")
+        is_running_batch = False
+        return []
+
+    dispositivos_ativos = [d for d in dispositivos if d.get("enabled", True) and d.get("tv_id", "").strip()]
+    print(f"\n[🚀] Iniciando sincronização em lote para {len(dispositivos_ativos)} equipamentos ativos...")
+
+    for dev in dispositivos_ativos:
+        current_running_device_id = dev["id"]
+        # Atualiza status visual em tempo de execução
+        dev["status"] = "syncing"
+        salvar_config(cfg)
+
+        res = await executar_upload_individual(dev, playlist_mestre)
+        resultados.append(res)
+
+        # Atualiza status do dispositivo
+        dev["status"] = "success" if res["success"] else "error"
+        dev["last_sync"] = res["timestamp"]
+        salvar_config(cfg)
+
+        # Intervalo de segurança entre cada envio (evita rate limit no site)
+        await asyncio.sleep(2)
+
+    current_running_device_id = None
+    is_running_batch = False
+
+    # Registra no histórico geral
     if "history" not in cfg:
         cfg["history"] = []
-    cfg["history"].append(resultado)
-    if len(cfg["history"]) > 50:
-        cfg["history"] = cfg["history"][-50:]
+    cfg["history"].extend(resultados)
+    if len(cfg["history"]) > 60:
+        cfg["history"] = cfg["history"][-60:]
+    cfg["last_run"] = resultados[-1] if resultados else None
     salvar_config(cfg)
 
-    return resultado
+    print(f"[✅] Sincronização em lote finalizada com sucesso!")
+    return resultados
 
 
 async def background_scheduler():
@@ -218,16 +274,14 @@ async def background_scheduler():
             await asyncio.sleep(10)
             cfg = carregar_config()
 
-            if cfg.get("auto_update_enabled") and cfg.get("tv_id") and cfg.get("playlist_url"):
+            if cfg.get("auto_update_enabled") and cfg.get("master_playlist_url"):
                 agora = datetime.now()
 
                 if next_run_dt is None:
-                    # Inicializa o próximo run
                     agendar_proxima_execucao(cfg.get("interval_minutes", 60))
-                elif agora >= next_run_dt and not is_running_upload:
-                    print(f"\n[⏰] Horário atingido! Disparando atualização automática programada...")
-                    res = await executar_upload_smarttv(cfg["tv_id"], cfg["playlist_url"])
-                    print(f"[+] Concluído: {res.get('message')}")
+                elif agora >= next_run_dt and not is_running_batch:
+                    print(f"\n[⏰] Horário atingido! Disparando atualização automática para todos os equipamentos...")
+                    await executar_upload_em_lote()
                     agendar_proxima_execucao(cfg.get("interval_minutes", 60))
 
         except Exception as e:
@@ -246,15 +300,17 @@ async def index_handler(request: Request):
 
 
 async def get_config_handler(request: Request):
-    """Retorna configuração e status."""
+    """Retorna configuração global, equipamentos e status."""
     cfg = carregar_config()
-    cfg["status"] = "running" if is_running_upload else ("online" if cfg.get("auto_update_enabled") else "paused")
+    cfg["is_syncing"] = is_running_batch
+    cfg["current_device_id"] = current_running_device_id
+    cfg["status"] = "running" if is_running_batch else ("online" if cfg.get("auto_update_enabled") else "paused")
     cfg["next_run"] = next_run_dt.isoformat() if next_run_dt and cfg.get("auto_update_enabled") else None
     return JSONResponse(cfg)
 
 
 async def post_config_handler(request: Request):
-    """Salva nova configuração."""
+    """Salva configurações globais e/ou lista de equipamentos."""
     global next_run_dt
     try:
         body = await request.json()
@@ -263,14 +319,17 @@ async def post_config_handler(request: Request):
         intervalo_antigo = cfg.get("interval_minutes", 60)
         auto_antigo = cfg.get("auto_update_enabled", False)
 
-        cfg["tv_id"] = str(body.get("tv_id", "")).strip()
-        cfg["playlist_url"] = str(body.get("playlist_url", "")).strip()
-        cfg["interval_minutes"] = max(1, int(body.get("interval_minutes", 60)))
-        cfg["auto_update_enabled"] = bool(body.get("auto_update_enabled", False))
+        if "master_playlist_url" in body:
+            cfg["master_playlist_url"] = str(body["master_playlist_url"]).strip()
+        if "interval_minutes" in body:
+            cfg["interval_minutes"] = max(1, int(body["interval_minutes"]))
+        if "auto_update_enabled" in body:
+            cfg["auto_update_enabled"] = bool(body["auto_update_enabled"])
+        if "devices" in body and isinstance(body["devices"], list):
+            cfg["devices"] = body["devices"]
 
         salvar_config(cfg)
 
-        # Se ligou agora ou mudou o intervalo, recalcula
         if cfg["auto_update_enabled"] and (not auto_antigo or cfg["interval_minutes"] != intervalo_antigo):
             agendar_proxima_execucao(cfg["interval_minutes"])
         elif not cfg["auto_update_enabled"]:
@@ -281,20 +340,85 @@ async def post_config_handler(request: Request):
         return JSONResponse({"success": False, "error": str(e)}, status_code=400)
 
 
-async def trigger_handler(request: Request):
-    """Dispara execução manual."""
+async def add_device_handler(request: Request):
+    """Adiciona um novo equipamento dinamicamente à lista."""
+    try:
+        body = await request.json()
+        cfg = carregar_config()
+        devices = cfg.get("devices", [])
+
+        # Próximo ID sequencial
+        novo_id = max([d.get("id", 0) for d in devices], default=0) + 1
+        nome = body.get("name", f"Equipamento {novo_id:02d}").strip()
+        tv_id = body.get("tv_id", "").strip()
+
+        novo_device = {
+            "id": novo_id,
+            "name": nome or f"Equipamento {novo_id:02d}",
+            "tv_id": tv_id,
+            "enabled": True,
+            "last_sync": None,
+            "status": "idle",
+        }
+        devices.append(novo_device)
+        cfg["devices"] = devices
+        salvar_config(cfg)
+
+        return JSONResponse({"success": True, "device": novo_device})
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=400)
+
+
+async def delete_device_handler(request: Request):
+    """Remove um equipamento pelo ID."""
+    try:
+        body = await request.json()
+        dev_id = int(body.get("id"))
+        cfg = carregar_config()
+        cfg["devices"] = [d for d in cfg.get("devices", []) if d.get("id") != dev_id]
+        salvar_config(cfg)
+        return JSONResponse({"success": True, "message": "Equipamento removido."})
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=400)
+
+
+async def trigger_all_handler(request: Request):
+    """Dispara a sincronização de todos os equipamentos ativos com a mesma lista IPTV."""
     cfg = carregar_config()
-    tv_id = cfg.get("tv_id")
-    playlist_url = cfg.get("playlist_url")
+    playlist = cfg.get("master_playlist_url", "").strip()
 
-    if not tv_id or not playlist_url:
-        return JSONResponse(
-            {"success": False, "message": "Preencha o TV ID e a Playlist URL antes de disparar."},
-            status_code=400
-        )
+    if not playlist:
+        return JSONResponse({"success": False, "message": "Defina a Playlist IPTV Mestre antes de sincronizar."}, status_code=400)
 
-    res = await executar_upload_smarttv(tv_id, playlist_url)
-    return JSONResponse(res)
+    # Executa a tarefa em background para não travar a requisição HTTP
+    asyncio.create_task(executar_upload_em_lote())
+    return JSONResponse({"success": True, "message": "Sincronização em lote iniciada para todos os equipamentos!"})
+
+
+async def trigger_single_device_handler(request: Request):
+    """Dispara o envio da playlist para um equipamento específico."""
+    try:
+        body = await request.json()
+        dev_id = int(body.get("id"))
+        cfg = carregar_config()
+        playlist = cfg.get("master_playlist_url", "").strip()
+
+        if not playlist:
+            return JSONResponse({"success": False, "message": "Playlist IPTV Mestre não configurada."}, status_code=400)
+
+        dispositivo = next((d for d in cfg.get("devices", []) if d.get("id") == dev_id), None)
+        if not dispositivo:
+            return JSONResponse({"success": False, "message": "Equipamento não encontrado."}, status_code=404)
+
+        res = await executar_upload_individual(dispositivo, playlist)
+        # Atualiza status individual
+        dispositivo["status"] = "success" if res["success"] else "error"
+        dispositivo["last_sync"] = res["timestamp"]
+        salvar_config(cfg)
+
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=400)
 
 
 @asynccontextmanager
@@ -312,7 +436,10 @@ routes = [
     Route("/", index_handler, methods=["GET"]),
     Route("/api/config", get_config_handler, methods=["GET"]),
     Route("/api/config", post_config_handler, methods=["POST"]),
-    Route("/api/trigger", trigger_handler, methods=["POST"]),
+    Route("/api/device/add", add_device_handler, methods=["POST"]),
+    Route("/api/device/delete", delete_device_handler, methods=["POST"]),
+    Route("/api/trigger-all", trigger_all_handler, methods=["POST"]),
+    Route("/api/trigger-device", trigger_single_device_handler, methods=["POST"]),
 ]
 
 app = Starlette(debug=True, routes=routes, lifespan=lifespan)
@@ -326,13 +453,13 @@ app.add_middleware(
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="SmartTV Club Auto-Sync Web Dashboard")
+    parser = argparse.ArgumentParser(description="SmartTV Club Multi-Device Auto-Sync")
     parser.add_argument("--port", type=int, default=5050, help="Porta do servidor Web (default: 5050)")
     parser.add_argument("--host", default="127.0.0.1", help="Host do servidor Web (default: 127.0.0.1)")
     args = parser.parse_args()
 
     print(f"\n===========================================================")
-    print(f"🌟 SmartTV Club Auto-Sync Web Dashboard")
+    print(f"🌟 SmartTV Club Multi-Device Auto-Sync Web Server")
     print(f"📡 Acesse: http://{args.host}:{args.port}")
     print(f"===========================================================\n")
 
