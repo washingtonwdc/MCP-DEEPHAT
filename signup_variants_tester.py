@@ -23,10 +23,36 @@ if sys.stderr and hasattr(sys.stderr, "reconfigure"):
 import httpx
 
 
-def gerar_variacoes_email(email_base: str) -> List[Dict[str, str]]:
-    """Gera variações técnicas comuns de e-mail para testar normalização."""
+def carregar_emails_arquivo(caminho_arquivo: str) -> List[str]:
+    """Carrega uma lista de e-mails a partir de um arquivo de texto (.txt ou .csv)."""
+    p = Path(caminho_arquivo)
+    if not p.exists():
+        print(f"[!] Arquivo não encontrado: {caminho_arquivo}")
+        return []
+
+    emails = []
+    with open(p, "r", encoding="utf-8") as f:
+        for linha in f:
+            e = linha.strip()
+            if e and "@" in e and not e.startswith("#"):
+                emails.append(e)
+    return emails
+
+
+def gerar_variacoes_email(email_base: str, emails_custom: List[str] = None) -> List[Dict[str, str]]:
+    """Gera variações técnicas comuns de e-mail ou utiliza lista personalizada."""
+    if emails_custom and len(emails_custom) > 0:
+        return [
+            {
+                "tipo": "custom_dot_trick" if "." in e.split("@")[0] else "custom_lista",
+                "email": e,
+                "descricao": f"E-mail customizado #{idx+1}"
+            }
+            for idx, e in enumerate(emails_custom)
+        ]
+
     if "@" not in email_base:
-        return [{"tipo": "original", "email": email_base}]
+        return [{"tipo": "original", "email": email_base, "descricao": "E-mail inválido/bruto"}]
 
     usuario, dominio = email_base.split("@", 1)
     variacoes = [
@@ -81,6 +107,9 @@ def executar_testes(
     delay_segundos: float = 1.0,
     dry_run: bool = False,
     headers_custom: Dict[str, str] = None,
+    emails_custom: List[str] = None,
+    single_phone: bool = False,
+    max_emails: int = 0,
 ) -> List[Dict[str, Any]]:
     """Executa a bateria de testes de submissão e mapeia status de duplicidade."""
     resultados = []
@@ -92,12 +121,19 @@ def executar_testes(
     if headers_custom:
         headers.update(headers_custom)
 
-    variacoes_email = gerar_variacoes_email(email_base)
-    variacoes_tel = gerar_variacoes_telefone(telefone_base)
+    if emails_custom and max_emails > 0:
+        emails_custom = emails_custom[:max_emails]
+
+    variacoes_email = gerar_variacoes_email(email_base, emails_custom=emails_custom)
+
+    if single_phone:
+        variacoes_tel = [{"tipo": "telefone_unico", "telefone": telefone_base, "descricao": "Telefone fixo/único"}]
+    else:
+        variacoes_tel = gerar_variacoes_telefone(telefone_base)
 
     print(f"\n[*] Iniciando Bateria de Testes de Normalizacao & Deduplicacao")
     print(f"Target Endpoint: {url_endpoint}")
-    print(f"Total Variacoes de E-mail: {len(variacoes_email)} | Telefone: {len(variacoes_tel)}")
+    print(f"Total Variacoes de E-mail: {len(variacoes_email)} | Telefone: {len(variacoes_tel)} (Total requisições: {len(variacoes_email) * len(variacoes_tel)})")
     print(f"Modo: {'[DRY RUN - Apenas Simulacao]' if dry_run else '[LIVE - Requisicoes Ativas]'}\n")
 
     idx = 1
@@ -189,12 +225,23 @@ def main():
     parser = argparse.ArgumentParser(description="Automação de Testes de Normalização e Deduplicação de Cadastros")
     parser.add_argument("--url", default="https://httpbin.org/post", help="URL do endpoint POST de submissão do formulário (default: https://httpbin.org/post)")
     parser.add_argument("--email", default="qa.tester@gmail.com", help="E-mail base de teste (default: qa.tester@gmail.com)")
+    parser.add_argument("--emails-file", default="emails_alvo.txt" if Path("emails_alvo.txt").exists() else None, help="Arquivo de texto com lista de e-mails customizados (ex: emails_alvo.txt)")
     parser.add_argument("--phone", default="11987654321", help="Telefone base de teste (default: 11987654321)")
     parser.add_argument("--name", default="Teste QA DevSecOps", help="Nome do usuário no payload")
     parser.add_argument("--delay", type=float, default=1.0, help="Intervalo em segundos entre envios (default: 1.0s)")
     parser.add_argument("--dry-run", action="store_true", help="Apenas exibe os payloads gerados sem fazer requisições")
+    parser.add_argument("--all-phones", action="store_true", help="Se ativado, testa todas as 5 variações de telefone para cada e-mail (matriz completa)")
+    parser.add_argument("--max-emails", type=int, default=0, help="Limita o número máximo de e-mails testados (0 = sem limite)")
 
     args = parser.parse_args()
+
+    emails_custom = None
+    if args.emails_file and Path(args.emails_file).exists():
+        emails_custom = carregar_emails_arquivo(args.emails_file)
+        print(f"[+] Carregados {len(emails_custom)} e-mails do arquivo: {args.emails_file}")
+
+    # Por padrão, se estiver usando lista customizada de e-mails, usamos 1 telefone fixo para não explodir em 5x requisições
+    single_phone = not args.all_phones if emails_custom else False
 
     resultados = executar_testes(
         url_endpoint=args.url,
@@ -203,6 +250,9 @@ def main():
         nome_base=args.name,
         delay_segundos=args.delay,
         dry_run=args.dry_run,
+        emails_custom=emails_custom,
+        single_phone=single_phone,
+        max_emails=args.max_emails,
     )
 
     salvar_relatorios(resultados)
