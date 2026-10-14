@@ -3,7 +3,14 @@ Servidor MCP Oficial para DeepHat AI (Cybersecurity & Red Team LLM).
 Conecta diretamente com https://app.deephat.ai/ e API Kindo.
 """
 
+import sys
 from typing import Optional, Dict, Any
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 from mcp.server.fastmcp import FastMCP
 from client import DeepHatClient
 from config import Config
@@ -44,7 +51,7 @@ async def deephat_chat(
         content = result.get("content", "")
         return f"[DeepHat via {source}]\n\n{content}"
     except Exception as e:
-        return f"❌ Erro ao consultar DeepHat AI: {str(e)}"
+        return f"[ERRO] Falha ao consultar DeepHat AI: {str(e)}"
 
 
 @mcp.tool()
@@ -86,7 +93,7 @@ async def deephat_security_audit(
         content = result.get("content", "")
         return f"[Auditoria DeepHat via {source}]\n\n{content}"
     except Exception as e:
-        return f"❌ Falha na auditoria de segurança DeepHat: {str(e)}"
+        return f"[ERRO] Falha na auditoria de segurança DeepHat: {str(e)}"
 
 
 @mcp.tool()
@@ -95,7 +102,7 @@ async def deephat_test_connection() -> str:
     Testa e diagnostica a conexão atual do MCP com a plataforma DeepHat.
     Verifica se a sessão web (cookies de app.deephat.ai) está ativa e se o fallback Kindo está disponível.
     """
-    status_report = ["🔍 **Diagnóstico de Conexão MCP DeepHat AI**:\n"]
+    status_report = ["[INFO] Diagnóstico de Conexão MCP DeepHat AI:\n"]
 
     # 1. Teste da Sessão Web (app.deephat.ai)
     if Config.is_web_auth_configured():
@@ -104,28 +111,28 @@ async def deephat_test_connection() -> str:
         if st == "authenticated":
             user = session_info.get("user", {})
             user_str = user.get("email") or user.get("name") or "Usuário Autenticado"
-            status_report.append(f"🟢 **Sessão Web (app.deephat.ai)**: ATIVA! Conectado como `{user_str}`.")
+            status_report.append(f"[OK] Sessão Web (app.deephat.ai): ATIVA! Conectado como `{user_str}`.")
         elif st == "unauthenticated":
-            status_report.append("🟡 **Sessão Web (app.deephat.ai)**: Os cookies foram enviados, mas a sessão não está autenticada (401/desconectado). Atualize seu cookie no `.env`.")
+            status_report.append("[AVISO] Sessão Web (app.deephat.ai): Os cookies foram enviados, mas a sessão não está autenticada (401/desconectado). Atualize seu cookie no `.env`.")
         else:
-            status_report.append(f"🔴 **Sessão Web (app.deephat.ai)**: Erro na verificação: {session_info.get('message') or session_info.get('error')}")
+            status_report.append(f"[ERRO] Sessão Web (app.deephat.ai): Erro na verificação: {session_info.get('message') or session_info.get('error')}")
     else:
-        status_report.append("⚪ **Sessão Web (app.deephat.ai)**: Nenhum cookie configurado no `.env` (`DEEPHAT_COOKIE` vazio).")
+        status_report.append("[INFO] Sessão Web (app.deephat.ai): Nenhum cookie configurado no `.env` (`DEEPHAT_COOKIE` vazio).")
 
     # 2. Teste da API Kindo
     if Config.is_api_auth_configured():
-        status_report.append(f"🟢 **API Kindo Fallback**: Configurada (`{Config.DEEPHAT_MODEL}` em `{Config.KINDO_API_BASE}`).")
+        status_report.append(f"[OK] API Kindo Fallback: Configurada (`{Config.DEEPHAT_MODEL}` em `{Config.KINDO_API_BASE}`).")
     else:
-        status_report.append("⚪ **API Kindo Fallback**: Nenhuma `KINDO_API_KEY` configurada no `.env`.")
+        status_report.append("[INFO] API Kindo Fallback: Nenhuma `KINDO_API_KEY` configurada no `.env`.")
 
     # 3. Teste funcional de ping com prompt
     try:
         test_res = await client.chat("Responda apenas com 'DEEPHAT_ONLINE' se você está pronto.")
         src = test_res.get("source")
         ans = test_res.get("content", "").strip()
-        status_report.append(f"\n🚀 **Teste Funcional de Inferência**: SUCESSO!\n- Origem: `{src}`\n- Resposta do Modelo: `{ans[:120]}`")
+        status_report.append(f"\n[SUCESSO] Teste Funcional de Inferência: SUCESSO!\n- Origem: `{src}`\n- Resposta do Modelo: `{ans[:120]}`")
     except Exception as e:
-        status_report.append(f"\n⚠️ **Teste Funcional de Inferência**: Pendente de autenticação ({str(e)}).")
+        status_report.append(f"\n[AVISO] Teste Funcional de Inferência: Pendente de autenticação ({str(e)}).")
 
     return "\n".join(status_report)
 
