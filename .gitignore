@@ -39,3 +39,4 @@ emails.json
 # Test Reports
 relatorio_deduplicacao_*
 *.csv
+*.log
