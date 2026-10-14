@@ -30,6 +30,7 @@ wheels/
 cookies.json
 session.json
 emails.json
+mensagens_locais.json
 
 # IDEs & System
 .vscode/

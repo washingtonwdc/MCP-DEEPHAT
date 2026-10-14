@@ -1136,7 +1136,8 @@
                 </h4>
                 <span style="font-size: 0.68rem; color: var(--text-muted);" id="inboxStatusLabel">Consultando...</span>
               </div>
-              <div style="display: flex; gap: 0.35rem;">
+              <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+                <button class="pill-btn" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7;" onclick="injectTestMessage()" title="Simular/Injetar e-mail de teste com playlist para homologação imediata">🧪 Simular Mensagem</button>
                 <button class="pill-btn" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="refreshCurrentInbox()">🔄</button>
                 <button class="pill-btn" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="closeInboxView()">✖️ Fechar</button>
               </div>
@@ -1890,6 +1891,27 @@
         }
       } catch (err) {
         statusLabel.innerText = 'Erro ao buscar mensagens';
+      }
+    }
+
+    async function injectTestMessage() {
+      if (!currentInboxEmail) return;
+      showToast('Injetando mensagem de teste com playlist...', 'info');
+      try {
+        const res = await fetch('/api/mailtm/inject-test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: currentInboxEmail })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Mensagem de teste com playlist injetada!', 'success');
+          await refreshCurrentInbox();
+        } else {
+          showToast(data.error || 'Falha ao injetar mensagem', 'error');
+        }
+      } catch (err) {
+        showToast('Erro de conexão ao injetar mensagem', 'error');
       }
     }
 

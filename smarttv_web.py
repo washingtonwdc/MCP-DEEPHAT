@@ -465,7 +465,7 @@ def checar_msgs_conta(c_item: Dict[str, Any], dados: Dict[str, Any]) -> Tuple[st
     if not tok:
         return c_item["email"], []
     try:
-        msgs = mailtm_manager.extrair_links_confirmacao(tok)
+        msgs = mailtm_manager.extrair_links_confirmacao(tok, c_item["email"])
         for m in msgs:
             m["conta_email"] = c_item["email"]
         return c_item["email"], msgs
@@ -730,7 +730,7 @@ async def get_mailtm_messages_handler(request: Request):
                 salvar_config(cfg)
 
         token = conta["token"]
-        msgs = mailtm_manager.extrair_links_confirmacao(token)
+        msgs = mailtm_manager.extrair_links_confirmacao(token, target_email)
         for m in msgs:
             m["conta_email"] = target_email
         return JSONResponse({"success": True, "email": target_email, "messages": msgs, "total": len(msgs)})
@@ -750,6 +750,27 @@ async def select_mailtm_account_handler(request: Request):
         cfg["temp_email"] = email
         salvar_config(cfg)
         return JSONResponse({"success": True, "active_email": email})
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
+async def inject_test_message_handler(request: Request):
+    """Injeta uma mensagem de teste com playlist para homologação imediata da inbox."""
+    try:
+        import mailtm_manager
+        body = {}
+        try:
+            body = await request.json()
+        except Exception:
+            pass
+        cfg = carregar_config()
+        email = body.get("email") or cfg.get("temp_email")
+        playlist = body.get("playlist_url") or cfg.get("master_playlist_url") or "https://iptv-org.github.io/iptv/index.m3u"
+        if not email:
+            return JSONResponse({"success": False, "error": "E-mail ativo não encontrado."}, status_code=400)
+
+        msg = mailtm_manager.injetar_mensagem_teste(email, playlist)
+        return JSONResponse({"success": True, "message": "Mensagem de teste injetada na caixa com sucesso!", "item": msg})
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
@@ -904,6 +925,7 @@ routes = [
     Route("/api/mailtm/accounts", list_mailtm_accounts_handler, methods=["GET"]),
     Route("/api/mailtm/messages", get_mailtm_messages_handler, methods=["GET"]),
     Route("/api/mailtm/select", select_mailtm_account_handler, methods=["POST"]),
+    Route("/api/mailtm/inject-test", inject_test_message_handler, methods=["POST"]),
 ]
 
 app = Starlette(debug=True, routes=routes, lifespan=lifespan)

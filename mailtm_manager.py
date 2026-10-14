@@ -24,6 +24,7 @@ import requests
 
 BASE_DIR = Path(__file__).resolve().parent
 ARQUIVO_EMAILS = BASE_DIR / "emails.json"
+ARQUIVO_MSGS_LOCAIS = BASE_DIR / "mensagens_locais.json"
 API_URL = "https://api.mail.tm"
 
 
@@ -285,15 +286,81 @@ def analisar_mensagem_para_playlist(detalhe: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def extrair_links_confirmacao(token: str) -> List[Dict[str, Any]]:
+def carregar_mensagens_locais() -> Dict[str, List[Dict[str, Any]]]:
+    """Carrega mensagens locais simuladas/injetadas indexadas por e-mail."""
+    if not ARQUIVO_MSGS_LOCAIS.exists():
+        return {}
+    try:
+        return json.loads(ARQUIVO_MSGS_LOCAIS.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def salvar_mensagens_locais(dados: Dict[str, List[Dict[str, Any]]]):
+    """Salva mensagens locais no arquivo JSON."""
+    try:
+        ARQUIVO_MSGS_LOCAIS.write_text(json.dumps(dados, indent=2, ensure_ascii=False), encoding="utf-8")
+    except Exception as e:
+        print(f"[!] Erro ao salvar mensagens locais: {e}")
+
+
+def injetar_mensagem_teste(email: str, playlist_url: str = "https://iptv-org.github.io/iptv/index.m3u") -> Dict[str, Any]:
+    """Injeta uma mensagem de teste com playlist para homologação imediata da inbox."""
+    locais = carregar_mensagens_locais()
+    msg_id = f"local_{int(time.time())}"
+    dt_agora = datetime.now().isoformat()
+
+    corpo = (
+        f"Prezado assinante Washington,\n\n"
+        f"Seu teste IPTV de 24 horas foi liberado com sucesso para a conta {email}!\n\n"
+        f"📡 Playlist M3U Direta:\n{playlist_url}\n\n"
+        f"⚙️ Credenciais Xtream Codes:\n"
+        f"Servidor: http://line.iptvclub.net:80\n"
+        f"Usuário: teste_washington\n"
+        f"Senha: tv_smart_2026\n\n"
+        f"🔗 Link de Confirmação e Ativação:\n"
+        f"https://ativacao.iptvclub.net/ativar?email={email}&token=9872163\n\n"
+        f"Atenciosamente,\nEquipe de Suporte IPTV Club"
+    )
+
+    item = {
+        "id": msg_id,
+        "remetente": "suporte@provedoriptv.com",
+        "assunto": "Sua Lista e Acesso IPTV Chegou! (Teste 24h Liberado)",
+        "data_recebimento": dt_agora,
+        "playlists_detectadas": [playlist_url, "http://line.iptvclub.net:80/get.php?username=teste_washington&password=tv_smart_2026&type=m3u_plus&output=ts"],
+        "link_encontrado": playlist_url,
+        "xtream_info": {
+            "host": "http://line.iptvclub.net:80",
+            "username": "teste_washington",
+            "password": "tv_smart_2026",
+            "m3u_url": "http://line.iptvclub.net:80/get.php?username=teste_washington&password=tv_smart_2026&type=m3u_plus&output=ts"
+        },
+        "links_ativacao": [f"https://ativacao.iptvclub.net/ativar?email={email}&token=9872163"],
+        "todos_links": [playlist_url, f"https://ativacao.iptvclub.net/ativar?email={email}&token=9872163"],
+        "texto": corpo,
+        "conta_email": email
+    }
+
+    if email not in locais:
+        locais[email] = []
+    # Insere no topo
+    locais[email].insert(0, item)
+    salvar_mensagens_locais(locais)
+    return item
+
+
+def extrair_links_confirmacao(token: str, email_alvo: str = "") -> List[Dict[str, Any]]:
     """
     Lê todas as mensagens da caixa e extrai links com foco em confirmação, ativação e playlists IPTV.
     """
     mensagens = listar_mensagens(token)
-    if not mensagens:
-        return []
-
     resultados = []
+
+    # Se houver mensagens locais/injetadas para este e-mail, inclui no topo
+    if email_alvo:
+        locais = carregar_mensagens_locais().get(email_alvo, [])
+        resultados.extend(locais)
 
     for msg in mensagens:
         msg_id = msg.get("id")
@@ -309,6 +376,7 @@ def extrair_links_confirmacao(token: str) -> List[Dict[str, Any]]:
             "assunto": assunto,
             "data_recebimento": msg.get("createdAt"),
             "playlists_detectadas": analise["playlists_detectadas"],
+            "link_encontrado": analise.get("link_encontrado"),
             "xtream_info": analise["xtream_info"],
             "links_ativacao": analise["links_ativacao"],
             "todos_links": analise["todos_links"],
@@ -348,7 +416,7 @@ def buscar_playlist_em_todas_as_contas() -> Tuple[Optional[str], Optional[str], 
         if not token:
             continue
 
-        msgs = extrair_links_confirmacao(token)
+        msgs = extrair_links_confirmacao(token, conta.get("email", ""))
         for m in msgs:
             pls = m.get("playlists_detectadas", [])
             if pls:
