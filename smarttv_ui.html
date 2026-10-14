@@ -343,28 +343,29 @@
     /* ==========================================================================
        LINHAS DE EQUIPAMENTOS (Alinhamento Grid Perfeito, sem corte da coluna Ações)
        ========================================================================== */
-    /* Grid exato: # (30px) | Nome (minmax 125px, 1.2fr) | TV ID (minmax 180px, 1.6fr) | Status (80px) | Ações (102px) */
-    .device-row,
-    .device-header-row {
-      display: grid;
-      grid-template-columns: 30px minmax(125px, 1.2fr) minmax(180px, 1.6fr) 80px 102px;
-      gap: 8px;
-      align-items: center;
-      padding: 7px 10px;
+    /* # (28px) | Nome (flexível) | TV ID (flexível maior) | Status (58px) | Ações (90px) */
+    .device-header,
+    .device-header-row,
+    .device-row {
+      display: grid !important;
+      grid-template-columns: 28px minmax(110px, 1.1fr) minmax(175px, 1.6fr) 58px 90px !important;
+      gap: 6px !important;
+      align-items: center !important;
+      padding: 8px 6px !important;
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       margin-bottom: 0.5rem;
       transition: background 0.2s ease, border-color 0.2s ease;
-      box-sizing: border-box;
-      width: 100%;
-      min-width: 0;
+      box-sizing: border-box !important;
+      width: 100% !important;
+      min-width: 0 !important;
     }
 
     .device-header-row {
-      background: transparent;
-      border: none;
-      padding: 0.35rem 0.65rem;
+      background: transparent !important;
+      border: none !important;
+      padding: 0.35rem 6px !important;
       font-size: 0.72rem;
       text-transform: uppercase;
       color: var(--text-muted);
@@ -392,30 +393,33 @@
     }
 
     .device-num {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 700;
       color: var(--text-muted);
       font-family: 'JetBrains Mono', monospace;
       text-align: center;
+      line-height: 1;
     }
 
     .device-name-cell {
-      min-width: 0;
-      width: 100%;
+      min-width: 0 !important;
+      width: 100% !important;
       overflow: hidden;
     }
 
+    /* Reduz a fonte e o espaçamento interno dos inputs para caber o texto todo */
+    .device-row input[type="text"],
     .device-name-input {
-      width: 100%;
-      min-width: 0;
-      font-size: 12.5px !important;
+      font-size: 12px !important;
+      padding: 5px 6px !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      box-sizing: border-box !important;
       font-weight: 600;
-      padding: 6px 8px !important;
       border-radius: var(--radius-sm);
       background: var(--bg-card-subtle) !important;
       border: 1px solid var(--border-color) !important;
       color: var(--text-main) !important;
-      box-sizing: border-box;
     }
 
     .device-name-input:focus {
@@ -427,25 +431,25 @@
     .tv-id-wrapper {
       display: flex;
       align-items: center;
-      gap: 4px;
-      width: 100%;
-      min-width: 0;
+      gap: 3px;
+      width: 100% !important;
+      min-width: 0 !important;
     }
 
     .tv-id-input {
-      width: 100%;
-      min-width: 0;
+      width: 100% !important;
+      min-width: 0 !important;
       flex: 1;
       font-family: 'JetBrains Mono', Consolas, monospace !important;
-      font-size: 11.5px !important;
-      letter-spacing: -0.2px;
-      padding: 6px 7px !important;
+      font-size: 11px !important;
+      letter-spacing: -0.4px !important;
+      padding: 5px 5px !important;
       border-radius: var(--radius-sm);
       background: var(--bg-card-subtle) !important;
       border: 1px solid var(--border-color) !important;
       color: var(--text-main) !important;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
-      box-sizing: border-box;
+      box-sizing: border-box !important;
     }
 
     .tv-id-input:focus {
@@ -454,19 +458,37 @@
     }
 
     .tv-id-wrapper .btn-icon {
-      width: 26px;
-      height: 26px;
-      font-size: 0.78rem;
+      width: 24px !important;
+      height: 24px !important;
+      font-size: 0.72rem !important;
       flex-shrink: 0;
     }
 
     .device-actions {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 4px;
-      min-width: fit-content;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      gap: 3px !important;
+      width: 90px !important;
+      min-width: 90px !important;
+      max-width: 90px !important;
+      flex-shrink: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    .device-actions .device-enable-chk {
+      width: 15px !important;
+      height: 15px !important;
+      margin: 0 !important;
+      cursor: pointer;
       flex-shrink: 0;
+    }
+
+    .device-actions .btn-icon {
+      width: 25px !important;
+      height: 25px !important;
+      font-size: 0.75rem !important;
+      flex-shrink: 0 !important;
     }
 
     /* Action Buttons & Icons */
@@ -474,15 +496,15 @@
       background: var(--bg-card-subtle);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       flex-shrink: 0;
     }
 
@@ -498,15 +520,19 @@
       color: var(--danger);
     }
 
-    /* Badges Semânticos */
-    .badge-device {
-      padding: 0.22rem 0.5rem;
+    /* Badges Semânticos: Compacta o badge "OK" e status */
+    .badge-device,
+    .status-badge,
+    .device-row .badge-device,
+    .device-row .status-badge {
+      padding: 2px 6px !important;
+      font-size: 11px !important;
       border-radius: var(--radius-sm);
-      font-size: 0.7rem;
       font-weight: 600;
       text-align: center;
       display: inline-block;
-      white-space: nowrap;
+      white-space: nowrap !important;
+      line-height: 1.2;
     }
 
     .badge-device.unconfigured {
@@ -728,55 +754,58 @@
     }
 
     .flow-header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.55rem;
-      gap: 0.5rem;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      margin-bottom: 0.65rem !important;
+      gap: 0.5rem !important;
+      flex-wrap: wrap !important;
     }
 
     .flow-title {
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-weight: 700;
       color: var(--primary);
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      white-space: nowrap;
+      white-space: nowrap !important;
     }
 
     .flow-toggle-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11.5px;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      font-size: 11px !important;
       font-weight: 600;
       color: var(--success);
       background: var(--success-bg);
       border: 1px solid var(--success-border);
-      padding: 3px 9px;
-      border-radius: 999px;
+      padding: 3px 9px !important;
+      border-radius: 999px !important;
       cursor: pointer;
       user-select: none;
       transition: all 0.2s ease;
-      white-space: nowrap;
-      flex-shrink: 0;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      line-height: 1.2 !important;
     }
 
     .flow-toggle-label input {
       accent-color: var(--success);
       cursor: pointer;
+      margin: 0 !important;
     }
 
     /* Botão Executivo do Fluxo Completo (Sem espremer ninguém) */
     .btn-flow-full {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 0.55rem 1rem;
-      font-size: 0.825rem;
-      font-weight: 700;
+      width: 100% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 0.5rem !important;
+      padding: 0.65rem 1rem !important;
+      font-size: 0.825rem !important;
+      font-weight: 700 !important;
       background: var(--primary);
       color: #ffffff;
       border: none;
@@ -784,8 +813,9 @@
       cursor: pointer;
       box-shadow: 0 2px 10px rgba(79, 70, 229, 0.25);
       transition: all 0.2s ease;
-      white-space: nowrap;
-      margin: 0.35rem 0 0.65rem 0;
+      white-space: nowrap !important;
+      margin: 0.35rem 0 0.65rem 0 !important;
+      box-sizing: border-box !important;
     }
 
     .btn-flow-full:hover:not(:disabled) {
@@ -850,13 +880,21 @@
       box-sizing: border-box;
     }
 
-    /* Inputs de URL sem fonte monospace excessivamente larga */
+    /* Inputs de URL sem fonte monospace excessivamente larga - Igualar o tamanho de todos */
     .url-input,
-    input[type="url"] {
+    input[type="url"],
+    input#masterPlaylist,
+    input#fallbackPlaylist,
+    input#displayPlaylistLink,
+    input[value^="http"] {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
-      font-size: 0.82rem !important;
+      font-size: 12.5px !important;
       letter-spacing: normal !important;
-      padding: 0.55rem 0.75rem !important;
+      padding: 6px 9px !important;
+      box-sizing: border-box !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      line-height: 1.35 !important;
     }
 
     input.mono {
@@ -907,6 +945,33 @@
       background: var(--bg-card-subtle);
       z-index: 2;
       box-shadow: 0 1px 0 var(--border-color);
+    }
+
+    /* Filtro de Equipamentos no Histórico */
+    .history-filter-select,
+    #historyDeviceFilter {
+      font-size: 12px !important;
+      padding: 4px 8px !important;
+      border-radius: var(--radius-sm) !important;
+      cursor: pointer !important;
+      outline: none !important;
+      font-family: inherit !important;
+      transition: all 0.2s ease !important;
+      line-height: 1.2 !important;
+    }
+
+    body.light-theme .history-filter-select,
+    body.light-theme #historyDeviceFilter {
+      background: #f1f5f9 !important;
+      color: #0f172a !important;
+      border: 1px solid #cbd5e1 !important;
+    }
+
+    body:not(.light-theme) .history-filter-select,
+    body:not(.light-theme) #historyDeviceFilter {
+      background: #1e293b !important;
+      color: #f1f5f9 !important;
+      border: 1px solid #334155 !important;
     }
 
     /* Tabela de Histórico e Contas */
@@ -1029,7 +1094,7 @@
             <div>Identificação / Nome</div>
             <div>TV ID (Código 24 Chars)</div>
             <div style="text-align: center;">Status</div>
-            <div style="text-align: right; padding-right: 4px;">Ações</div>
+            <div style="text-align: right; padding-right: 4px; white-space: nowrap !important;">Ações</div>
           </div>
 
           <!-- Container dos Equipamentos Configurados (Ex: Celular e iPad) -->
@@ -1073,7 +1138,7 @@
             </div>
             <div style="display: flex; align-items: center; gap: 0.4rem;">
               <label for="historyDeviceFilter" style="font-size: 0.75rem; margin: 0; color: var(--text-muted);">Filtrar:</label>
-              <select id="historyDeviceFilter" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.4rem; background: var(--bg-card-subtle); border: 1px solid var(--border-color); color: var(--text-main);" onchange="renderLogsTable(currentConfig.history || [])">
+              <select id="historyDeviceFilter" class="history-filter-select" onchange="renderLogsTable(currentConfig.history || [])">
                 <option value="all">Todos os Equipamentos</option>
               </select>
             </div>
@@ -1166,7 +1231,7 @@
               <span id="playlistPingStatus" class="ping-badge" style="display: none;"></span>
             </label>
             <div style="display: flex; gap: 0.4rem; align-items: center;">
-              <input type="url" id="masterPlaylist" class="url-input" placeholder="https://servidor-iptv.com/get.php?username=...&type=m3u_plus" autocomplete="off" onblur="triggerAutoSave()" />
+              <input type="url" id="masterPlaylist" class="url-input" style="font-size: 12.5px !important; padding: 6px 9px !important; width: 100%; box-sizing: border-box;" placeholder="https://servidor-iptv.com/get.php?username=...&type=m3u_plus" autocomplete="off" onblur="triggerAutoSave()" />
               <button class="pill-btn" style="white-space: nowrap; padding: 0.6rem 0.85rem;" onclick="testPlaylistLink('master')" title="Fazer um ping e verificar se o link M3U está online e respondendo">
                 ⚡ Testar Link
               </button>
@@ -1182,7 +1247,7 @@
               <span id="fallbackPingStatus" class="ping-badge" style="display: none;"></span>
             </label>
             <div style="display: flex; gap: 0.4rem; align-items: center;">
-              <input type="url" id="fallbackPlaylist" class="url-input" placeholder="https://servidor-reserva.com/lista-backup.m3u" autocomplete="off" onblur="triggerAutoSave()" />
+              <input type="url" id="fallbackPlaylist" class="url-input" style="font-size: 12.5px !important; padding: 6px 9px !important; width: 100%; box-sizing: border-box;" placeholder="https://servidor-reserva.com/lista-backup.m3u" autocomplete="off" onblur="triggerAutoSave()" />
               <button class="pill-btn" style="white-space: nowrap; padding: 0.6rem 0.85rem;" onclick="testPlaylistLink('fallback')" title="Fazer um ping na lista de contingência">
                 ⚡ Testar
               </button>
@@ -1462,8 +1527,12 @@
       const box = lbl ? lbl.parentElement : null;
       if (lbl) {
         lbl.innerText = enabled ? 'Ativo às 00:00' : 'Desativado';
+        lbl.style.whiteSpace = 'nowrap';
       }
       if (box) {
+        box.style.whiteSpace = 'nowrap';
+        box.style.display = 'inline-flex';
+        box.style.alignItems = 'center';
         if (enabled) {
           box.style.background = '#d1fae5';
           box.style.color = '#047857';
