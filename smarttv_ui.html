@@ -327,20 +327,25 @@
     }
 
     /* ==========================================================================
-       1. GRID DE DUAS COLUNAS EQUILIBRADO (~58% esquerda / ~42% direita)
+       1. GRID DE DUAS COLUNAS EQUILIBRADO E RESPONSIVO (Zero Overflow Horizontal)
        ========================================================================== */
     .main-dashboard-grid {
       display: grid;
-      grid-template-columns: 1.35fr 1fr;
-      gap: 24px;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: 22px;
       align-items: start;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .left-column-stack,
     .right-column-stack {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 22px;
+      min-width: 0;
+      max-width: 100%;
     }
 
     @media (max-width: 1100px) {
@@ -359,6 +364,10 @@
       padding: 1.5rem;
       box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.45);
       transition: border-color 0.3s ease;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .glass-card:hover {
@@ -929,7 +938,12 @@
                 Aparelhos com TV ID configurado sincronizam automaticamente. Salvamento automático habilitado.
               </p>
             </div>
-            <button class="pill-btn" onclick="loadStatus()" title="Recarregar dados dos equipamentos">🔄 Atualizar</button>
+            <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+              <button class="pill-btn" onclick="exportDevicesBackup()" title="Baixar arquivo de backup dos equipamentos (.json)">📥 Exportar</button>
+              <button class="pill-btn" onclick="triggerImportBackup()" title="Restaurar equipamentos a partir de backup (.json)">📤 Importar</button>
+              <input type="file" id="backupFileInput" accept=".json" style="display: none;" onchange="handleBackupFileSelect(event)" />
+              <button class="pill-btn" onclick="loadStatus()" title="Recarregar dados dos equipamentos">🔄 Atualizar</button>
+            </div>
           </div>
 
           <!-- Cabeçalho da Tabela Alinhado com as Linhas -->
@@ -973,9 +987,20 @@
 
         <!-- Card de Histórico Recente de Sincronizações (Preenche a coluna esquerda sem buraco) -->
         <section class="glass-card" id="card-historico">
-          <h2 class="card-title" style="font-size: 1.05rem; margin-bottom: 0.75rem;">
-            📜 Histórico Recente de Sincronizações
-          </h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.4rem;">
+            <div>
+              <h2 class="card-title" style="font-size: 1.05rem; margin-bottom: 0.15rem;">
+                📜 Histórico Recente de Sincronizações
+              </h2>
+              <span style="font-size: 0.72rem; color: var(--text-muted);" id="historyCounterLabel">Últimos registros</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+              <label for="historyDeviceFilter" style="font-size: 0.75rem; margin: 0; color: var(--text-muted);">Filtrar:</label>
+              <select id="historyDeviceFilter" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.4rem; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); color: #fff;" onchange="renderLogsTable(currentConfig.history || [])">
+                <option value="all">Todos os Equipamentos</option>
+              </select>
+            </div>
+          </div>
           <div style="overflow-x: auto; max-height: 230px; overflow-y: auto;">
             <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
               <thead>
@@ -1048,10 +1073,29 @@
             </label>
             <div style="display: flex; gap: 0.4rem; align-items: center;">
               <input type="url" id="masterPlaylist" class="mono" placeholder="https://servidor-iptv.com/get.php?username=...&type=m3u_plus" autocomplete="off" onblur="triggerAutoSave()" />
-              <button class="pill-btn" style="white-space: nowrap; padding: 0.72rem 0.85rem;" onclick="testPlaylistLink()" title="Fazer um ping e verificar se o link M3U está online e respondendo">
+              <button class="pill-btn" style="white-space: nowrap; padding: 0.72rem 0.85rem;" onclick="testPlaylistLink('master')" title="Fazer um ping e verificar se o link M3U está online e respondendo">
                 ⚡ Testar Link
               </button>
             </div>
+            <!-- Feedback Detalhado do Ping M3U -->
+            <div id="playlistDetailedFeedback" style="display: none; margin-top: 0.5rem; padding: 0.55rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08);"></div>
+          </div>
+
+          <!-- Input da URL de Contingência (Fallback) -->
+          <div class="form-group" style="margin-top: 0.85rem;">
+            <label for="fallbackPlaylist">
+              <span>🛡️ Playlist de Contingência / Fallback (Emergência)</span>
+              <span id="fallbackPingStatus" class="ping-badge" style="display: none;"></span>
+            </label>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <input type="url" id="fallbackPlaylist" class="mono" placeholder="https://servidor-reserva.com/lista-backup.m3u" autocomplete="off" onblur="triggerAutoSave()" />
+              <button class="pill-btn" style="white-space: nowrap; padding: 0.72rem 0.85rem;" onclick="testPlaylistLink('fallback')" title="Fazer um ping na lista de contingência">
+                ⚡ Testar
+              </button>
+            </div>
+            <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
+              Acionada automaticamente se a lista mestre falhar ou não houver novo e-mail às 00:00 após 6 tentativas.
+            </span>
           </div>
 
           <!-- Banner Destaque do Link Capturado por E-mail -->
@@ -1146,6 +1190,36 @@
           </div>
         </section>
 
+        <!-- Card de Notificações Externas (Telegram & Webhook) -->
+        <section class="glass-card" id="card-notificacoes" style="border: 1px solid rgba(59, 130, 246, 0.25); margin-top: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.4rem;">
+            <div>
+              <h2 class="card-title" style="font-size: 1.05rem; margin-bottom: 0.15rem; color: #60a5fa;">
+                🔔 Notificações Externas (Telegram & Webhook)
+              </h2>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">Receba alertas instantâneos de sucesso ou falha nas sincronizações das 00:00</span>
+            </div>
+            <button class="pill-btn" style="font-size: 0.72rem; background: rgba(59, 130, 246, 0.15); color: #93c5fd; border-color: rgba(59, 130, 246, 0.4);" onclick="testNotificationAlert()" title="Disparar notificação de teste agora">
+              🧪 Testar Alerta
+            </button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-top: 0.5rem;">
+            <div>
+              <label for="tgBotToken" style="font-size: 0.75rem;">Telegram Bot Token</label>
+              <input type="password" id="tgBotToken" placeholder="123456789:ABCdefGhIJKlmNoPQRstuVWXyz" style="font-size: 0.78rem; padding: 0.5rem 0.65rem;" oninput="markUnsavedChanges()" onblur="triggerAutoSave()" />
+            </div>
+            <div>
+              <label for="tgChatId" style="font-size: 0.75rem;">Telegram Chat ID</label>
+              <input type="text" id="tgChatId" placeholder="Ex: 987654321 ou -100..." style="font-size: 0.78rem; padding: 0.5rem 0.65rem;" oninput="markUnsavedChanges()" onblur="triggerAutoSave()" />
+            </div>
+          </div>
+          <div style="margin-top: 0.65rem;">
+            <label for="webhookUrl" style="font-size: 0.75rem;">Webhook URL (Discord / Slack / n8n)</label>
+            <input type="url" id="webhookUrl" placeholder="https://discord.com/api/webhooks/... ou https://webhook.site/..." style="font-size: 0.78rem; padding: 0.5rem 0.65rem;" oninput="markUnsavedChanges()" onblur="triggerAutoSave()" />
+          </div>
+        </section>
+
       </div>
 
     </div>
@@ -1193,6 +1267,18 @@
         currentConfig = data;
 
         document.getElementById('masterPlaylist').value = data.master_playlist_url || '';
+        
+        const fallbackInput = document.getElementById('fallbackPlaylist');
+        if (fallbackInput) fallbackInput.value = data.fallback_playlist_url || '';
+
+        const tgTokenInput = document.getElementById('tgBotToken');
+        if (tgTokenInput) tgTokenInput.value = data.telegram_bot_token || '';
+
+        const tgChatInput = document.getElementById('tgChatId');
+        if (tgChatInput) tgChatInput.value = data.telegram_chat_id || '';
+
+        const webhookInput = document.getElementById('webhookUrl');
+        if (webhookInput) webhookInput.value = data.webhook_url || '';
         
         const autoToggle = document.getElementById('autoUpdateToggle');
         if (autoToggle) {
@@ -1452,12 +1538,16 @@
     // Salvar Configurações
     async function saveAllConfig(showVerboseToast = true) {
       const payload = {
-        master_playlist_url: document.getElementById('masterPlaylist').value.trim(),
-        auto_update_enabled: document.getElementById('autoUpdateToggle').checked,
+        master_playlist_url: document.getElementById('masterPlaylist')?.value.trim() || '',
+        fallback_playlist_url: document.getElementById('fallbackPlaylist')?.value.trim() || '',
+        telegram_bot_token: document.getElementById('tgBotToken')?.value.trim() || '',
+        telegram_chat_id: document.getElementById('tgChatId')?.value.trim() || '',
+        webhook_url: document.getElementById('webhookUrl')?.value.trim() || '',
+        auto_update_enabled: document.getElementById('autoUpdateToggle')?.checked || false,
         sync_mode: 'daily_midnight_brasilia',
         daily_time: '00:00',
         timezone: 'America/Sao_Paulo',
-        temp_email: document.getElementById('mailtmEmail').value,
+        temp_email: document.getElementById('mailtmEmail')?.value || '',
         devices: devicesList
       };
 
@@ -1481,21 +1571,30 @@
       }
     }
 
-    // Testar Link M3U com Ping HTTP
-    async function testPlaylistLink() {
-      const url = document.getElementById('masterPlaylist').value.trim();
-      const statusBadge = document.getElementById('playlistPingStatus');
+    // Testar Link M3U com Ping HTTP detalhado
+    async function testPlaylistLink(target = 'master') {
+      const isMaster = (target === 'master');
+      const inputEl = document.getElementById(isMaster ? 'masterPlaylist' : 'fallbackPlaylist');
+      const statusBadge = document.getElementById(isMaster ? 'playlistPingStatus' : 'fallbackPingStatus');
+      const detailedBox = isMaster ? document.getElementById('playlistDetailedFeedback') : null;
+      const url = inputEl ? inputEl.value.trim() : '';
       
       if (!url) {
-        showToast('Insira uma URL de playlist no campo antes de testar.', 'warning');
-        document.getElementById('masterPlaylist').focus();
+        showToast(`Insira uma URL na ${isMaster ? 'Playlist Mestre' : 'Playlist de Contingência'} antes de testar.`, 'warning');
+        if (inputEl) inputEl.focus();
         return;
       }
 
-      statusBadge.style.display = 'inline-flex';
-      statusBadge.style.background = 'rgba(6, 182, 212, 0.15)';
-      statusBadge.style.color = '#06b6d4';
-      statusBadge.innerText = '⚡ Testando link...';
+      if (statusBadge) {
+        statusBadge.style.display = 'inline-flex';
+        statusBadge.style.background = 'rgba(6, 182, 212, 0.15)';
+        statusBadge.style.color = '#06b6d4';
+        statusBadge.innerText = '⚡ Testando link...';
+      }
+      if (detailedBox) {
+        detailedBox.style.display = 'block';
+        detailedBox.innerHTML = '<span style="color: #94a3b8;">Verificando cabeçalhos HTTP, latência e integridade M3U...</span>';
+      }
 
       try {
         const res = await fetch('/api/playlist/ping', {
@@ -1506,21 +1605,110 @@
         const data = await res.json();
 
         if (data.online) {
-          statusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
-          statusBadge.style.color = '#10b981';
-          statusBadge.innerText = `🟢 Online (${data.status_code || 200})`;
+          if (statusBadge) {
+            statusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+            statusBadge.style.color = '#10b981';
+            statusBadge.innerText = `🟢 Online (${data.status_code || 200})`;
+          }
+          if (detailedBox) {
+            detailedBox.style.display = 'block';
+            detailedBox.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+                <span style="font-weight: 700; color: #10b981;">🟢 Servidor Online (HTTP ${data.status_code || 200})</span>
+                <span style="color: #94a3b8; font-size: 0.72rem;">Latência: <strong style="color: #f8fafc;">${data.latency_ms || 0} ms</strong></span>
+              </div>
+              <div style="display: flex; gap: 0.75rem; margin-top: 0.35rem; color: #cbd5e1; font-size: 0.72rem; flex-wrap: wrap;">
+                <span>Formato: <strong style="color: ${data.is_m3u ? '#34d399' : '#f59e0b'};">${data.is_m3u ? 'M3U Válido (#EXTM3U)' : 'M3U Genérico'}</strong></span>
+                <span>Canais detectados: <strong style="color: #60a5fa;">${data.channel_count > 0 ? data.channel_count + ' canais' : 'Fluxo Direto'}</strong></span>
+                <span>Tamanho: <strong style="color: #f0abfc;">${data.size_formatted || 'Desconhecido'}</strong></span>
+              </div>
+            `;
+          }
           showToast('Link M3U acessível e respondendo com sucesso!', 'success');
         } else {
-          statusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
-          statusBadge.style.color = '#ef4444';
-          statusBadge.innerText = '🔴 Link Inacessível';
+          if (statusBadge) {
+            statusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+            statusBadge.style.color = '#ef4444';
+            statusBadge.innerText = '🔴 Inacessível';
+          }
+          if (detailedBox) {
+            detailedBox.style.display = 'block';
+            detailedBox.innerHTML = `
+              <div style="color: #f87171; font-weight: 600;">🔴 Falha de Conexão</div>
+              <div style="color: #94a3b8; font-size: 0.72rem; margin-top: 0.2rem;">${data.error || data.message || 'Servidor não respondeu.'}</div>
+            `;
+          }
           showToast('Servidor da playlist não respondeu ou retornou erro.', 'error');
         }
       } catch (err) {
-        statusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
-        statusBadge.style.color = '#ef4444';
-        statusBadge.innerText = '🔴 Falha no teste';
+        if (statusBadge) {
+          statusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+          statusBadge.style.color = '#ef4444';
+          statusBadge.innerText = '🔴 Erro no teste';
+        }
+        if (detailedBox) {
+          detailedBox.style.display = 'block';
+          detailedBox.innerHTML = `<span style="color: #f87171;">Erro na requisição: ${err.message}</span>`;
+        }
         showToast('Não foi possível verificar o link M3U.', 'error');
+      }
+    }
+
+    // Testar Notificações Externas
+    async function testNotificationAlert() {
+      await saveAllConfig(false);
+      showToast('Enviando alerta de teste para Telegram / Webhook...', 'info');
+      try {
+        const res = await fetch('/api/notifications/test', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Notificação de teste disparada com sucesso!', 'success');
+        } else {
+          showToast(data.message || 'Falha ao disparar notificação.', 'error');
+        }
+      } catch (err) {
+        showToast(`Erro ao testar notificação: ${err.message}`, 'error');
+      }
+    }
+
+    // Exportar Backup JSON
+    function exportDevicesBackup() {
+      showToast('Gerando backup dos equipamentos e configurações...', 'info');
+      window.location.href = '/api/backup/export';
+    }
+
+    // Disparar Seleção de Arquivo para Importação
+    function triggerImportBackup() {
+      const fileInput = document.getElementById('backupFileInput');
+      if (fileInput) fileInput.click();
+    }
+
+    // Processar Arquivo de Backup Selecionado
+    async function handleBackupFileSelect(event) {
+      const file = event.target.files ? event.target.files[0] : null;
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const json = JSON.parse(text);
+
+        showToast('Restaurando backup...', 'info');
+        const res = await fetch('/api/backup/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(json)
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message || 'Backup restaurado com sucesso!', 'success');
+          await loadStatus();
+        } else {
+          showToast(data.error || 'Erro ao importar backup.', 'error');
+        }
+      } catch (err) {
+        showToast('Arquivo de backup inválido ou corrompido.', 'error');
+      } finally {
+        event.target.value = '';
       }
     }
 
@@ -1939,9 +2127,12 @@
       }
     }
 
-    // Histórico de Logs
+    // Histórico de Logs com Filtro por Aparelho e Limite de Registros
     function renderLogsTable(history) {
       const tbody = document.getElementById('logsTableBody');
+      const filterSelect = document.getElementById('historyDeviceFilter');
+      const counterLabel = document.getElementById('historyCounterLabel');
+
       if (!history || history.length === 0) {
         tbody.innerHTML = `
           <tr>
@@ -1950,10 +2141,54 @@
             </td>
           </tr>
         `;
+        if (counterLabel) counterLabel.innerText = '0 registros';
         return;
       }
 
-      tbody.innerHTML = history.slice(-10).reverse().map(item => {
+      // Atualiza opções do select de filtro com os aparelhos cadastrados se necessário
+      if (filterSelect && devicesList.length > 0) {
+        const currentVal = filterSelect.value;
+        const knownDevs = devicesList.filter(d => d.tv_id && d.tv_id.trim());
+        let optionsHtml = '<option value="all">Todos os Equipamentos</option>';
+        knownDevs.forEach(d => {
+          optionsHtml += `<option value="${d.id}">${d.name || 'ID ' + d.id}</option>`;
+        });
+        if (filterSelect.dataset.lastCount !== String(knownDevs.length)) {
+          filterSelect.innerHTML = optionsHtml;
+          filterSelect.value = currentVal;
+          filterSelect.dataset.lastCount = String(knownDevs.length);
+        }
+      }
+
+      const selectedFilter = filterSelect ? filterSelect.value : 'all';
+      let filtered = history;
+      if (selectedFilter !== 'all') {
+        const devIdNum = parseInt(selectedFilter);
+        const targetDev = devicesList.find(d => d.id === devIdNum);
+        filtered = history.filter(item => {
+          if (item.device_id && item.device_id === devIdNum) return true;
+          if (targetDev && item.device_name && item.device_name.toLowerCase() === targetDev.name.toLowerCase()) return true;
+          if (targetDev && item.tv_id && item.tv_id === targetDev.tv_id) return true;
+          return false;
+        });
+      }
+
+      if (counterLabel) {
+        counterLabel.innerText = `Mostrando ${Math.min(filtered.length, 15)} de ${history.length} registro(s)`;
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1rem;">
+              Nenhum registro encontrado para o equipamento selecionado.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.slice(-15).reverse().map(item => {
         const dt = new Date(item.timestamp).toLocaleTimeString('pt-BR');
         const badge = item.success ? '<span style="color: #34d399; font-weight: 600;">✅ OK</span>' : '<span style="color: #f87171; font-weight: 600;">❌ Falha</span>';
         const devName = item.device_name || `ID ${item.device_id || '--'}`;

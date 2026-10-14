@@ -36,6 +36,8 @@ UI_FILE = BASE_DIR / "smarttv_ui.html"
 is_running_batch = False
 current_running_device_id: Optional[int] = None
 next_run_dt: Optional[datetime] = None
+retry_count: int = 0
+MAX_MIDNIGHT_RETRIES: int = 6
 
 
 def carregar_config() -> Dict[str, Any]:
@@ -49,6 +51,14 @@ def carregar_config() -> Dict[str, Any]:
                     data["devices"] = []
                 if "master_playlist_url" not in data:
                     data["master_playlist_url"] = data.get("playlist_url", "")
+                if "fallback_playlist_url" not in data:
+                    data["fallback_playlist_url"] = "https://iptv-org.github.io/iptv/index.m3u"
+                if "telegram_bot_token" not in data:
+                    data["telegram_bot_token"] = ""
+                if "telegram_chat_id" not in data:
+                    data["telegram_chat_id"] = ""
+                if "webhook_url" not in data:
+                    data["webhook_url"] = ""
                 return data
         except Exception as e:
             print(f"[!] Erro ao carregar {CONFIG_FILE}: {e}")
@@ -85,6 +95,45 @@ def agendar_proxima_execucao(minutos: int):
     global next_run_dt
     next_run_dt = datetime.now() + timedelta(minutes=minutos)
     print(f"[*] Próxima atualização automática agendada para: {next_run_dt.strftime('%H:%M:%S')}")
+
+
+async def enviar_notificacao_externa(titulo: str, mensagem: str, sucesso: bool = True):
+    """Envia alerta assíncrono para Telegram e/ou Webhook configurados."""
+    cfg = carregar_config()
+    tg_token = cfg.get("telegram_bot_token", "").strip()
+    tg_chat = cfg.get("telegram_chat_id", "").strip()
+    webhook_url = cfg.get("webhook_url", "").strip()
+
+    if not (tg_token and tg_chat) and not webhook_url:
+        return
+
+    import httpx
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        if tg_token and tg_chat:
+            icone = "✅" if sucesso else "⚠️"
+            texto_tg = f"*{icone} SmartTV Club Auto-Sync*\n\n*{titulo}*\n{mensagem}"
+            try:
+                await client.post(
+                    f"https://api.telegram.org/bot{tg_token}/sendMessage",
+                    json={"chat_id": tg_chat, "text": texto_tg, "parse_mode": "Markdown"}
+                )
+                print("[INFO] Notificação enviada via Telegram com sucesso.")
+            except Exception as e_tg:
+                print(f"[!] Erro ao enviar notificação Telegram: {e_tg}")
+
+        if webhook_url:
+            payload = {
+                "title": titulo,
+                "message": mensagem,
+                "success": sucesso,
+                "timestamp": datetime.now().isoformat(),
+                "source": "SmartTV Club Auto-Sync"
+            }
+            try:
+                await client.post(webhook_url, json=payload)
+                print("[INFO] Notificação enviada via Webhook com sucesso.")
+            except Exception as e_wh:
+                print(f"[!] Erro ao enviar Webhook: {e_wh}")
 
 
 async def executar_upload_individual(device: Dict[str, Any], playlist_url: str) -> Dict[str, Any]:
@@ -288,7 +337,7 @@ async def executar_upload_em_lote() -> List[Dict[str, Any]]:
 
 async def background_scheduler():
     """Loop assíncrono para verificar e disparar atualizações periódicas ou por data agendada."""
-    global next_run_dt
+    global next_run_dt, retry_count
     print("[*] Scheduler de atualização contínua iniciado em background.")
 
     while True:
@@ -301,21 +350,26 @@ async def background_scheduler():
                 sync_mode = cfg.get("sync_mode", "interval")
                 scheduled_str = cfg.get("scheduled_datetime")
 
-                # Modo 1 (Principal): Sincronização Diária às 00:00 (Horário de Brasília)
+                # Modo 1 (Principal): Sincronização Diária às 00:00 (Horário de Brasília) com Retry e Fallback
                 if sync_mode == "daily_midnight_brasilia":
                     if next_run_dt is None:
                         next_run_dt = calcular_proxima_meia_noite_brasilia()
                         print(f"[*] Próxima sincronização diária agendada para: {next_run_dt.strftime('%d/%m/%Y às 00:00:00 (Brasília)')}")
                     elif agora >= next_run_dt and not is_running_batch:
-                        print(f"\n[🕛 00:00 BRASÍLIA] Horário diário atingido! Iniciando ciclo de renovação e sincronização...")
+                        print(f"\n[🕛 CICLO DIÁRIO] Verificando playlist diária (Tentativa {retry_count + 1}/{MAX_MIDNIGHT_RETRIES})...")
                         try:
                             import mailtm_manager
-                            novo_email, _, token = mailtm_manager.criar_email()
-                            cfg["temp_email"] = novo_email
-                            print(f"[📬] Novo e-mail diário criado para receber a playlist: {novo_email}")
-                            
+                            # Na 1ª tentativa do dia, renova o e-mail no Mail.tm
+                            if retry_count == 0:
+                                novo_email, _, token = mailtm_manager.criar_email()
+                                cfg["temp_email"] = novo_email
+                                print(f"[📬] Novo e-mail diário criado para receber a playlist: {novo_email}")
+                            else:
+                                dados = mailtm_manager.carregar_dados()
+                                token = dados.get("contas", [{}])[0].get("token", "")
+
                             # Verifica mensagens para extrair o link da nova playlist ("leia o conteudo da mensagem e tera um link")
-                            msgs = mailtm_manager.extrair_links_confirmacao(token)
+                            msgs = mailtm_manager.extrair_links_confirmacao(token, cfg.get("temp_email", ""))
                             link_playlist = None
                             for m in msgs:
                                 pls = m.get("playlists_detectadas", [])
@@ -326,21 +380,71 @@ async def background_scheduler():
                                 if link_enc:
                                     link_playlist = link_enc
                                     break
-                            
+
+                            # Valida o link capturado via ping rápido
+                            is_valid_link = False
                             if link_playlist:
+                                try:
+                                    import httpx
+                                    async with httpx.AsyncClient(timeout=6.0, follow_redirects=True) as client:
+                                        resp_test = await client.head(link_playlist)
+                                        if resp_test.status_code >= 400:
+                                            resp_test = await client.get(link_playlist, headers={"Range": "bytes=0-100"})
+                                        is_valid_link = resp_test.status_code < 400
+                                except Exception:
+                                    is_valid_link = False
+
+                            if is_valid_link and link_playlist:
                                 cfg["master_playlist_url"] = link_playlist
                                 cfg["new_playlist_url"] = link_playlist
-                                print(f"[✨] Link da nova playlist extraído do e-mail: {link_playlist}")
-                            cfg["last_playlist_check"] = datetime.now().isoformat()
-                            salvar_config(cfg)
-                        except Exception as e_mail:
-                            print(f"[!] Erro ao processar e-mail diário: {e_mail}")
+                                cfg["last_playlist_check"] = datetime.now().isoformat()
+                                salvar_config(cfg)
+                                print(f"[✨] Nova playlist válida capturada com sucesso: {link_playlist}")
 
-                        # Sincroniza todos os equipamentos ativos (Celular e iPad de Washington inclusos)
-                        await executar_upload_em_lote()
-                        # Reagenda para a próxima meia-noite
-                        next_run_dt = calcular_proxima_meia_noite_brasilia()
-                        print(f"[*] Próxima sincronização diária reagendada para: {next_run_dt.strftime('%d/%m/%Y às 00:00:00')}")
+                                # Sincroniza todos os equipamentos ativos
+                                await executar_upload_em_lote()
+
+                                # Sucesso: zera retentativas e agenda para a próxima meia-noite
+                                retry_count = 0
+                                next_run_dt = calcular_proxima_meia_noite_brasilia()
+                                print(f"[*] Próxima sincronização diária reagendada para: {next_run_dt.strftime('%d/%m/%Y às 00:00:00')}")
+                                await enviar_notificacao_externa(
+                                    "Sincronização Diária Concluída com Sucesso",
+                                    f"Nova playlist capturada e propagada para todos os aparelhos ativos às {agora.strftime('%H:%M:%S')}.",
+                                    sucesso=True
+                                )
+                            else:
+                                # Se ainda não chegou ou link inválido
+                                if retry_count < MAX_MIDNIGHT_RETRIES:
+                                    retry_count += 1
+                                    next_run_dt = agora + timedelta(minutes=5)
+                                    print(f"[⚠️] E-mail com playlist ainda não chegou às {agora.strftime('%H:%M:%S')}. Retentativa {retry_count}/{MAX_MIDNIGHT_RETRIES} agendada para 5 minutos ({next_run_dt.strftime('%H:%M:%S')}).")
+                                else:
+                                    # Esgotou retentativas: aciona contingência (Fallback)
+                                    fallback_url = cfg.get("fallback_playlist_url") or cfg.get("master_playlist_url") or "https://iptv-org.github.io/iptv/index.m3u"
+                                    print(f"[🚨] Retentativas esgotadas ({MAX_MIDNIGHT_RETRIES}x). Aplicando lista de CONTINGÊNCIA (Fallback): {fallback_url}")
+                                    cfg["master_playlist_url"] = fallback_url
+                                    cfg["last_playlist_check"] = datetime.now().isoformat()
+                                    salvar_config(cfg)
+
+                                    await executar_upload_em_lote()
+
+                                    retry_count = 0
+                                    next_run_dt = calcular_proxima_meia_noite_brasilia()
+                                    print(f"[*] Ciclo finalizado com fallback. Próxima execução: {next_run_dt.strftime('%d/%m/%Y às 00:00:00')}")
+                                    await enviar_notificacao_externa(
+                                        "Alerta: Lista de Contingência Aplicada",
+                                        f"O e-mail diário com a nova playlist não foi recebido após {MAX_MIDNIGHT_RETRIES} tentativas de 5 min. A lista de fallback foi propagada para não deixar as TVs sem sinal.",
+                                        sucesso=False
+                                    )
+                        except Exception as e_mail:
+                            print(f"[!] Erro no processamento do ciclo diário: {e_mail}")
+                            if retry_count < MAX_MIDNIGHT_RETRIES:
+                                retry_count += 1
+                                next_run_dt = agora + timedelta(minutes=5)
+                            else:
+                                retry_count = 0
+                                next_run_dt = calcular_proxima_meia_noite_brasilia()
 
                 # Modo 2: Data e Hora específica agendada
                 elif sync_mode == "datetime" and scheduled_str:
@@ -421,6 +525,14 @@ async def post_config_handler(request: Request):
 
         if "master_playlist_url" in body:
             cfg["master_playlist_url"] = str(body["master_playlist_url"]).strip()
+        if "fallback_playlist_url" in body:
+            cfg["fallback_playlist_url"] = str(body["fallback_playlist_url"]).strip()
+        if "telegram_bot_token" in body:
+            cfg["telegram_bot_token"] = str(body["telegram_bot_token"]).strip()
+        if "telegram_chat_id" in body:
+            cfg["telegram_chat_id"] = str(body["telegram_chat_id"]).strip()
+        if "webhook_url" in body:
+            cfg["webhook_url"] = str(body["webhook_url"]).strip()
         if "interval_minutes" in body:
             cfg["interval_minutes"] = max(1, int(body["interval_minutes"]))
         if "auto_update_enabled" in body:
@@ -616,15 +728,17 @@ async def create_mailtm_account_handler(request: Request):
         except Exception:
             pass
 
-        # Regra: 1 e-mail atende até 5 aparelhos. Só cria outro se mais de 5 dispositivos cadastrados
-        if contas and total_devs <= 5 and not force:
+        # Regra: 1 e-mail atende até 5 aparelhos. Se mais de 5, permite até 2 e-mails (cobre até 10 aparelhos).
+        max_contas = max(1, (total_devs + 4) // 5)
+        if len(contas) >= max_contas and not force:
             email_atual = cfg.get("temp_email") or contas[0].get("email")
             return JSONResponse({
                 "success": False,
                 "created": False,
                 "email": email_atual,
                 "total_devices": total_devs,
-                "message": f"Regra ativa: Você possui {total_devs} aparelho(s) cadastrado(s). Apenas 1 e-mail é necessário (atende até 5 aparelhos). Outro e-mail só será criado se mais de 5 dispositivos forem cadastrados."
+                "max_accounts": max_contas,
+                "message": f"Regra ativa: Você possui {total_devs} aparelho(s) cadastrado(s). A cota atual permite até {max_contas} e-mail(s) (1 para cada 5 aparelhos). Um novo e-mail só será liberado ao cadastrar mais aparelhos."
             })
 
         endereco, senha, token = mailtm_manager.criar_email()
@@ -800,7 +914,20 @@ async def add_device_handler(request: Request):
         cfg["devices"] = devices
         salvar_config(cfg)
 
-        return JSONResponse({"success": True, "device": novo_device})
+        # Rotação automática de cota: se atingir 6+ aparelhos e houver apenas 1 conta, auto-provisiona a 2ª
+        total_devs_novo = total_dispositivos_cadastrados(cfg)
+        if total_devs_novo >= 6:
+            import mailtm_manager
+            dados_m = mailtm_manager.carregar_dados()
+            contas_m = dados_m.get("contas", [])
+            if len(contas_m) < 2:
+                try:
+                    novo_end, _, _ = mailtm_manager.criar_email(descartar_anterior=False)
+                    print(f"[+] 6º aparelho cadastrado! Auto-provisionada 2ª conta Mail.tm ({novo_end}) para cobrir slots 06-10.")
+                except Exception as e_cota:
+                    print(f"[!] Erro ao auto-provisionar 2ª conta de cota: {e_cota}")
+
+        return JSONResponse({"success": True, "device": novo_device, "total_devices": total_devs_novo})
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=400)
 
@@ -879,33 +1006,134 @@ async def lifespan(app: Starlette):
 
 
 async def ping_playlist_handler(request: Request):
-    """Testa rapidamente a conectividade de um link M3U via HTTP."""
+    """Testa detalhadamente a conectividade e integridade de um link M3U via HTTP."""
     try:
         body = await request.json()
         url = body.get("url", "").strip()
         if not url:
             return JSONResponse({"success": False, "error": "URL não fornecida."}, status_code=400)
 
-        import httpx
-        async with httpx.AsyncClient(timeout=6.0, follow_redirects=True) as client:
+        import httpx, time
+        t_inicio = time.time()
+        async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as client:
             try:
-                resp = await client.head(url)
-                if resp.status_code >= 400:
-                    resp = await client.get(url, headers={"Range": "bytes=0-100"})
-                is_ok = resp.status_code < 400
+                resp = await client.get(url, headers={"Range": "bytes=0-524287", "User-Agent": "Mozilla/5.0 (SmartTV Club Sync)"})
+                latency_ms = int((time.time() - t_inicio) * 1000)
+                is_ok = resp.status_code in [200, 206]
+
+                content_text = resp.text
+                is_m3u = "#EXTM3U" in content_text or "#EXTINF" in content_text
+                channel_count = content_text.count("#EXTINF:")
+
+                content_length = resp.headers.get("content-length") or resp.headers.get("content-range")
+                size_formatted = ""
+                if content_length:
+                    try:
+                        total_bytes = int(content_length.split("/")[-1]) if "/" in str(content_length) else int(content_length)
+                        if total_bytes > 1024 * 1024:
+                            size_formatted = f"{total_bytes / (1024 * 1024):.1f} MB"
+                        elif total_bytes > 1024:
+                            size_formatted = f"{total_bytes / 1024:.1f} KB"
+                        else:
+                            size_formatted = f"{total_bytes} B"
+                    except Exception:
+                        size_formatted = f"{len(resp.content)} B (amostra)"
+                else:
+                    size_formatted = f"{len(resp.content)} B (amostra)"
+
                 return JSONResponse({
                     "success": True,
                     "online": is_ok,
                     "status_code": resp.status_code,
+                    "latency_ms": latency_ms,
+                    "is_m3u": is_m3u,
+                    "channel_count": channel_count,
+                    "size_formatted": size_formatted,
                     "message": "Link M3U acessível e respondendo com sucesso!" if is_ok else f"Servidor retornou status {resp.status_code}"
                 })
             except Exception as e:
+                latency_ms = int((time.time() - t_inicio) * 1000)
                 return JSONResponse({
                     "success": True,
                     "online": False,
+                    "latency_ms": latency_ms,
                     "error": str(e),
-                    "message": "Falha de conexão com o servidor da playlist."
+                    "message": f"Falha de conexão com a playlist: {str(e)}"
                 })
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
+async def test_notification_handler(request: Request):
+    """Envia uma notificação de teste para Telegram ou Webhook configurados."""
+    try:
+        cfg = carregar_config()
+        tg_token = cfg.get("telegram_bot_token", "").strip()
+        tg_chat = cfg.get("telegram_chat_id", "").strip()
+        webhook_url = cfg.get("webhook_url", "").strip()
+
+        if not (tg_token and tg_chat) and not webhook_url:
+            return JSONResponse({
+                "success": False,
+                "message": "Configure o Telegram (Token e Chat ID) ou uma Webhook URL antes de testar."
+            }, status_code=400)
+
+        await enviar_notificacao_externa(
+            "Teste de Notificação SmartTV Club",
+            f"Este é um teste de alerta disparado com sucesso em {datetime.now().strftime('%d/%m/%Y às %H:%M:%S')}!",
+            sucesso=True
+        )
+        return JSONResponse({"success": True, "message": "Notificação de teste disparada com sucesso!"})
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
+async def export_backup_handler(request: Request):
+    """Exporta a configuração completa e aparelhos cadastrados em formato JSON para download."""
+    cfg = carregar_config()
+    dados_backup = {
+        "export_date": datetime.now().isoformat(),
+        "version": "1.0",
+        "devices": cfg.get("devices", []),
+        "master_playlist_url": cfg.get("master_playlist_url", ""),
+        "fallback_playlist_url": cfg.get("fallback_playlist_url", ""),
+        "sync_mode": cfg.get("sync_mode", "daily_midnight_brasilia"),
+        "telegram_bot_token": cfg.get("telegram_bot_token", ""),
+        "telegram_chat_id": cfg.get("telegram_chat_id", ""),
+        "webhook_url": cfg.get("webhook_url", "")
+    }
+    return JSONResponse(dados_backup, headers={
+        "Content-Disposition": f"attachment; filename=smarttv_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    })
+
+
+async def import_backup_handler(request: Request):
+    """Restaura a lista de equipamentos e configurações a partir de um backup JSON."""
+    try:
+        dados = await request.json()
+        if not isinstance(dados, dict) or "devices" not in dados:
+            return JSONResponse({"success": False, "error": "Formato de arquivo de backup inválido. Chave 'devices' ausente."}, status_code=400)
+
+        cfg = carregar_config()
+        if "devices" in dados and isinstance(dados["devices"], list):
+            cfg["devices"] = dados["devices"]
+        if dados.get("master_playlist_url"):
+            cfg["master_playlist_url"] = dados["master_playlist_url"]
+        if dados.get("fallback_playlist_url"):
+            cfg["fallback_playlist_url"] = dados["fallback_playlist_url"]
+        if dados.get("telegram_bot_token") is not None:
+            cfg["telegram_bot_token"] = dados["telegram_bot_token"]
+        if dados.get("telegram_chat_id") is not None:
+            cfg["telegram_chat_id"] = dados["telegram_chat_id"]
+        if dados.get("webhook_url") is not None:
+            cfg["webhook_url"] = dados["webhook_url"]
+
+        salvar_config(cfg)
+        return JSONResponse({
+            "success": True,
+            "message": f"Backup restaurado com sucesso! {len(cfg.get('devices', []))} equipamentos carregados.",
+            "total_devices": len(cfg.get("devices", []))
+        })
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
@@ -926,6 +1154,9 @@ routes = [
     Route("/api/mailtm/messages", get_mailtm_messages_handler, methods=["GET"]),
     Route("/api/mailtm/select", select_mailtm_account_handler, methods=["POST"]),
     Route("/api/mailtm/inject-test", inject_test_message_handler, methods=["POST"]),
+    Route("/api/notifications/test", test_notification_handler, methods=["POST"]),
+    Route("/api/backup/export", export_backup_handler, methods=["GET"]),
+    Route("/api/backup/import", import_backup_handler, methods=["POST"]),
 ]
 
 app = Starlette(debug=True, routes=routes, lifespan=lifespan)
