@@ -1097,6 +1097,9 @@
                 📬 Contas Mail.tm (<span id="accountsCountBadge">0</span>)
               </h2>
               <span style="font-size: 0.72rem; color: var(--text-muted);">Caixas de entrada e links de confirmação</span>
+              <div id="deviceQuotaBadge" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 9999px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd;">
+                📺 Cota: 1 e-mail atende até 5 aparelhos (<span id="quotaDevCount">0</span>/5 cadastrados)
+              </div>
             </div>
             <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
               <button class="pill-btn active" style="font-size: 0.72rem;" onclick="generateNewMailtmAccount()">➕ Nova Conta</button>
@@ -1230,6 +1233,11 @@
         const ativos = devicesList.filter(d => d.enabled && d.tv_id && d.tv_id.trim()).length;
         document.getElementById('activeDevicesCount').innerText = `${ativos} / ${devicesList.length}`;
         document.getElementById('totalRunsCount').innerText = (data.history || []).length;
+
+        const quotaSpan = document.getElementById('quotaDevCount');
+        if (quotaSpan) {
+          quotaSpan.innerText = data.total_registered_devices !== undefined ? data.total_registered_devices : ativos;
+        }
 
         setSavedState();
       } catch (err) {
@@ -1885,18 +1893,27 @@
       }
     }
 
-    async function generateNewMailtmAccount() {
-      showToast('Criando conta temporária no Mail.tm...', 'info');
+    async function generateNewMailtmAccount(force = false) {
+      showToast('Verificando cota e contas no Mail.tm...', 'info');
       try {
-        const res = await fetch('/api/mailtm/new', { method: 'POST' });
+        const res = await fetch('/api/mailtm/new', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ force })
+        });
         const data = await res.json();
         if (res.ok && data.success) {
           document.getElementById('mailtmEmail').value = data.email;
           showToast(`Nova conta criada: ${data.email}`, 'success');
           await loadMailtmAccounts();
+          await loadStatus();
+        } else if (data.message) {
+          showToast(data.message, 'warning');
+        } else {
+          showToast(data.error || 'Não foi possível criar uma nova conta.', 'error');
         }
       } catch (err) {
-        showToast('Erro de conexão.', 'error');
+        showToast('Erro de conexão com o servidor.', 'error');
       }
     }
 

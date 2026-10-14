@@ -381,12 +381,19 @@ async def index_handler(request: Request):
     return HTMLResponse(content=html_content)
 
 
+def total_dispositivos_cadastrados(cfg: Dict[str, Any]) -> int:
+    """Retorna a contagem de equipamentos com TV ID preenchido."""
+    devices = cfg.get("devices", [])
+    return len([d for d in devices if d.get("tv_id", "").strip()])
+
+
 async def get_config_handler(request: Request):
     """Retorna configuração global, equipamentos e status."""
     cfg = carregar_config()
     cfg["is_syncing"] = is_running_batch
     cfg["current_device_id"] = current_running_device_id
     cfg["status"] = "running" if is_running_batch else ("online" if cfg.get("auto_update_enabled") else "paused")
+    cfg["total_registered_devices"] = total_dispositivos_cadastrados(cfg)
     
     # Próxima execução
     if cfg.get("auto_update_enabled"):
@@ -594,18 +601,42 @@ async def renew_daily_email_handler(request: Request):
 
 
 async def create_mailtm_account_handler(request: Request):
-    """Cria uma nova conta temporária no Mail.tm sob demanda."""
+    """Cria uma nova conta temporária no Mail.tm sob demanda (regra: só cria outro e-mail se mais de 5 dispositivos forem cadastrados)."""
     try:
         import mailtm_manager
-        endereco, senha, token = mailtm_manager.criar_email()
         cfg = carregar_config()
+        total_devs = total_dispositivos_cadastrados(cfg)
+        dados = mailtm_manager.carregar_dados()
+        contas = dados.get("contas", [])
+
+        force = False
+        try:
+            body = await request.json()
+            force = bool(body.get("force", False))
+        except Exception:
+            pass
+
+        # Regra: 1 e-mail atende até 5 aparelhos. Só cria outro se mais de 5 dispositivos cadastrados
+        if contas and total_devs <= 5 and not force:
+            email_atual = cfg.get("temp_email") or contas[0].get("email")
+            return JSONResponse({
+                "success": False,
+                "created": False,
+                "email": email_atual,
+                "total_devices": total_devs,
+                "message": f"Regra ativa: Você possui {total_devs} aparelho(s) cadastrado(s). Apenas 1 e-mail é necessário (atende até 5 aparelhos). Outro e-mail só será criado se mais de 5 dispositivos forem cadastrados."
+            })
+
+        endereco, senha, token = mailtm_manager.criar_email()
         cfg["temp_email"] = endereco
         salvar_config(cfg)
         return JSONResponse({
             "success": True,
+            "created": True,
             "email": endereco,
             "password": senha,
-            "message": "Conta Mail.tm criada com sucesso!"
+            "total_devices": total_devs,
+            "message": f"Nova conta criada com sucesso para atender aparelhos adicionais ({total_devs} cadastrados)!"
         })
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
