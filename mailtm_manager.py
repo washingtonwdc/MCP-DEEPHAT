@@ -70,11 +70,43 @@ def autenticar_token(endereco: str, senha: str) -> Optional[str]:
     return None
 
 
-def criar_email(usuario_custom: Optional[str] = None) -> Tuple[str, str, str]:
+def excluir_conta(token: str, account_id: Optional[str] = None) -> bool:
+    """Exclui permanentemente uma conta temporária no Mail.tm."""
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        if not account_id:
+            resp_me = requests.get(f"{API_URL}/me", headers=headers, timeout=5.0)
+            if resp_me.status_code == 200:
+                account_id = resp_me.json().get("id")
+        if account_id:
+            resp_del = requests.delete(f"{API_URL}/accounts/{account_id}", headers=headers, timeout=5.0)
+            if resp_del.status_code in [200, 204]:
+                print(f"[INFO] Conta {account_id} excluída/descartada com sucesso no Mail.tm.")
+                return True
+    except Exception as e:
+        print(f"[!] Erro ao descartar conta no Mail.tm: {e}")
+    return False
+
+
+def descartar_contas_anteriores():
+    """Descarta todas as contas salvas anteriormente no Mail.tm e limpa emails.json."""
+    dados = carregar_dados()
+    for c in dados.get("contas", []):
+        tok = c.get("token")
+        if tok:
+            excluir_conta(tok)
+    salvar_dados({"contas": []})
+
+
+def criar_email(usuario_custom: Optional[str] = None, descartar_anterior: bool = True) -> Tuple[str, str, str]:
     """
     Cria uma nova caixa de e-mail temporária no Mail.tm.
+    Por padrão, descarta a conta anterior para manter apenas 1 conta ativa por dia.
     Retorna (endereco, senha, token).
     """
+    if descartar_anterior:
+        descartar_contas_anteriores()
+
     dominios = obter_dominios_disponiveis()
     if not dominios:
         raise RuntimeError("Nenhum domínio disponível no Mail.tm no momento.")
@@ -112,12 +144,8 @@ def criar_email(usuario_custom: Optional[str] = None) -> Tuple[str, str, str]:
 
     token = resp_token.json().get("token")
 
-    # 3. Salva no arquivo local
-    dados = carregar_dados()
+    # 3. Salva apenas a conta única ativa no arquivo local
     chave_data = str(date.today())
-    if "contas" not in dados:
-        dados["contas"] = []
-
     registro = {
         "data": chave_data,
         "criado_em": datetime.now().isoformat(),
@@ -126,12 +154,30 @@ def criar_email(usuario_custom: Optional[str] = None) -> Tuple[str, str, str]:
         "token": token,
     }
 
-    # Salva na lista e como conta do dia
-    dados[chave_data] = registro
-    dados["contas"].append(registro)
+    dados = {
+        "contas": [registro],
+        chave_data: registro
+    }
     salvar_dados(dados)
 
-    print(f"[+] E-mail temporário criado com sucesso: {endereco}")
+    # 4. Atualiza emails_alvo.txt com a conta única ativa
+    try:
+        arquivo_alvo = BASE_DIR / "emails_alvo.txt"
+        arquivo_alvo.write_text(f"{endereco}\n", encoding="utf-8")
+    except Exception as e:
+        print(f"[!] Erro ao atualizar emails_alvo.txt: {e}")
+
+    # 5. Atualiza smarttv_config.json
+    try:
+        arquivo_cfg = BASE_DIR / "smarttv_config.json"
+        if arquivo_cfg.exists():
+            cfg = json.loads(arquivo_cfg.read_text(encoding="utf-8"))
+            cfg["temp_email"] = endereco
+            arquivo_cfg.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
+    except Exception as e:
+        print(f"[!] Erro ao sincronizar smarttv_config.json: {e}")
+
+    print(f"[+] E-mail diário único ativo: {endereco}")
     return endereco, senha, token
 
 
@@ -219,12 +265,23 @@ def analisar_mensagem_para_playlist(detalhe: Dict[str, Any]) -> Dict[str, Any]:
     # 4. Links de ativação / confirmação
     links_ativacao = [u for u in urls_limpas if any(k in u.lower() for k in ["confirm", "activat", "verif", "token", "auth", "valida", "clique", "ativar"])]
 
+    # 5. Captura integral de links: "leia o conteudo da mensaagen e tera um link"
+    # Se nenhuma playlist técnica (m3u/get.php) foi encontrada, mas há links úteis no e-mail:
+    links_uteis = [u for u in urls_limpas if not any(ign in u.lower() for ign in ["w3.org", "schemas.", "fonts.google", "cloudflare", "unsubscribe", "optout"])]
+    link_encontrado = None
+    if playlists_detectadas:
+        link_encontrado = playlists_detectadas[0]
+    elif links_uteis:
+        link_encontrado = links_uteis[0]
+        playlists_detectadas.append(link_encontrado)
+
     return {
         "playlists_detectadas": list(dict.fromkeys(playlists_detectadas)),
+        "link_encontrado": link_encontrado,
         "xtream_info": xtream_info,
         "links_ativacao": links_ativacao,
         "todos_links": urls_limpas,
-        "texto": texto_corpo[:400] + ("..." if len(texto_corpo) > 400 else "")
+        "texto": texto_corpo[:1000] + ("..." if len(texto_corpo) > 1000 else "")
     }
 
 

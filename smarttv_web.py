@@ -314,15 +314,17 @@ async def background_scheduler():
                             cfg["temp_email"] = novo_email
                             print(f"[📬] Novo e-mail diário criado para receber a playlist: {novo_email}")
                             
-                            # Verifica mensagens para extrair o link da nova playlist
+                            # Verifica mensagens para extrair o link da nova playlist ("leia o conteudo da mensagem e tera um link")
                             msgs = mailtm_manager.extrair_links_confirmacao(token)
                             link_playlist = None
                             for m in msgs:
-                                for l in m.get("todos_links", []):
-                                    if any(p in l.lower() for p in [".m3u", ".m3u8", "get.php", "type=m3u", "playlist"]):
-                                        link_playlist = l
-                                        break
-                                if link_playlist:
+                                pls = m.get("playlists_detectadas", [])
+                                if pls:
+                                    link_playlist = pls[0]
+                                    break
+                                link_enc = m.get("link_encontrado")
+                                if link_enc:
+                                    link_playlist = link_enc
                                     break
                             
                             if link_playlist:

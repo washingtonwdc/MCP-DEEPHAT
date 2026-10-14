@@ -11,7 +11,7 @@
       "name": "Celular de Washington",
       "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
       "enabled": true,
-      "last_sync": "2026-10-14T10:07:28.544009",
+      "last_sync": "2026-10-14T10:41:19.431462",
       "status": "success"
     },
     {
@@ -19,7 +19,7 @@
       "name": "iPad de Washington",
       "tv_id": "e9b4-9e58-a8b2-da67-25c9-c737",
       "enabled": true,
-      "last_sync": "2026-10-14T10:07:59.302533",
+      "last_sync": "2026-10-14T10:41:43.328611",
       "status": "success"
     },
     {
@@ -92,10 +92,10 @@
     "device_name": "iPad de Washington",
     "tv_id": "e9b4-9e58-a8b2-da67-25c9-c737",
     "playlist_url": "https://iptv-org.github.io/iptv/index.m3u",
-    "timestamp": "2026-10-14T10:07:59.302533",
+    "timestamp": "2026-10-14T10:41:43.328611",
     "success": true,
     "message": "Playlist enviada com sucesso!",
-    "duration_ms": 19611
+    "duration_ms": 10252
   },
   "history": [
     {
@@ -117,6 +117,26 @@
       "success": true,
       "message": "Playlist enviada com sucesso!",
       "duration_ms": 19611
+    },
+    {
+      "device_id": 1,
+      "device_name": "Celular de Washington",
+      "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
+      "playlist_url": "https://iptv-org.github.io/iptv/index.m3u",
+      "timestamp": "2026-10-14T10:41:19.431462",
+      "success": true,
+      "message": "Playlist enviada com sucesso!",
+      "duration_ms": 21887
+    },
+    {
+      "device_id": 2,
+      "device_name": "iPad de Washington",
+      "tv_id": "e9b4-9e58-a8b2-da67-25c9-c737",
+      "playlist_url": "https://iptv-org.github.io/iptv/index.m3u",
+      "timestamp": "2026-10-14T10:41:43.328611",
+      "success": true,
+      "message": "Playlist enviada com sucesso!",
+      "duration_ms": 10252
     }
   ],
   "daily_time": "00:00",
