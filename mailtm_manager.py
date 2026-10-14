@@ -55,6 +55,21 @@ def obter_dominios_disponiveis() -> List[str]:
         return []
 
 
+def autenticar_token(endereco: str, senha: str) -> Optional[str]:
+    """Obtém ou renova um token JWT para um e-mail e senha existentes."""
+    try:
+        resp = requests.post(
+            f"{API_URL}/token",
+            json={"address": endereco, "password": senha},
+            timeout=10.0,
+        )
+        if resp.status_code == 200:
+            return resp.json().get("token")
+    except Exception as e:
+        print(f"[!] Erro ao autenticar token para {endereco}: {e}")
+    return None
+
+
 def criar_email(usuario_custom: Optional[str] = None) -> Tuple[str, str, str]:
     """
     Cria uma nova caixa de e-mail temporária no Mail.tm.

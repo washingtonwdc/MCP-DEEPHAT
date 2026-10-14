@@ -460,8 +460,27 @@ async def check_playlist_from_email_handler(request: Request):
                     conta = v
                     break
 
+        # Auto-renovação de token caso possua senha salva
+        if conta and not conta.get("token") and conta.get("senha"):
+            novo_tok = mailtm_manager.autenticar_token(conta["email"], conta["senha"])
+            if novo_tok:
+                conta["token"] = novo_tok
+                mailtm_manager.salvar_dados(dados)
+
+        # Auto-healing se a conta foi criada em outra máquina e não existe localmente
         if not conta or not conta.get("token"):
-            return JSONResponse({"success": False, "error": f"Conta '{email_ativo}' sem token ou não encontrada."}, status_code=404)
+            conta_valida = next((c for c in reversed(contas) if c.get("token")), None)
+            if conta_valida:
+                conta = conta_valida
+                email_ativo = conta["email"]
+                cfg["temp_email"] = email_ativo
+                salvar_config(cfg)
+            else:
+                endereco, senha, token = mailtm_manager.criar_email()
+                conta = {"email": endereco, "senha": senha, "token": token}
+                email_ativo = endereco
+                cfg["temp_email"] = endereco
+                salvar_config(cfg)
 
         msgs = mailtm_manager.extrair_links_confirmacao(conta["token"])
         playlist_link = None
@@ -581,8 +600,29 @@ async def get_mailtm_messages_handler(request: Request):
                     conta = v
                     break
 
+        # Auto-renovação de token caso possua senha salva
+        if conta and not conta.get("token") and conta.get("senha"):
+            novo_tok = mailtm_manager.autenticar_token(conta["email"], conta["senha"])
+            if novo_tok:
+                conta["token"] = novo_tok
+                mailtm_manager.salvar_dados(dados)
+
+        # Auto-healing se a conta foi criada em outra máquina e não existe localmente
         if not conta or not conta.get("token"):
-            return JSONResponse({"success": False, "error": f"Conta '{target_email}' não encontrada ou sem token de acesso."}, status_code=404)
+            conta_valida = next((c for c in reversed(contas) if c.get("token")), None)
+            if conta_valida:
+                conta = conta_valida
+                target_email = conta["email"]
+                cfg = carregar_config()
+                cfg["temp_email"] = target_email
+                salvar_config(cfg)
+            else:
+                endereco, senha, token = mailtm_manager.criar_email()
+                conta = {"email": endereco, "senha": senha, "token": token}
+                target_email = endereco
+                cfg = carregar_config()
+                cfg["temp_email"] = endereco
+                salvar_config(cfg)
 
         token = conta["token"]
         msgs = mailtm_manager.extrair_links_confirmacao(token)
