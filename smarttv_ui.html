@@ -1196,7 +1196,7 @@
           <div id="newPlaylistBanner" style="margin-top: 0.85rem; background: var(--success-bg); border: 1px solid var(--success-border); border-radius: var(--radius-md); padding: 0.75rem 0.9rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
               <span style="font-size: 0.72rem; font-weight: 700; color: var(--success); text-transform: uppercase;">
-                ✨ Link Recebido por E-mail
+                ✨ Link Recebido por E-mail (com Usuário & Senha)
               </span>
               <span id="lastPlaylistCheckTime" style="font-size: 0.68rem; color: var(--text-muted);">Aguardando verificação</span>
             </div>
@@ -1204,6 +1204,21 @@
               <input type="text" id="displayPlaylistLink" class="url-input" readonly style="font-size: 0.8rem; padding: 0.45rem 0.65rem; background: var(--bg-card); border: 1px solid var(--success-border); border-radius: var(--radius-sm); color: inherit; width: 100%;" placeholder="Aguardando link da playlist nova..." />
               <button class="btn-icon" id="btnCopyPlaylist" style="width: 30px; height: 30px;" title="Copiar Link da Playlist" onclick="copyGenericText(this.previousElementSibling.value, 'Link da Playlist', this)">📋</button>
             </div>
+
+            <!-- Badges de Credenciais Extraídas (Usuário e Senha) -->
+            <div id="capturedCredentialsBox" style="display: none; margin-top: 0.45rem; padding: 0.4rem 0.6rem; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px dashed var(--success-border); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem;">
+              <div style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.74rem;">
+                <span style="font-weight: 700; color: var(--text-muted);">👤 Usuário:</span>
+                <span id="capturedUserBadge" class="mono" style="font-weight: 600; color: var(--text-main); background: var(--bg-card-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color);">--</span>
+                <button class="btn-icon" id="btnCopyUser" style="width: 24px; height: 24px; font-size: 0.7rem;" title="Copiar Usuário" onclick="copyGenericText(document.getElementById('capturedUserBadge').innerText, 'Usuário', this)">📋</button>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.74rem;">
+                <span style="font-weight: 700; color: var(--text-muted);">🔑 Senha:</span>
+                <span id="capturedPassBadge" class="mono" style="font-weight: 600; color: var(--text-main); background: var(--bg-card-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color);">--</span>
+                <button class="btn-icon" id="btnCopyPass" style="width: 24px; height: 24px; font-size: 0.7rem;" title="Copiar Senha" onclick="copyGenericText(document.getElementById('capturedPassBadge').innerText, 'Senha', this)">📋</button>
+              </div>
+            </div>
+
             <div style="display: flex; gap: 0.4rem; margin-top: 0.5rem;">
               <button type="button" class="pill-btn" style="font-size: 0.72rem; padding: 0.25rem 0.55rem;" onclick="checkPlaylistFromEmail()" title="Verificar se a playlist nova já chegou no e-mail ativo">
                 🔍 Checar E-mail & Atualizar
@@ -1399,6 +1414,7 @@
         const activePlaylist = data.new_playlist_url || data.master_playlist_url || '';
         const displayInput = document.getElementById('displayPlaylistLink');
         if (displayInput) displayInput.value = activePlaylist;
+        updateCapturedCredentials(activePlaylist, data.credentials);
 
         const checkTimeSpan = document.getElementById('lastPlaylistCheckTime');
         if (checkTimeSpan) {
@@ -1502,6 +1518,36 @@
       if (content) content.style.display = notificationsDrawerExpanded ? 'block' : 'none';
       if (arrow) arrow.innerText = notificationsDrawerExpanded ? '🔼' : '🔽';
       if (status) status.innerText = notificationsDrawerExpanded ? 'Expandido' : 'Recolhido';
+    }
+
+    /* ========================================================================
+       ATUALIZAÇÃO DE CREDENCIAIS (USUÁRIO E SENHA) DO LINK RECEBIDO
+       ======================================================================== */
+    function updateCapturedCredentials(url, credsObj) {
+      const box = document.getElementById('capturedCredentialsBox');
+      const userBadge = document.getElementById('capturedUserBadge');
+      const passBadge = document.getElementById('capturedPassBadge');
+      if (!box || !userBadge || !passBadge) return;
+
+      let user = credsObj?.username || '';
+      let pass = credsObj?.password || '';
+
+      if ((!user || !pass) && url) {
+        try {
+          const matchUser = url.match(/[?&](?:username|user)=([^&#]+)/i);
+          const matchPass = url.match(/[?&](?:password|pass)=([^&#]+)/i);
+          if (matchUser) user = decodeURIComponent(matchUser[1]);
+          if (matchPass) pass = decodeURIComponent(matchPass[1]);
+        } catch (e) {}
+      }
+
+      if (user && pass) {
+        userBadge.innerText = user;
+        passBadge.innerText = pass;
+        box.style.display = 'flex';
+      } else {
+        box.style.display = 'none';
+      }
     }
 
     // Aplica link recebido para o input Mestre
@@ -1898,6 +1944,7 @@
             document.getElementById('masterPlaylist').value = data.playlist_url;
             const displayInput = document.getElementById('displayPlaylistLink');
             if (displayInput) displayInput.value = data.playlist_url;
+            updateCapturedCredentials(data.playlist_url, data.credentials);
           } else {
             showToast(data.message || 'Nenhuma playlist encontrada nos e-mails recentes.', 'warning');
           }
@@ -2284,6 +2331,12 @@
                         <button class="btn-icon" style="width: 26px; height: 26px;" title="Copiar Link" onclick="copyGenericText('${pl}', 'Playlist IPTV', this)">📋</button>
                       </div>
                     `).join('')}
+                    ${m.xtream_info && m.xtream_info.username ? `
+                      <div style="display: flex; gap: 0.6rem; align-items: center; margin-top: 0.35rem; font-size: 0.72rem; color: #94a3b8; flex-wrap: wrap;">
+                        <span>👤 <strong>Usuário:</strong> <code style="color: #f8fafc; background: rgba(0,0,0,0.3); padding: 1px 5px; border-radius: 3px;">${m.xtream_info.username}</code></span>
+                        <span>🔑 <strong>Senha:</strong> <code style="color: #f8fafc; background: rgba(0,0,0,0.3); padding: 1px 5px; border-radius: 3px;">${m.xtream_info.password}</code></span>
+                      </div>
+                    ` : ''}
                   </div>
                 ` : ''}
 
@@ -2326,7 +2379,13 @@
         const data = await res.json();
         if (res.ok && data.success) {
           showToast('Mensagem de teste com playlist injetada!', 'success');
+          if (data.playlist_url) {
+            const displayInput = document.getElementById('displayPlaylistLink');
+            if (displayInput) displayInput.value = data.playlist_url;
+            updateCapturedCredentials(data.playlist_url, data.credentials);
+          }
           await refreshCurrentInbox();
+          await loadStatus();
         } else {
           showToast(data.error || 'Falha ao injetar mensagem', 'error');
         }

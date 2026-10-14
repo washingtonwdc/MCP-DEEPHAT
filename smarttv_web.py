@@ -645,6 +645,24 @@ async def index_handler(request: Request):
     return HTMLResponse(content=html_content)
 
 
+def extrair_credenciais_de_url(url: str) -> Dict[str, str]:
+    """Extrai host, username e password a partir de query params em URLs de IPTV."""
+    if not url:
+        return {}
+    try:
+        from urllib.parse import urlparse, parse_qs
+        parsed = urlparse(url)
+        qs = parse_qs(parsed.query)
+        user = qs.get("username", [None])[0] or qs.get("user", [None])[0] or ""
+        pwd = qs.get("password", [None])[0] or qs.get("pass", [None])[0] or ""
+        host = f"{parsed.scheme}://{parsed.netloc}" if parsed.netloc else ""
+        if user or pwd:
+            return {"host": host, "username": user, "password": pwd, "m3u_url": url}
+    except Exception:
+        pass
+    return {}
+
+
 def total_dispositivos_cadastrados(cfg: Dict[str, Any]) -> int:
     """Retorna a contagem de equipamentos com TV ID preenchido."""
     devices = cfg.get("devices", [])
@@ -659,6 +677,12 @@ async def get_config_handler(request: Request):
     cfg["status"] = "running" if is_running_batch else ("online" if cfg.get("auto_update_enabled") else "paused")
     cfg["total_registered_devices"] = total_dispositivos_cadastrados(cfg)
     
+    # Credenciais Xtream extraídas da playlist ativa
+    creds = cfg.get("xtream_info") or {}
+    if not creds.get("username"):
+        creds = extrair_credenciais_de_url(cfg.get("new_playlist_url") or cfg.get("master_playlist_url") or "")
+    cfg["credentials"] = creds
+
     # Próxima execução
     if cfg.get("auto_update_enabled"):
         if cfg.get("sync_mode") == "datetime" and cfg.get("scheduled_datetime"):
@@ -827,12 +851,17 @@ async def check_playlist_from_email_handler(request: Request):
             cfg["new_playlist_url"] = playlist_encontrada
             if email_com_playlist:
                 cfg["temp_email"] = email_com_playlist
+            if detalhes_item and detalhes_item.get("xtream_info"):
+                cfg["xtream_info"] = detalhes_item["xtream_info"]
+            else:
+                cfg["xtream_info"] = extrair_credenciais_de_url(playlist_encontrada)
             salvar_config(cfg)
             return JSONResponse({
                 "success": True,
                 "found": True,
                 "playlist_url": playlist_encontrada,
                 "email_origem": email_com_playlist,
+                "credentials": cfg.get("xtream_info") or {},
                 "message": f"Nova playlist identificada com sucesso na caixa de {email_com_playlist}!",
                 "total_messages": total_msgs_geral,
                 "detalhes": detalhes_item
@@ -1039,12 +1068,25 @@ async def inject_test_message_handler(request: Request):
             pass
         cfg = carregar_config()
         email = body.get("email") or cfg.get("temp_email")
-        playlist = body.get("playlist_url") or cfg.get("master_playlist_url") or "https://iptv-org.github.io/iptv/index.m3u"
+        url_padrao_teste = "http://line.iptvclub.net:80/get.php?username=teste_washington&password=tv_smart_2026&type=m3u_plus&output=ts"
+        playlist = body.get("playlist_url") or url_padrao_teste
         if not email:
             return JSONResponse({"success": False, "error": "E-mail ativo não encontrado."}, status_code=400)
 
         msg = mailtm_manager.injetar_mensagem_teste(email, playlist)
-        return JSONResponse({"success": True, "message": "Mensagem de teste injetada na caixa com sucesso!", "item": msg})
+        creds = msg.get("xtream_info") or extrair_credenciais_de_url(playlist)
+        cfg["new_playlist_url"] = playlist
+        cfg["master_playlist_url"] = playlist
+        cfg["xtream_info"] = creds
+        cfg["last_playlist_check"] = datetime.now().isoformat()
+        salvar_config(cfg)
+        return JSONResponse({
+            "success": True,
+            "message": "Mensagem de teste injetada na caixa com sucesso!",
+            "item": msg,
+            "playlist_url": playlist,
+            "credentials": creds
+        })
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 

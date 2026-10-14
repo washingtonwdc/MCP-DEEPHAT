@@ -1,5 +1,5 @@
 {
-  "master_playlist_url": "https://iptv-org.github.io/iptv/index.m3u",
+  "master_playlist_url": "http://line.iptvclub.net:80/get.php?username=teste_washington&password=tv_smart_2026&type=m3u_plus&output=ts",
   "interval_minutes": 60,
   "auto_update_enabled": true,
   "sync_mode": "daily_midnight_brasilia",
@@ -221,8 +221,14 @@
   ],
   "daily_time": "00:00",
   "timezone": "America/Sao_Paulo",
-  "new_playlist_url": "https://iptv-org.github.io/iptv/index.m3u",
-  "last_playlist_check": "2026-10-14T15:23:55.760156",
+  "new_playlist_url": "http://line.iptvclub.net:80/get.php?username=teste_washington&password=tv_smart_2026&type=m3u_plus&output=ts",
+  "xtream_info": {
+    "host": "http://line.iptvclub.net:80",
+    "username": "teste_washington",
+    "password": "tv_smart_2026",
+    "m3u_url": "http://line.iptvclub.net:80/get.php?username=teste_washington&password=tv_smart_2026&type=m3u_plus&output=ts"
+  },
+  "last_playlist_check": "2026-10-14T16:18:10.224056",
   "fallback_playlist_url": "https://iptv-org.github.io/iptv/index.m3u",
   "telegram_bot_token": "",
   "telegram_chat_id": "",

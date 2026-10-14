@@ -252,10 +252,27 @@ def analisar_mensagem_para_playlist(detalhe: Dict[str, Any]) -> Dict[str, Any]:
         user = user_match.group(1).strip()
         pwd = pass_match.group(1).strip()
         m3u_sintetizado = f"{host}/get.php?username={user}&password={pwd}&type=m3u_plus&output=ts"
-        playlists_detectadas.append(m3u_sintetizado)
+        playlists_detectadas.insert(0, m3u_sintetizado)
         xtream_info = {"host": host, "username": user, "password": pwd, "m3u_url": m3u_sintetizado}
 
-    # 3. Anexos M3U
+    # 3. Extrai credenciais embutidas na query string de qualquer URL encontrada
+    import urllib.parse
+    for u in urls_limpas:
+        try:
+            parsed = urllib.parse.urlparse(u)
+            qs = urllib.parse.parse_qs(parsed.query)
+            u_user = qs.get("username", [None])[0] or qs.get("user", [None])[0]
+            u_pass = qs.get("password", [None])[0] or qs.get("pass", [None])[0]
+            if u_user and u_pass:
+                if u not in playlists_detectadas:
+                    playlists_detectadas.insert(0, u)
+                if not xtream_info:
+                    host = f"{parsed.scheme}://{parsed.netloc}"
+                    xtream_info = {"host": host, "username": u_user, "password": u_pass, "m3u_url": u}
+        except Exception:
+            pass
+
+    # 4. Anexos M3U
     anexos = detalhe.get("attachments") or []
     for att in anexos:
         fn = att.get("filename", "").lower()
@@ -263,21 +280,30 @@ def analisar_mensagem_para_playlist(detalhe: Dict[str, Any]) -> Dict[str, Any]:
             download_url = f"https://api.mail.tm{att.get('downloadUrl')}"
             playlists_detectadas.append(download_url)
 
-    # 4. Links de ativação / confirmação
+    # 5. Links de ativação / confirmação
     links_ativacao = [u for u in urls_limpas if any(k in u.lower() for k in ["confirm", "activat", "verif", "token", "auth", "valida", "clique", "ativar"])]
 
-    # 5. Captura integral de links: "leia o conteudo da mensaagen e tera um link"
-    # Se nenhuma playlist técnica (m3u/get.php) foi encontrada, mas há links úteis no e-mail:
+    # 6. Captura integral de links: "leia o conteudo da mensaagen e tera um link"
     links_uteis = [u for u in urls_limpas if not any(ign in u.lower() for ign in ["w3.org", "schemas.", "fonts.google", "cloudflare", "unsubscribe", "optout"])]
-    link_encontrado = None
-    if playlists_detectadas:
-        link_encontrado = playlists_detectadas[0]
-    elif links_uteis:
-        link_encontrado = links_uteis[0]
-        playlists_detectadas.append(link_encontrado)
+    if not playlists_detectadas and links_uteis:
+        playlists_detectadas.append(links_uteis[0])
+
+    # Reordena para priorizar ABSOLUTAMENTE links contendo credenciais (username e password)
+    def _tem_credenciais(url: str) -> bool:
+        low = url.lower()
+        return ("username=" in low or "user=" in low) and ("password=" in low or "pass=" in low)
+
+    # Dedup mantendo a ordem com prioridade para URLs com credenciais
+    dedup_list = []
+    for p in playlists_detectadas:
+        if p not in dedup_list:
+            dedup_list.append(p)
+    dedup_list = sorted(dedup_list, key=lambda x: 0 if _tem_credenciais(x) else 1)
+
+    link_encontrado = dedup_list[0] if dedup_list else None
 
     return {
-        "playlists_detectadas": list(dict.fromkeys(playlists_detectadas)),
+        "playlists_detectadas": dedup_list,
         "link_encontrado": link_encontrado,
         "xtream_info": xtream_info,
         "links_ativacao": links_ativacao,
@@ -304,7 +330,7 @@ def salvar_mensagens_locais(dados: Dict[str, List[Dict[str, Any]]]):
         print(f"[!] Erro ao salvar mensagens locais: {e}")
 
 
-def injetar_mensagem_teste(email: str, playlist_url: str = "https://iptv-org.github.io/iptv/index.m3u") -> Dict[str, Any]:
+def injetar_mensagem_teste(email: str, playlist_url: str = "http://line.iptvclub.net:80/get.php?username=teste_washington&password=tv_smart_2026&type=m3u_plus&output=ts") -> Dict[str, Any]:
     """Injeta uma mensagem de teste com playlist para homologação imediata da inbox."""
     locais = carregar_mensagens_locais()
     msg_id = f"local_{int(time.time())}"
@@ -313,7 +339,7 @@ def injetar_mensagem_teste(email: str, playlist_url: str = "https://iptv-org.git
     corpo = (
         f"Prezado assinante Washington,\n\n"
         f"Seu teste IPTV de 24 horas foi liberado com sucesso para a conta {email}!\n\n"
-        f"📡 Playlist M3U Direta:\n{playlist_url}\n\n"
+        f"📡 Playlist M3U Direta com Usuário e Senha:\n{playlist_url}\n\n"
         f"⚙️ Credenciais Xtream Codes:\n"
         f"Servidor: http://line.iptvclub.net:80\n"
         f"Usuário: teste_washington\n"
@@ -328,13 +354,13 @@ def injetar_mensagem_teste(email: str, playlist_url: str = "https://iptv-org.git
         "remetente": "suporte@provedoriptv.com",
         "assunto": "Sua Lista e Acesso IPTV Chegou! (Teste 24h Liberado)",
         "data_recebimento": dt_agora,
-        "playlists_detectadas": [playlist_url, "http://line.iptvclub.net:80/get.php?username=teste_washington&password=tv_smart_2026&type=m3u_plus&output=ts"],
+        "playlists_detectadas": [playlist_url],
         "link_encontrado": playlist_url,
         "xtream_info": {
             "host": "http://line.iptvclub.net:80",
             "username": "teste_washington",
             "password": "tv_smart_2026",
-            "m3u_url": "http://line.iptvclub.net:80/get.php?username=teste_washington&password=tv_smart_2026&type=m3u_plus&output=ts"
+            "m3u_url": playlist_url
         },
         "links_ativacao": [f"https://ativacao.iptvclub.net/ativar?email={email}&token=9872163"],
         "todos_links": [playlist_url, f"https://ativacao.iptvclub.net/ativar?email={email}&token=9872163"],
