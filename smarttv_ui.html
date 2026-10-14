@@ -25,7 +25,9 @@
       --info-blue: #0284c7;
     }
 
-    /* MODO CLARO (LIGHT THEME) */
+    /* ==========================================================================
+       MODO CLARO (LIGHT THEME)
+       ========================================================================== */
     body.light-theme {
       --bg-dark: #f8fafc;
       --card-bg: rgba(255, 255, 255, 0.96);
@@ -52,6 +54,11 @@
       background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
       border: 1px solid rgba(219, 39, 119, 0.28);
       box-shadow: 0 15px 35px -10px rgba(219, 39, 119, 0.1);
+    }
+
+    /* Corrige o título rosa pálido: Vinho escuro com alto contraste */
+    body.light-theme .playlist-card-title {
+      color: #831843 !important;
     }
 
     body.light-theme .stat-card {
@@ -104,15 +111,6 @@
       border-color: transparent;
     }
 
-    body.light-theme .toggle-wrapper {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-    }
-
-    body.light-theme .toggle-info h4 {
-      color: #0f172a;
-    }
-
     body.light-theme .btn-secondary {
       background: #ffffff;
       border: 1px solid #cbd5e1;
@@ -134,15 +132,6 @@
       color: #0f172a;
     }
 
-    body.light-theme .btn-outline-dashed {
-      border-color: #db2777;
-      color: #be185d;
-    }
-
-    body.light-theme .btn-outline-dashed:hover {
-      background: rgba(219, 39, 119, 0.05);
-    }
-
     body.light-theme table th {
       background: #f1f5f9;
       color: #475569;
@@ -158,6 +147,9 @@
       background: #f8fafc;
     }
 
+    /* ==========================================================================
+       ESTILOS GERAIS
+       ========================================================================== */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -172,7 +164,7 @@
       background-attachment: fixed;
       color: var(--text-main);
       min-height: 100vh;
-      padding: 2rem 1.25rem;
+      padding: 1.75rem 1.25rem;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -181,13 +173,13 @@
 
     .container {
       width: 100%;
-      max-width: 1380px;
+      max-width: 1420px;
       position: relative;
     }
 
     /* Top Header */
     header {
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.5rem;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -238,7 +230,7 @@
       color: #f0abfc;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.65rem;
     }
 
     .brand-pill .pulse-dot {
@@ -256,19 +248,19 @@
     }
 
     h1 {
-      font-size: 2.15rem;
+      font-size: 2.1rem;
       font-weight: 800;
       background: linear-gradient(135deg, #ffffff 30%, #e2e8f0 70%, #d946ef 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: -0.03em;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.35rem;
     }
 
     .subtitle {
       color: var(--text-muted);
-      font-size: 0.95rem;
-      max-width: 760px;
+      font-size: 0.92rem;
+      max-width: 820px;
     }
 
     /* Stats Bar */
@@ -334,16 +326,25 @@
       animation: pulse 1.5s infinite;
     }
 
-    /* DESKTOP 2-COLUMN GRID */
-    .main-grid {
+    /* ==========================================================================
+       1. GRID DE DUAS COLUNAS EQUILIBRADO (~58% esquerda / ~42% direita)
+       ========================================================================== */
+    .main-dashboard-grid {
       display: grid;
-      grid-template-columns: 1.18fr 0.82fr;
-      gap: 1.5rem;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 24px;
       align-items: start;
     }
 
-    @media (max-width: 1024px) {
-      .main-grid {
+    .left-column-stack,
+    .right-column-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    @media (max-width: 1100px) {
+      .main-dashboard-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -356,7 +357,6 @@
       border: 1px solid var(--card-border);
       border-radius: 1.15rem;
       padding: 1.5rem;
-      margin-bottom: 1.5rem;
       box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.45);
       transition: border-color 0.3s ease;
     }
@@ -368,134 +368,51 @@
     .card-title {
       font-size: 1.15rem;
       font-weight: 700;
-      margin-bottom: 1rem;
+      margin-bottom: 0.85rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
 
-    /* Master Playlist Card Highlight */
+    .playlist-card-title {
+      color: #f0abfc;
+      font-weight: 700;
+    }
+
     .master-card {
       background: linear-gradient(135deg, rgba(30, 41, 59, 0.88) 0%, rgba(15, 23, 42, 0.96) 100%);
       border: 1px solid rgba(217, 70, 239, 0.35);
       box-shadow: 0 15px 35px -10px rgba(217, 70, 239, 0.15);
     }
 
-    /* Flow Diagram Component */
-    .flow-diagram {
-      background: rgba(219, 39, 119, 0.07);
-      border: 1px solid rgba(219, 39, 119, 0.22);
-      border-radius: 0.85rem;
-      padding: 0.85rem 1rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .flow-steps {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .flow-step-box {
-      background: rgba(0, 0, 0, 0.18);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 0.5rem;
-      padding: 0.4rem 0.65rem;
-      font-size: 0.75rem;
-      text-align: center;
-      flex: 1;
-      min-width: 100px;
-    }
-
-    body.light-theme .flow-step-box {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-    }
-
-    .flow-arrow {
-      color: #ec4899;
-      font-weight: 800;
-      font-size: 0.9rem;
-    }
-
-    /* Inputs & Form Elements */
-    label {
-      font-size: 0.825rem;
-      font-weight: 600;
-      color: #cbd5e1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.35rem;
-    }
-
-    body.light-theme label {
-      color: #334155;
-    }
-
-    .label-hint {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      font-weight: 400;
-    }
-
-    input[type="text"], input[type="url"], input[type="number"] {
-      width: 100%;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 0.65rem;
-      padding: 0.75rem 0.9rem;
-      color: #f8fafc;
-      font-size: 0.9rem;
-      outline: none;
-      transition: all 0.2s ease;
-      font-family: inherit;
-    }
-
-    input.mono {
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: 0.03em;
-    }
-
-    input:focus {
-      border-color: var(--primary-pink);
-      box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.25);
-    }
-
-    /* Input Validated (TV ID Completo) */
-    input.tv-id-valid {
-      border-color: #10b981 !important;
-      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
-      background: rgba(16, 185, 129, 0.04) !important;
-    }
-
-    /* Device Rows */
-    .devices-table-header {
+    /* ==========================================================================
+       2. CORREÇÃO DAS LINHAS DE EQUIPAMENTOS (Sem corte no Nome e no TV ID)
+       ========================================================================== */
+    /* Grid interno: # (32px) | Nome (min 150px) | TV ID (min 245px) | Status (115px) | Ações (96px) */
+    .device-row,
+    .device-header-row {
       display: grid;
-      grid-template-columns: 42px 1.5fr 1.6fr 110px 105px;
-      gap: 0.65rem;
+      grid-template-columns: 32px minmax(150px, 1fr) minmax(245px, 1.35fr) 115px 96px;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 0.65rem;
+      margin-bottom: 0.55rem;
+      transition: all 0.2s ease;
+    }
+
+    .device-header-row {
+      background: transparent;
+      border: none;
       padding: 0.4rem 0.75rem;
       font-size: 0.72rem;
       text-transform: uppercase;
       color: var(--text-muted);
       font-weight: 700;
       letter-spacing: 0.04em;
-    }
-
-    .device-row {
-      display: grid;
-      grid-template-columns: 42px 1.5fr 1.6fr 110px 105px;
-      gap: 0.65rem;
-      align-items: center;
-      background: rgba(15, 23, 42, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 0.65rem;
-      padding: 0.65rem 0.75rem;
-      margin-bottom: 0.55rem;
-      transition: all 0.2s ease;
+      margin-bottom: 0.25rem;
     }
 
     .device-row:hover {
@@ -503,23 +420,28 @@
       background: rgba(15, 23, 42, 0.8);
     }
 
-    /* Slot Vazio: Opacidade Reduzida */
-    .device-row.device-slot-empty {
-      opacity: 0.55;
-      background: rgba(15, 23, 42, 0.25);
+    .device-row.is-empty-slot {
+      opacity: 0.65;
+      background-color: rgba(15, 23, 42, 0.3);
       border-style: dashed;
     }
 
-    body.light-theme .device-row.device-slot-empty {
-      background: rgba(241, 245, 249, 0.6);
+    body.light-theme .device-row.is-empty-slot {
+      background-color: #f8fafc;
       border: 1px dashed #cbd5e1;
     }
 
-    .device-row.device-slot-empty:hover,
-    .device-row.device-slot-empty:focus-within {
+    .device-row.is-empty-slot:hover,
+    .device-row.is-empty-slot:focus-within {
       opacity: 1;
       border-style: solid;
       border-color: rgba(217, 70, 239, 0.4);
+    }
+
+    /* Oculta badge duplicada para não espremer o input */
+    .device-name-cell .badge,
+    .device-name-badge {
+      display: none !important;
     }
 
     .device-num {
@@ -530,16 +452,50 @@
       text-align: center;
     }
 
-    .device-input {
-      padding: 0.55rem 0.75rem !important;
-      font-size: 0.825rem !important;
+    .device-name-input {
+      width: 100%;
+      min-width: 0;
+      font-size: 13px !important;
+      font-weight: 600;
+      padding: 7px 10px !important;
+      border-radius: 8px;
+    }
+
+    /* TV ID com tamanho exato para 29 caracteres */
+    .tv-id-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .tv-id-input {
+      width: 100%;
+      min-width: 215px;
+      font-family: 'JetBrains Mono', Consolas, monospace !important;
+      font-size: 11.8px !important;
+      letter-spacing: -0.2px;
+      padding: 7px 8px !important;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .tv-id-input.is-valid {
+      border-color: #10b981 !important;
+      background-color: #f0fdf4 !important;
+      color: #065f46 !important;
+    }
+
+    .tv-id-input.is-invalid {
+      border-color: #f59e0b !important;
+      background-color: #fffbeb !important;
     }
 
     .device-actions {
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: 0.35rem;
+      gap: 5px;
     }
 
     /* Action Buttons & Icons */
@@ -547,8 +503,8 @@
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: #cbd5e1;
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       border-radius: 0.45rem;
       display: flex;
       align-items: center;
@@ -565,12 +521,6 @@
       transform: translateY(-1px);
     }
 
-    .btn-icon.copied-state {
-      background: rgba(16, 185, 129, 0.25) !important;
-      border-color: #10b981 !important;
-      color: #10b981 !important;
-    }
-
     .btn-icon.delete:hover {
       background: rgba(239, 68, 68, 0.2);
       border-color: rgba(239, 68, 68, 0.4);
@@ -579,30 +529,27 @@
 
     /* Badges Semânticos */
     .badge-device {
-      padding: 0.22rem 0.5rem;
+      padding: 0.22rem 0.45rem;
       border-radius: 4px;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 600;
       text-align: center;
       display: inline-block;
       white-space: nowrap;
     }
 
-    /* ⚪ Não configurado (cinza) */
     .badge-device.unconfigured {
       background: rgba(148, 163, 184, 0.12);
       color: #64748b;
       border: 1px solid rgba(148, 163, 184, 0.2);
     }
 
-    /* 🔵 Pronto / Aguardando 00:00 (azul) */
     .badge-device.ready {
       background: rgba(2, 132, 199, 0.14);
       color: #0284c7;
       border: 1px solid rgba(2, 132, 199, 0.3);
     }
 
-    /* ⏳ Sincronizando */
     .badge-device.syncing {
       background: rgba(6, 182, 212, 0.18);
       color: #22d3ee;
@@ -610,14 +557,12 @@
       animation: pulse 1.5s infinite;
     }
 
-    /* 🟢 Sincronizado (verde) */
     .badge-device.success {
       background: rgba(16, 185, 129, 0.18);
       color: #10b981;
       border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
-    /* 🔴 Falha (vermelho) */
     .badge-device.error {
       background: rgba(239, 68, 68, 0.18);
       color: #ef4444;
@@ -661,15 +606,30 @@
       box-shadow: 0 15px 25px -5px rgba(219, 39, 119, 0.5);
     }
 
-    .btn-secondary {
+    /* Botão de Salvar Inteligente */
+    .btn-save-config {
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.15);
       color: #e2e8f0;
+      transition: all 0.2s ease;
     }
 
-    .btn-secondary:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-2px);
+    .btn-save-config:disabled {
+      opacity: 0.55;
+      cursor: default;
+      background-color: #f8fafc !important;
+      color: #64748b !important;
+      border-color: #e2e8f0 !important;
+    }
+
+    .btn-save-config.has-unsaved-changes {
+      opacity: 1;
+      border-color: #db2777 !important;
+      color: #db2777 !important;
+      background-color: #fdf2f8 !important;
+      font-weight: 600;
+      box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.12);
+      cursor: pointer;
     }
 
     .pill-btn {
@@ -696,7 +656,7 @@
       box-shadow: 0 4px 10px rgba(217, 70, 239, 0.3);
     }
 
-    .btn-outline-dashed {
+    .btn-dashed-add-slot {
       background: transparent;
       border: 1px dashed rgba(217, 70, 239, 0.4);
       color: #f0abfc;
@@ -711,15 +671,24 @@
       justify-content: center;
       gap: 0.5rem;
       transition: all 0.2s ease;
-      margin-top: 0.5rem;
+      margin-top: 0.65rem;
     }
 
-    .btn-outline-dashed:hover {
+    .btn-dashed-add-slot:hover {
       background: rgba(217, 70, 239, 0.08);
       border-color: #d946ef;
     }
 
+    body.light-theme .btn-dashed-add-slot {
+      border-color: #db2777;
+      color: #be185d;
+    }
+
     /* Accordion Toggle Bar */
+    .empty-slots-accordion {
+      margin: 0.65rem 0 0.25rem 0;
+    }
+
     .accordion-toggle-btn {
       display: flex;
       align-items: center;
@@ -734,7 +703,6 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
-      margin: 0.65rem 0;
     }
 
     body.light-theme .accordion-toggle-btn {
@@ -749,55 +717,118 @@
       border-color: rgba(219, 39, 119, 0.3);
     }
 
-    /* Toggle Switch */
-    .toggle-wrapper {
+    /* ==========================================================================
+       3. CABEÇALHO DO FLUXO DIÁRIO COM TOGGLE 00:00 INTEGRADO
+       ========================================================================== */
+    .flow-box {
+      background: rgba(219, 39, 119, 0.07);
+      border: 1px solid rgba(219, 39, 119, 0.22);
+      border-radius: 0.85rem;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .flow-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.65rem;
+    }
+
+    .flow-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #be185d;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .flow-toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #047857;
+      background: #d1fae5;
+      padding: 3px 9px;
+      border-radius: 999px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    .flow-toggle-label input {
+      accent-color: #10b981;
+      cursor: pointer;
+    }
+
+    .flow-steps {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(15, 23, 42, 0.6);
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .flow-step-box {
+      background: rgba(0, 0, 0, 0.18);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 0.75rem;
-      padding: 0.85rem 1rem;
-      margin-top: 0.75rem;
+      border-radius: 0.5rem;
+      padding: 0.4rem 0.65rem;
+      font-size: 0.75rem;
+      text-align: center;
+      flex: 1;
+      min-width: 95px;
     }
 
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 46px;
-      height: 24px;
-      flex-shrink: 0;
+    body.light-theme .flow-step-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
     }
 
-    .switch input { opacity: 0; width: 0; height: 0; }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #334155;
-      transition: .3s;
-      border-radius: 24px;
+    .flow-arrow {
+      color: #ec4899;
+      font-weight: 800;
+      font-size: 0.9rem;
     }
 
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .3s;
-      border-radius: 50%;
+    /* Inputs */
+    label {
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.35rem;
     }
 
-    input:checked + .slider {
-      background: linear-gradient(135deg, var(--primary-purple), var(--primary-pink));
+    body.light-theme label {
+      color: #334155;
     }
 
-    input:checked + .slider:before {
-      transform: translateX(22px);
+    input[type="text"], input[type="url"], input[type="number"] {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.65rem;
+      padding: 0.75rem 0.9rem;
+      color: #f8fafc;
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    input.mono {
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      letter-spacing: 0.03em;
+    }
+
+    input:focus {
+      border-color: var(--primary-pink);
+      box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.25);
     }
 
     /* Ping Status Badge */
@@ -879,16 +910,17 @@
       </div>
     </div>
 
-    <!-- MAIN 2-COLUMN GRID (DESKTOP) -->
-    <div class="main-grid">
+    <!-- MAIN 2-COLUMN GRID (DESKTOP REBALANCEADO) -->
+    <div class="main-dashboard-grid">
 
-      <!-- ============================================== -->
-      <!-- COLUNA 1: EQUIPAMENTOS CADASTRADOS (ESQUERDA)   -->
-      <!-- ============================================== -->
-      <div class="column-left">
+      <!-- ============================================================== -->
+      <!-- COLUNA 1 (ESQUERDA ~58%): EQUIPAMENTOS + HISTÓRICO RECENTE     -->
+      <!-- ============================================================== -->
+      <div class="left-column-stack">
 
-        <div class="glass-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+        <!-- Card de Equipamentos Cadastrados -->
+        <section class="glass-card" id="card-equipamentos">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
             <div>
               <h2 class="card-title" style="margin-bottom: 0.2rem;">
                 📺 Equipamentos Cadastrados (<span id="devicesCountBadge">10</span>)
@@ -900,11 +932,11 @@
             <button class="pill-btn" onclick="loadStatus()" title="Recarregar dados dos equipamentos">🔄 Atualizar</button>
           </div>
 
-          <!-- Cabeçalho da Tabela -->
-          <div class="devices-table-header">
+          <!-- Cabeçalho da Tabela Alinhado com as Linhas -->
+          <div class="device-header-row">
             <div style="text-align: center;">#</div>
             <div>Identificação / Nome</div>
-            <div>TV ID (Código)</div>
+            <div>TV ID (Código de 24 Chars)</div>
             <div style="text-align: center;">Status</div>
             <div style="text-align: right;">Ações</div>
           </div>
@@ -913,52 +945,82 @@
           <div id="configuredDevicesContainer"></div>
 
           <!-- Acordeão Recolhível para Slots Vazios (03 a 10) -->
-          <button type="button" class="accordion-toggle-btn" id="emptySlotsToggleBtn" onclick="toggleEmptySlotsAccordion()">
-            <span id="emptySlotsToggleLabel">🔽 Mostrar 8 slots disponíveis (Vazios)</span>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Clique para expandir/recolher</span>
-          </button>
+          <div class="empty-slots-accordion">
+            <button type="button" class="accordion-toggle-btn" id="emptySlotsToggleBtn" onclick="toggleEmptySlotsAccordion()">
+              <span id="emptySlotsToggleLabel">🔽 Mostrar 8 slots disponíveis (Vazios)</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Clique para expandir/recolher</span>
+            </button>
 
-          <div id="emptySlotsContainer" style="display: none;"></div>
-
-          <!-- Botão para Inserir Novo Slot -->
-          <button class="btn-outline-dashed" onclick="addNewDevice()" title="Criar um novo slot de equipamento">
-            ➕ Inserir Novo Slot de Equipamento
-          </button>
+            <div id="emptySlotsContainer" style="display: none; margin-top: 0.55rem;">
+              <div id="emptySlotsList"></div>
+              <!-- Botão Inserir Novo Slot movido para DENTRO do acordeão -->
+              <button class="btn-dashed-add-slot" id="btn-add-slot" onclick="addNewDevice()" title="Criar um novo slot de equipamento">
+                ➕ Inserir Novo Slot de Equipamento
+              </button>
+            </div>
+          </div>
 
           <!-- Botões de Ação Global -->
           <div class="btn-row" style="margin-top: 1.25rem;">
             <button class="btn btn-primary" id="btnSyncAll" onclick="triggerSyncAll()" title="Disparar a sincronização em lote da playlist IPTV para todos os aparelhos agora">
               🚀 Sincronizar Todos os Equipamentos
             </button>
-            <button class="btn btn-secondary" onclick="saveAllConfig(true)" title="Salvar todas as configurações no servidor">
-              💾 Salvar Configurações
+            <button class="btn btn-save-config" id="btnSaveConfig" onclick="saveAllConfig(true)" title="Salvar todas as configurações no servidor" disabled>
+              ✔️ Configurações Salvas
             </button>
           </div>
-        </div>
+        </section>
+
+        <!-- Card de Histórico Recente de Sincronizações (Preenche a coluna esquerda sem buraco) -->
+        <section class="glass-card" id="card-historico">
+          <h2 class="card-title" style="font-size: 1.05rem; margin-bottom: 0.75rem;">
+            📜 Histórico Recente de Sincronizações
+          </h2>
+          <div style="overflow-x: auto; max-height: 230px; overflow-y: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
+              <thead>
+                <tr style="color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left;">
+                  <th style="padding: 0.5rem;">Horário</th>
+                  <th style="padding: 0.5rem;">Aparelho</th>
+                  <th style="padding: 0.5rem;">TV ID</th>
+                  <th style="padding: 0.5rem;">Resultado</th>
+                </tr>
+              </thead>
+              <tbody id="logsTableBody">
+                <tr>
+                  <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1rem;">
+                    Nenhuma sincronização recente registrada.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
       </div>
 
-      <!-- ============================================== -->
-      <!-- COLUNA 2: PLAYLIST MESTRE, MAIL.TM & LOGS      -->
-      <!-- ============================================== -->
-      <div class="column-right">
+      <!-- ============================================================== -->
+      <!-- COLUNA 2 (DIREITA ~42%): PLAYLIST MESTRE + CONTAS MAIL.TM      -->
+      <!-- ============================================================== -->
+      <div class="right-column-stack">
 
         <!-- Card da Playlist Compartilhada (Mestre) -->
-        <div class="glass-card master-card">
-          <h2 class="card-title" style="color: #f0abfc; margin-bottom: 0.4rem;">
+        <section class="glass-card master-card" id="card-playlist-mestre">
+          <h2 class="card-title playlist-card-title" style="margin-bottom: 0.4rem;">
             📡 Playlist IPTV Compartilhada (Mestre)
           </h2>
           <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.85rem;">
             Esta mesma URL é distribuída para todos os televisores e dispositivos de Washington.
           </p>
 
-          <!-- Diagrama de Fluxo Visual -->
-          <div class="flow-diagram">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 0.72rem; font-weight: 700; color: #be185d; text-transform: uppercase;">
-                🔄 Fluxo de Atualização Diária (00:00 Brasília)
-              </span>
-              <span class="badge-status badge-online" style="font-size: 0.68rem; padding: 1px 6px;">Ativo</span>
+          <!-- Diagrama de Fluxo Visual com Toggle 00:00 Integrado no Cabeçalho -->
+          <div class="flow-box">
+            <div class="flow-header-bar">
+              <span class="flow-title">🔄 Fluxo de Atualização Diária (00:00 Brasília)</span>
+              <label class="flow-toggle-label" title="Ativar ou desativar disparo automático diário à meia-noite">
+                <input type="checkbox" id="autoUpdateToggle" onchange="onAutoSyncToggleChange()">
+                <span id="toggle-auto-sync-text">Ativo às 00:00</span>
+              </label>
             </div>
             <div class="flow-steps">
               <div class="flow-step-box">
@@ -1002,7 +1064,7 @@
             </div>
             <div style="display: flex; align-items: center; gap: 0.4rem;">
               <input type="text" id="displayPlaylistLink" class="mono" readonly style="font-size: 0.78rem; padding: 0.4rem 0.6rem; background: rgba(0,0,0,0.03); border: 1px solid rgba(16,185,129,0.2); border-radius: 0.5rem; color: inherit; width: 100%;" placeholder="Aguardando link da playlist nova..." />
-              <button class="btn-icon" id="btnCopyPlaylist" style="width: 32px; height: 32px;" title="Copiar Link da Playlist" onclick="copyPlaylistLink(this)">📋</button>
+              <button class="btn-icon" id="btnCopyPlaylist" style="width: 32px; height: 32px;" title="Copiar Link da Playlist" onclick="copyGenericText(this.previousElementSibling.value, 'Link da Playlist', this)">📋</button>
             </div>
             <div style="display: flex; gap: 0.4rem; margin-top: 0.5rem;">
               <button type="button" class="pill-btn" style="font-size: 0.72rem; padding: 0.25rem 0.55rem;" onclick="checkPlaylistFromEmail()" title="Verificar se a playlist nova já chegou no e-mail ativo">
@@ -1025,22 +1087,10 @@
               <button class="btn-icon" id="btnCopyMail" style="width: 28px; height: 28px;" title="Copiar e-mail" onclick="copyGenericText(document.getElementById('mailtmEmail').value, 'E-mail', this)">📋</button>
             </div>
           </div>
-
-          <!-- Toggle de Auto-Sincronização Diária 00:00 -->
-          <div class="toggle-wrapper">
-            <div class="toggle-info">
-              <h4 style="font-size: 0.85rem;">Auto-Sincronização 00:00 Ativa</h4>
-              <p style="font-size: 0.72rem; color: var(--text-muted);">Disparo automático todos os dias à meia-noite (Horário de Brasília).</p>
-            </div>
-            <label class="switch" title="Ativar ou desativar o ciclo de agendamento automático diário">
-              <input type="checkbox" id="autoUpdateToggle" onchange="saveAllConfig(false)">
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
+        </section>
 
         <!-- Card de Contas & Caixas Postais Criadas (Mail.tm) -->
-        <div class="glass-card" style="border: 1px solid rgba(219, 39, 119, 0.2);">
+        <section class="glass-card" id="card-contas-mailtm" style="border: 1px solid rgba(219, 39, 119, 0.2);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.4rem;">
             <div>
               <h2 class="card-title" style="margin-bottom: 0.15rem; color: #db2777; font-size: 1.05rem;">
@@ -1089,32 +1139,7 @@
             </div>
             <div id="inboxMessagesList"></div>
           </div>
-        </div>
-
-        <!-- Card de Histórico Recente de Sincronizações -->
-        <div class="glass-card">
-          <h2 class="card-title" style="font-size: 1.05rem; margin-bottom: 0.75rem;">
-            📜 Histórico Recente
-          </h2>
-          <div style="overflow-x: auto; max-height: 200px; overflow-y: auto;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
-              <thead>
-                <tr style="color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left;">
-                  <th style="padding: 0.5rem;">Horário</th>
-                  <th style="padding: 0.5rem;">Aparelho</th>
-                  <th style="padding: 0.5rem;">Resultado</th>
-                </tr>
-              </thead>
-              <tbody id="logsTableBody">
-                <tr>
-                  <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 1rem;">
-                    Nenhuma sincronização recente registrada.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        </section>
 
       </div>
 
@@ -1135,6 +1160,25 @@
     let emptySlotsExpanded = false;
     let autoSaveTimeout = null;
 
+    /* ========================================================================
+       1. ESTADO DO BOTÃO DE SALVAR (DIRTY STATE VS SALVO)
+       ======================================================================== */
+    function setSavedState() {
+      const btn = document.getElementById('btnSaveConfig');
+      if (!btn) return;
+      btn.disabled = true;
+      btn.classList.remove('has-unsaved-changes');
+      btn.innerHTML = '✔️ Configurações Salvas';
+    }
+
+    function markUnsavedChanges() {
+      const btn = document.getElementById('btnSaveConfig');
+      if (!btn) return;
+      btn.disabled = false;
+      btn.classList.add('has-unsaved-changes');
+      btn.innerHTML = '💾 Salvar Alterações';
+    }
+
     // Carregar Estado Inicial
     async function loadStatus() {
       try {
@@ -1144,7 +1188,12 @@
         currentConfig = data;
 
         document.getElementById('masterPlaylist').value = data.master_playlist_url || '';
-        document.getElementById('autoUpdateToggle').checked = !!data.auto_update_enabled;
+        
+        const autoToggle = document.getElementById('autoUpdateToggle');
+        if (autoToggle) {
+          autoToggle.checked = !!data.auto_update_enabled;
+          updateAutoSyncLabel(data.auto_update_enabled);
+        }
 
         // Link da Playlist Recebida
         const activePlaylist = data.new_playlist_url || data.master_playlist_url || '';
@@ -1181,9 +1230,34 @@
         document.getElementById('activeDevicesCount').innerText = `${ativos} / ${devicesList.length}`;
         document.getElementById('totalRunsCount').innerText = (data.history || []).length;
 
+        setSavedState();
       } catch (err) {
         console.error('Erro ao carregar dados:', err);
       }
+    }
+
+    function updateAutoSyncLabel(enabled) {
+      const lbl = document.getElementById('toggle-auto-sync-text');
+      const box = lbl ? lbl.parentElement : null;
+      if (lbl) {
+        lbl.innerText = enabled ? 'Ativo às 00:00' : 'Desativado';
+      }
+      if (box) {
+        if (enabled) {
+          box.style.background = '#d1fae5';
+          box.style.color = '#047857';
+        } else {
+          box.style.background = '#f1f5f9';
+          box.style.color = '#64748b';
+        }
+      }
+    }
+
+    function onAutoSyncToggleChange() {
+      const chk = document.getElementById('autoUpdateToggle');
+      updateAutoSyncLabel(chk.checked);
+      markUnsavedChanges();
+      saveAllConfig(false);
     }
 
     // Toggle Acordeão de Slots Vazios
@@ -1211,10 +1285,13 @@
       }
       document.getElementById('masterPlaylist').value = link;
       showToast('Link aplicado como Playlist Mestre!', 'success');
+      markUnsavedChanges();
       triggerAutoSave();
     }
 
-    // Copiar com feedback visual dinâmico no próprio botão
+    /* ========================================================================
+       2. FEEDBACK VISUAL DE "✔️" NOS BOTÕES DE CÓPIA [📋]
+       ======================================================================== */
     function copyGenericText(text, label, btnElement) {
       if (!text) {
         showToast(`Nenhum(a) ${label} disponível para copiar.`, 'warning');
@@ -1224,63 +1301,58 @@
       showToast(`${label} copiado com sucesso!`, 'success');
 
       if (btnElement) {
-        const originalText = btnElement.innerText;
-        btnElement.innerText = '✔️';
-        btnElement.classList.add('copied-state');
+        const originalHTML = btnElement.innerHTML;
+        btnElement.innerHTML = '✔️';
+        btnElement.style.color = '#10b981';
+        btnElement.style.borderColor = '#10b981';
         setTimeout(() => {
-          btnElement.innerText = originalText;
-          btnElement.classList.remove('copied-state');
-        }, 2000);
+          btnElement.innerHTML = originalHTML;
+          btnElement.style.color = '';
+          btnElement.style.borderColor = '';
+        }, 1800);
       }
     }
 
-    function copyPlaylistLink(btnElement) {
-      const link = document.getElementById('displayPlaylistLink').value || document.getElementById('masterPlaylist').value;
-      copyGenericText(link, 'Link da Playlist', btnElement);
-    }
-
-    // Máscara Automática de TV ID (Formato: xxxx-xxxx-xxxx-xxxx-xxxx-xxxx)
+    /* ========================================================================
+       3. MÁSCARA AUTOMÁTICA E VALIDAÇÃO DO TV ID (xxxx-xxxx-xxxx-xxxx-xxxx-xxxx)
+       ======================================================================== */
     function formatTvIdInput(input, devId) {
-      let val = input.value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      // Limita a 24 caracteres hexadecimais
-      if (val.length > 24) val = val.substring(0, 24);
-
-      // Formata em blocos de 4
-      const parts = [];
-      for (let i = 0; i < val.length; i += 4) {
-        parts.push(val.substring(i, i + 4));
-      }
-      const formatted = parts.join('-');
+      // Mantém apenas caracteres hexadecimais (0-9, a-f) e limita a 24 chars
+      let raw = input.value.replace(/[^0-9a-fA-F]/g, '').toLowerCase().slice(0, 24);
+      let formatted = raw.match(/.{1,4}/g)?.join('-') || '';
       input.value = formatted;
 
-      // Validação visual de TV ID completo (24 caracteres hex = 29 com hífens)
-      const isValid = (val.length === 24);
-      if (isValid) {
-        input.classList.add('tv-id-valid');
+      const row = document.getElementById(`deviceRow_${devId}`);
+      const chk = row ? row.querySelector('.device-enable-chk') : null;
+
+      if (raw.length === 24) {
+        input.classList.add('is-valid');
+        input.classList.remove('is-invalid');
+        if (row) row.classList.remove('is-empty-slot');
+        if (chk && !chk.checked) {
+          chk.checked = true;
+          updateDeviceField(devId, 'enabled', true);
+        }
+      } else if (raw.length === 0) {
+        input.classList.remove('is-valid', 'is-invalid');
+        if (row) row.classList.add('is-empty-slot');
+        if (chk) {
+          chk.checked = false;
+          updateDeviceField(devId, 'enabled', false);
+        }
       } else {
-        input.classList.remove('tv-id-valid');
+        input.classList.add('is-invalid');
+        input.classList.remove('is-valid');
       }
 
       updateDeviceField(devId, 'tv_id', formatted);
-
-      // Atualiza automaticamente o estado do slot
-      const row = document.getElementById(`deviceRow_${devId}`);
-      if (row) {
-        if (formatted.trim()) {
-          row.classList.remove('device-slot-empty');
-          const chk = row.querySelector('.device-enable-chk');
-          if (chk && !chk.checked) {
-            chk.checked = true;
-            updateDeviceField(devId, 'enabled', true);
-          }
-        }
-      }
+      markUnsavedChanges();
     }
 
     // Renderização dos Equipamentos
     function renderDevices() {
       const configuredBox = document.getElementById('configuredDevicesContainer');
-      const emptyBox = document.getElementById('emptySlotsContainer');
+      const emptyBox = document.getElementById('emptySlotsList');
       const badgeCount = document.getElementById('devicesCountBadge');
       if (badgeCount) badgeCount.innerText = devicesList.length;
 
@@ -1293,13 +1365,6 @@
         const isCelular = (dev.tv_id === 'b44a-64c9-2dc8-8b62-593c-11de') || (dev.name && dev.name.toLowerCase().includes('celular'));
         const isIpad = (dev.tv_id === 'e9b4-9e58-a8b2-da67-25c9-c737') || (dev.name && dev.name.toLowerCase().includes('ipad'));
         const isWashington = isCelular || isIpad;
-
-        let washingtonTag = '';
-        if (isCelular) {
-          washingtonTag = '<span style="background: rgba(219,39,119,0.15); color: #db2777; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(219,39,119,0.3); white-space: nowrap;">📱 Celular Washington</span>';
-        } else if (isIpad) {
-          washingtonTag = '<span style="background: rgba(139,92,246,0.15); color: #8b5cf6; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(139,92,246,0.3); white-space: nowrap;">📲 iPad Washington</span>';
-        }
 
         // Estado Semântico do Badge
         let statusBadgeHtml = '';
@@ -1319,28 +1384,25 @@
         const isTvValid = (dev.tv_id && dev.tv_id.replace(/[^a-zA-Z0-9]/g, '').length === 24);
 
         const rowHtml = `
-          <div class="device-row ${!hasTvId ? 'device-slot-empty' : ''}" id="deviceRow_${dev.id}" style="${isWashington ? 'border-left: 4px solid #db2777; background: rgba(219,39,119,0.03);' : ''}">
+          <div class="device-row ${!hasTvId ? 'is-empty-slot' : ''}" id="deviceRow_${dev.id}" style="${isWashington ? 'border-left: 4px solid #db2777; background: rgba(219,39,119,0.03);' : ''}">
             <div class="device-num">${String(idx + 1).padStart(2, '0')}</div>
-            <div>
-              <div style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.2rem;">
-                <input type="text" class="device-input" value="${dev.name || ''}" placeholder="Ex: Smart TV Quarto" onchange="updateDeviceField(${dev.id}, 'name', this.value)" onblur="triggerAutoSave()" style="flex: 1;" />
-                ${washingtonTag}
-              </div>
-              <span style="font-size: 0.68rem; color: var(--text-muted); display: block; margin-left: 2px;">${lastSyncLabel}</span>
+            <div class="device-name-cell">
+              <input type="text" class="device-name-input" value="${dev.name || ''}" placeholder="Ex: Smart TV Quarto" oninput="markUnsavedChanges()" onchange="updateDeviceField(${dev.id}, 'name', this.value)" onblur="triggerAutoSave()" />
+              <span style="font-size: 0.68rem; color: var(--text-muted); display: block; margin-top: 2px;">${lastSyncLabel}</span>
             </div>
             <div>
-              <div style="display: flex; align-items: center; gap: 0.35rem;">
-                <input type="text" class="device-input mono ${isTvValid ? 'tv-id-valid' : ''}" value="${dev.tv_id || ''}" placeholder="xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" oninput="formatTvIdInput(this, ${dev.id})" onblur="triggerAutoSave()" style="flex: 1;" title="Digite o código TV ID exibido no app SmartTV Club" />
-                <button class="btn-icon" style="width: 28px; height: 28px;" title="Copiar código TV ID" onclick="copyGenericText('${dev.tv_id}', 'TV ID', this)">📋</button>
+              <div class="tv-id-wrapper">
+                <input type="text" class="tv-id-input ${isTvValid ? 'is-valid' : ''}" value="${dev.tv_id || ''}" placeholder="xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" oninput="formatTvIdInput(this, ${dev.id})" onblur="triggerAutoSave()" title="Código TV ID de 24 caracteres do aplicativo" />
+                <button class="btn-icon" title="Copiar TV ID" onclick="copyGenericText('${dev.tv_id}', 'TV ID', this)">📋</button>
               </div>
             </div>
             <div style="text-align: center;">
               ${statusBadgeHtml}
             </div>
             <div class="device-actions">
-              <input type="checkbox" class="device-enable-chk" title="Ativar/Desativar na sincronização diária" ${dev.enabled && hasTvId ? 'checked' : ''} onchange="updateDeviceField(${dev.id}, 'enabled', this.checked); triggerAutoSave();" style="cursor: pointer; width: 17px; height: 17px;" />
+              <input type="checkbox" class="device-enable-chk" title="Ativar/Desativar na sincronização diária" ${dev.enabled && hasTvId ? 'checked' : ''} onchange="updateDeviceField(${dev.id}, 'enabled', this.checked); markUnsavedChanges(); triggerAutoSave();" style="cursor: pointer; width: 17px; height: 17px;" />
               <button class="btn-icon" title="Sincronizar apenas este aparelho agora com a playlist IPTV" onclick="triggerSingleDevice(${dev.id})">🚀</button>
-              <button class="btn-icon delete" title="Remover ou limpar este equipamento" onclick="deleteDevice(${dev.id})">🗑️</button>
+              <button class="btn-icon delete" title="Limpar/Remover este equipamento" onclick="deleteDevice(${dev.id})">🗑️</button>
             </div>
           </div>
         `;
@@ -1369,7 +1431,7 @@
       }
     }
 
-    // Auto-Save no Blur dos Inputs
+    // Auto-Save com Debounce no Blur
     function triggerAutoSave() {
       clearTimeout(autoSaveTimeout);
       autoSaveTimeout = setTimeout(() => {
@@ -1397,6 +1459,7 @@
         });
 
         if (res.ok) {
+          setSavedState();
           if (showVerboseToast) {
             showToast('Configurações salvas com sucesso!', 'success');
           } else {
@@ -1440,7 +1503,7 @@
         } else {
           statusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
           statusBadge.style.color = '#ef4444';
-          statusBadge.innerText = '🔴 Link Inacessível / Timeout';
+          statusBadge.innerText = '🔴 Link Inacessível';
           showToast('Servidor da playlist não respondeu ou retornou erro.', 'error');
         }
       } catch (err) {
@@ -1473,12 +1536,9 @@
     async function deleteDevice(devId) {
       const dev = devicesList.find(d => d.id === devId);
       const devName = dev ? dev.name : `ID ${devId}`;
-      const hasTvId = dev && dev.tv_id && dev.tv_id.trim();
 
-      if (hasTvId) {
-        if (!confirm(`Atenção: O equipamento "${devName}" possui um TV ID cadastrado (${dev.tv_id}). Deseja realmente removê-lo?`)) {
-          return;
-        }
+      if (!confirm(`Deseja realmente limpar ou remover os dados de "${devName}"?`)) {
+        return;
       }
 
       try {
@@ -1554,7 +1614,7 @@
       btn.disabled = true;
       btn.innerText = '⏳ Sincronizando Lote...';
 
-      showToast('Disparando sincronização para Celular, iPad e demais aparelhos ativos...', 'info');
+      showToast('Disparando sincronização para Celular, iPad e aparelhos ativos...', 'info');
 
       try {
         const res = await fetch('/api/trigger-all', { method: 'POST' });
@@ -1631,6 +1691,14 @@
         if (data.success) {
           mailtmAccountsList = data.accounts || [];
           renderMailtmAccounts(data.active_email);
+
+          // Sincroniza o campo de e-mail ativo caso divirja
+          if (data.active_email) {
+            const mailInput = document.getElementById('mailtmEmail');
+            if (mailInput && mailInput.value !== data.active_email) {
+              mailInput.value = data.active_email;
+            }
+          }
         }
       } catch (err) {
         console.error('Erro ao carregar contas do Mail.tm:', err);
@@ -1819,7 +1887,7 @@
       if (!history || history.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 1rem;">
+            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1rem;">
               Nenhuma sincronização recente registrada.
             </td>
           </tr>
@@ -1830,12 +1898,13 @@
       tbody.innerHTML = history.slice(-10).reverse().map(item => {
         const dt = new Date(item.timestamp).toLocaleTimeString('pt-BR');
         const badge = item.success ? '<span style="color: #34d399; font-weight: 600;">✅ OK</span>' : '<span style="color: #f87171; font-weight: 600;">❌ Falha</span>';
-        const devName = item.device_name || `TV ID ${item.tv_id || '--'}`;
+        const devName = item.device_name || `ID ${item.device_id || '--'}`;
 
         return `
           <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
             <td style="padding: 0.45rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #94a3b8;">${dt}</td>
             <td style="padding: 0.45rem; font-weight: 600;">${devName}</td>
+            <td style="padding: 0.45rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #f0abfc;">${item.tv_id || '--'}</td>
             <td style="padding: 0.45rem;">${badge}</td>
           </tr>
         `;
