@@ -976,8 +976,11 @@
 
           <!-- Botões de Ação Global -->
           <div class="btn-row" style="margin-top: 1.25rem;">
+            <button class="btn btn-full-flow" id="btnFullFlow" onclick="triggerFullFlow()" title="Executar Fluxo Completo: Criar Novo E-mail Diário + Extrair Playlist da Inbox + Ping M3U + Sincronizar Todos os Aparelhos via Playwright" style="background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%); color: #fff; box-shadow: 0 10px 20px -5px rgba(219, 39, 119, 0.4); font-weight: 700; flex: 1.2;">
+              ⚡ Executar Fluxo Completo
+            </button>
             <button class="btn btn-primary" id="btnSyncAll" onclick="triggerSyncAll()" title="Disparar a sincronização em lote da playlist IPTV para todos os aparelhos agora">
-              🚀 Sincronizar Todos os Equipamentos
+              🚀 Sincronizar Equipamentos
             </button>
             <button class="btn btn-save-config" id="btnSaveConfig" onclick="saveAllConfig(true)" title="Salvar todas as configurações no servidor" disabled>
               ✔️ Configurações Salvas
@@ -1041,11 +1044,16 @@
           <!-- Diagrama de Fluxo Visual com Toggle 00:00 Integrado no Cabeçalho -->
           <div class="flow-box">
             <div class="flow-header-bar">
-              <span class="flow-title">🔄 Fluxo de Atualização Diária (00:00 Brasília)</span>
-              <label class="flow-toggle-label" title="Ativar ou desativar disparo automático diário à meia-noite">
-                <input type="checkbox" id="autoUpdateToggle" onchange="onAutoSyncToggleChange()">
-                <span id="toggle-auto-sync-text">Ativo às 00:00</span>
-              </label>
+              <span class="flow-title">🔄 Fluxo Diário (00:00 Brasília)</span>
+              <div style="display: flex; align-items: center; gap: 0.45rem;">
+                <button type="button" class="pill-btn active" id="btnFlowBoxTrigger" onclick="triggerFullFlow()" title="Disparar todo o ciclo ponta a ponta agora" style="background: linear-gradient(135deg, #7c3aed, #db2777); border: none; font-size: 0.72rem; padding: 0.25rem 0.65rem; color: #fff;">
+                  ⚡ Rodar Fluxo Completo
+                </button>
+                <label class="flow-toggle-label" title="Ativar ou desativar disparo automático diário à meia-noite">
+                  <input type="checkbox" id="autoUpdateToggle" onchange="onAutoSyncToggleChange()">
+                  <span id="toggle-auto-sync-text">Ativo às 00:00</span>
+                </label>
+              </div>
             </div>
             <div class="flow-steps">
               <div class="flow-step-box">
@@ -1061,6 +1069,17 @@
               <div class="flow-step-box">
                 <span style="font-weight: 700; color: #10b981;">📺 SmartTV Club</span>
                 <div style="font-size: 0.68rem; color: var(--text-muted);">Replicado a todos</div>
+              </div>
+            </div>
+
+            <!-- Barra de Progresso do Fluxo Completo -->
+            <div id="fullFlowProgressBar" style="display: none; margin-top: 0.65rem; background: rgba(0,0,0,0.25); border: 1px solid rgba(219,39,119,0.3); border-radius: 0.5rem; padding: 0.45rem 0.75rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; margin-bottom: 0.25rem;">
+                <span id="fullFlowStatusText" style="font-weight: 600; color: #f0abfc;">⏳ Executando fluxo...</span>
+                <span id="fullFlowPercentText" style="font-weight: 700; color: #10b981;">0%</span>
+              </div>
+              <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                <div id="fullFlowProgressFill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #8b5cf6, #ec4899); transition: width 0.3s ease;"></div>
               </div>
             </div>
           </div>
@@ -1794,6 +1813,105 @@
         }
       } catch (err) {
         showToast(`Erro ao criar e-mail: ${err.message}`, 'error');
+      }
+    }
+
+    // ========================================================================
+    // EXECUÇÃO DO FLUXO COMPLETO (E-mail -> Inbox -> Ping M3U -> Playwright)
+    // ========================================================================
+    let fullFlowPollInterval = null;
+
+    async function triggerFullFlow() {
+      const btn = document.getElementById('btnFullFlow');
+      const btnMini = document.getElementById('btnFlowBoxTrigger');
+      const progBar = document.getElementById('fullFlowProgressBar');
+      const progText = document.getElementById('fullFlowStatusText');
+      const progFill = document.getElementById('fullFlowProgressFill');
+      const progPercent = document.getElementById('fullFlowPercentText');
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Executando Fluxo...';
+      }
+      if (btnMini) {
+        btnMini.disabled = true;
+        btnMini.innerText = '⏳ Executando...';
+      }
+      if (progBar) {
+        progBar.style.display = 'block';
+        if (progText) progText.innerText = '⏳ Iniciando fluxo completo...';
+        if (progFill) progFill.style.width = '8%';
+        if (progPercent) progPercent.innerText = '8%';
+      }
+
+      showToast('Iniciando Fluxo Completo: E-mail -> Inbox -> Ping M3U -> Playwright...', 'info');
+
+      try {
+        const res = await fetch('/api/full-flow', { method: 'POST' });
+        const data = await res.json();
+        if (!data.success && !data.running) {
+          showToast(data.message || 'Erro ao iniciar fluxo.', 'error');
+          resetFullFlowUI();
+          return;
+        }
+
+        // Polling de progresso e etapas a cada 1.5s
+        clearInterval(fullFlowPollInterval);
+        fullFlowPollInterval = setInterval(async () => {
+          try {
+            const stRes = await fetch('/api/full-flow/status');
+            const st = await stRes.json();
+
+            if (progText && st.step) progText.innerText = `⏳ ${st.step}`;
+            if (progFill) progFill.style.width = `${st.progress || 10}%`;
+            if (progPercent) progPercent.innerText = `${st.progress || 10}%`;
+            if (btn && st.step) btn.innerText = `⏳ ${st.step.length > 25 ? st.step.slice(0, 24) + '...' : st.step}`;
+
+            if (!st.running) {
+              clearInterval(fullFlowPollInterval);
+              fullFlowPollInterval = null;
+              resetFullFlowUI();
+
+              if (st.last_result && st.last_result.success) {
+                showToast(`🎉 ${st.last_result.message || 'Fluxo Completo executado com sucesso!'}`, 'success');
+                if (progBar) {
+                  progBar.style.display = 'block';
+                  if (progText) progText.innerHTML = `<span style="color: #34d399; font-weight: 700;">✔️ ${st.last_result.message}</span>`;
+                  if (progFill) progFill.style.width = '100%';
+                  if (progPercent) progPercent.innerText = '100%';
+                  setTimeout(() => { if (progBar) progBar.style.display = 'none'; }, 9000);
+                }
+              } else {
+                showToast(st.last_result?.message || 'Fluxo concluído com avisos.', 'warning');
+                if (progBar && st.last_result?.message) {
+                  if (progText) progText.innerHTML = `<span style="color: #f87171;">❌ ${st.last_result.message}</span>`;
+                }
+              }
+
+              await loadStatus();
+              await loadMailtmAccounts();
+            }
+          } catch (ePoll) {
+            console.error('Erro no polling do fluxo:', ePoll);
+          }
+        }, 1500);
+
+      } catch (err) {
+        showToast(`Falha na conexão: ${err.message}`, 'error');
+        resetFullFlowUI();
+      }
+    }
+
+    function resetFullFlowUI() {
+      const btn = document.getElementById('btnFullFlow');
+      const btnMini = document.getElementById('btnFlowBoxTrigger');
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = '⚡ Executar Fluxo Completo';
+      }
+      if (btnMini) {
+        btnMini.disabled = false;
+        btnMini.innerText = '⚡ Rodar Fluxo Completo';
       }
     }
 

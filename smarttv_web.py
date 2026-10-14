@@ -38,6 +38,10 @@ current_running_device_id: Optional[int] = None
 next_run_dt: Optional[datetime] = None
 retry_count: int = 0
 MAX_MIDNIGHT_RETRIES: int = 6
+is_running_full_flow: bool = False
+full_flow_step: str = ""
+full_flow_progress: int = 0
+last_full_flow_result: Dict[str, Any] = {}
 
 
 def carregar_config() -> Dict[str, Any]:
@@ -333,6 +337,162 @@ async def executar_upload_em_lote() -> List[Dict[str, Any]]:
 
     print(f"[✅] Sincronização em lote finalizada com sucesso!")
     return resultados
+
+
+async def executar_fluxo_completo_pipeline() -> Dict[str, Any]:
+    """
+    Executa o Fluxo Completo ponta a ponta:
+    1. Cria/renova novo e-mail temporário no Mail.tm (descartando anterior).
+    2. Lê caixa de entrada e extrai link de playlist do conteúdo da mensagem.
+    3. Testa conectividade da Playlist via Ping HTTP.
+    4. Atualiza a Playlist Mestre compartilhada e configurações no servidor.
+    5. Dispara a sincronização via Playwright para todos os equipamentos ativos (Celular, iPad, etc).
+    6. Dispara notificações externas (Telegram/Webhook) com o resultado.
+    """
+    global is_running_full_flow, full_flow_step, full_flow_progress, last_full_flow_result
+    is_running_full_flow = True
+    full_flow_progress = 5
+    full_flow_step = "Iniciando fluxo completo..."
+    inicio_total = time.time()
+    relatorio: Dict[str, Any] = {
+        "success": False,
+        "timestamp": datetime.now().isoformat(),
+        "steps": [],
+        "novo_email": "",
+        "playlist_url": "",
+        "devices_synced": 0,
+        "message": ""
+    }
+
+    try:
+        import mailtm_manager
+        cfg = carregar_config()
+
+        # ETAPA 1: Gerar novo e-mail temporário
+        full_flow_progress = 15
+        full_flow_step = "1/5: Gerando novo e-mail diário no Mail.tm..."
+        print(f"\n[⚡ FLUXO COMPLETO] {full_flow_step}")
+        endereco, senha, token = mailtm_manager.criar_email(descartar_anterior=True)
+        cfg["temp_email"] = endereco
+        salvar_config(cfg)
+        relatorio["novo_email"] = endereco
+        relatorio["steps"].append({"step": 1, "name": "Criar E-mail", "success": True, "detail": endereco})
+        print(f"  [OK] Novo e-mail ativo gerado: {endereco}")
+
+        # ETAPA 2: Ler caixa de entrada e extrair link da mensagem
+        full_flow_progress = 35
+        full_flow_step = "2/5: Inspecionando caixa de entrada e extraindo playlist..."
+        print(f"[⚡ FLUXO COMPLETO] {full_flow_step}")
+        playlist_alvo = cfg.get("fallback_playlist_url") or cfg.get("master_playlist_url") or "https://iptv-org.github.io/iptv/index.m3u"
+        found_in_email = False
+        try:
+            msgs = mailtm_manager.extrair_links_confirmacao(token, endereco)
+            for m in msgs:
+                pls = m.get("playlists_detectadas", [])
+                if pls:
+                    playlist_alvo = pls[0]
+                    found_in_email = True
+                    break
+                link_enc = m.get("link_encontrado")
+                if link_enc:
+                    playlist_alvo = link_enc
+                    found_in_email = True
+                    break
+        except Exception as e_inbox:
+            print(f"  [AVISO] Verificação da inbox retornou: {e_inbox}")
+
+        relatorio["playlist_url"] = playlist_alvo
+        relatorio["steps"].append({
+            "step": 2,
+            "name": "Extrair Playlist",
+            "success": True,
+            "found_in_email": found_in_email,
+            "detail": playlist_alvo
+        })
+        print(f"  [OK] Playlist definida: {playlist_alvo} (Origem: {'E-mail' if found_in_email else 'Fallback/Mestre'})")
+
+        # ETAPA 3: Testar conectividade via Ping HTTP
+        full_flow_progress = 55
+        full_flow_step = "3/5: Validando conectividade da playlist via Ping HTTP..."
+        print(f"[⚡ FLUXO COMPLETO] {full_flow_step}")
+        is_online = True
+        status_code = 200
+        latency_ms = 0
+        try:
+            import httpx
+            t_ping = time.time()
+            async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as client:
+                resp_ping = await client.get(playlist_alvo, headers={"Range": "bytes=0-524287", "User-Agent": "Mozilla/5.0 (SmartTV Club Sync)"})
+                latency_ms = int((time.time() - t_ping) * 1000)
+                status_code = resp_ping.status_code
+                is_online = status_code in [200, 206]
+        except Exception as e_ping:
+            is_online = False
+            print(f"  [AVISO] Ping da playlist: {e_ping}")
+
+        relatorio["steps"].append({
+            "step": 3,
+            "name": "Ping Playlist",
+            "success": is_online,
+            "status_code": status_code,
+            "latency_ms": latency_ms
+        })
+        print(f"  [{'OK' if is_online else 'AVISO'}] Ping HTTP: {status_code} ({latency_ms} ms)")
+
+        # ETAPA 4: Atualizar Playlist Mestre e configurações
+        full_flow_progress = 70
+        full_flow_step = "4/5: Atualizando Playlist Mestre e salvando configurações..."
+        print(f"[⚡ FLUXO COMPLETO] {full_flow_step}")
+        cfg["master_playlist_url"] = playlist_alvo
+        cfg["new_playlist_url"] = playlist_alvo
+        cfg["last_playlist_check"] = datetime.now().isoformat()
+        salvar_config(cfg)
+        relatorio["steps"].append({"step": 4, "name": "Salvar Configurações", "success": True})
+
+        # ETAPA 5: Disparar sincronização via Playwright para todos os equipamentos ativos
+        full_flow_progress = 85
+        full_flow_step = "5/5: Sincronizando Celular, iPad e equipamentos ativos via Playwright..."
+        print(f"[⚡ FLUXO COMPLETO] {full_flow_step}")
+        resultados_lote = await executar_upload_em_lote()
+        relatorio["devices_synced"] = len(resultados_lote)
+        relatorio["resultados_dispositivos"] = resultados_lote
+        relatorio["steps"].append({
+            "step": 5,
+            "name": "Upload Equipamentos",
+            "success": any(r.get("success") for r in resultados_lote) if resultados_lote else True,
+            "count": len(resultados_lote)
+        })
+
+        # ETAPA 6: Notificação externa
+        try:
+            sucesso_total = all(r.get("success") for r in resultados_lote) if resultados_lote else True
+            await enviar_notificacao_externa(
+                "Fluxo Completo SmartTV Club Finalizado",
+                f"E-mail: {endereco}\nPlaylist: {playlist_alvo}\nAparelhos sincronizados: {len(resultados_lote)}\nStatus: {'Sucesso total' if sucesso_total else 'Com avisos'}.",
+                sucesso=sucesso_total
+            )
+        except Exception:
+            pass
+
+        relatorio["success"] = True
+        relatorio["duration_ms"] = int((time.time() - inicio_total) * 1000)
+        relatorio["message"] = f"Fluxo Completo executado com sucesso! ({len(resultados_lote)} aparelhos sincronizados em {relatorio['duration_ms'] // 1000}s)"
+        full_flow_progress = 100
+        full_flow_step = "✔️ Fluxo Completo Concluído com Sucesso!"
+        print(f"[🏁 FLUXO COMPLETO] {relatorio['message']}\n")
+
+    except Exception as e_geral:
+        relatorio["success"] = False
+        relatorio["duration_ms"] = int((time.time() - inicio_total) * 1000)
+        relatorio["message"] = f"Erro na execução do Fluxo Completo: {str(e_geral)}"
+        full_flow_step = f"❌ Erro: {str(e_geral)}"
+        print(f"[!] Erro no Fluxo Completo: {e_geral}")
+
+    finally:
+        last_full_flow_result = relatorio
+        is_running_full_flow = False
+
+    return relatorio
 
 
 async def background_scheduler():
@@ -1138,6 +1298,35 @@ async def import_backup_handler(request: Request):
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
 
+async def trigger_full_flow_handler(request: Request):
+    """Inicia a execução do Fluxo Completo em background."""
+    global is_running_full_flow
+    if is_running_full_flow:
+        return JSONResponse({
+            "success": False,
+            "message": "O Fluxo Completo já está em andamento no momento.",
+            "running": True,
+            "step": full_flow_step
+        }, status_code=409)
+
+    asyncio.create_task(executar_fluxo_completo_pipeline())
+    return JSONResponse({
+        "success": True,
+        "message": "Fluxo Completo iniciado com sucesso!",
+        "running": True
+    })
+
+
+async def get_full_flow_status_handler(request: Request):
+    """Consulta o status e progresso do Fluxo Completo."""
+    return JSONResponse({
+        "running": is_running_full_flow,
+        "step": full_flow_step,
+        "progress": full_flow_progress,
+        "last_result": last_full_flow_result
+    })
+
+
 routes = [
     Route("/", index_handler, methods=["GET"]),
     Route("/api/config", get_config_handler, methods=["GET"]),
@@ -1147,6 +1336,8 @@ routes = [
     Route("/api/trigger-all", trigger_all_handler, methods=["POST"]),
     Route("/api/trigger-device", trigger_single_device_handler, methods=["POST"]),
     Route("/api/playlist/ping", ping_playlist_handler, methods=["POST"]),
+    Route("/api/full-flow", trigger_full_flow_handler, methods=["POST"]),
+    Route("/api/full-flow/status", get_full_flow_status_handler, methods=["GET"]),
     Route("/api/mailtm/new", create_mailtm_account_handler, methods=["POST"]),
     Route("/api/mailtm/new-daily", renew_daily_email_handler, methods=["POST"]),
     Route("/api/mailtm/check-playlist", check_playlist_from_email_handler, methods=["GET", "POST"]),
