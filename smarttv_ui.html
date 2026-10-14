@@ -8,143 +8,91 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    /* ==========================================================================
+       MODERN SAAS SLATE & INDIGO DESIGN SYSTEM (LINEAR / VERCEL / STRIPE)
+       ========================================================================== */
     :root {
-      --bg-dark: #0a0e17;
-      --card-bg: rgba(17, 24, 39, 0.85);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --primary-pink: #d946ef;
-      --primary-purple: #8b5cf6;
-      --accent-magenta: #be185d;
-      --accent-magenta-hover: #9d174d;
-      --neon-cyan: #06b6d4;
-      --text-main: #f8fafc;
+      /* Fundo da Página & Camadas (Slate 950 Dark) */
+      --bg-body: #090d16;
+      --bg-card: #111827;
+      --bg-card-subtle: #1e293b;
+      --bg-card-hover: #1f293d;
+      --border-color: #1f2937;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+
+      /* Tipografia de Alto Contraste */
+      --text-main: #f1f5f9;
       --text-muted: #94a3b8;
-      --success: #10b981;
-      --error: #ef4444;
-      --warning: #f59e0b;
-      --info-blue: #0284c7;
+      --text-subtle: #64748b;
+
+      /* Cores de Marca e Ação (Indigo) */
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-soft: rgba(99, 102, 241, 0.12);
+      --primary-border: rgba(99, 102, 241, 0.3);
+
+      /* Neutros de Apoio & Secundários */
+      --secondary: #1e293b;
+      --secondary-hover: #334155;
+      --secondary-text: #e2e8f0;
+
+      /* Semântica de Status */
+      --success: #34d399;
+      --success-bg: rgba(16, 185, 129, 0.12);
+      --success-border: rgba(16, 185, 129, 0.3);
+      --warning: #fbbf24;
+      --warning-bg: rgba(245, 158, 11, 0.12);
+      --warning-border: rgba(245, 158, 11, 0.3);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --danger-border: rgba(239, 68, 68, 0.3);
+      --info: #38bdf8;
+      --info-bg: rgba(56, 189, 248, 0.12);
+      --info-border: rgba(56, 189, 248, 0.3);
+
+      /* Sombras, Raios e Elevação */
+      --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
     }
 
-    /* ==========================================================================
-       MODO CLARO (LIGHT THEME)
-       ========================================================================== */
+    /* MODO CLARO (LIGHT THEME - SLATE & INDIGO) */
     body.light-theme {
-      --bg-dark: #f8fafc;
-      --card-bg: rgba(255, 255, 255, 0.96);
-      --card-border: rgba(226, 232, 240, 0.9);
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-subtle: #f1f5f9;
+      --bg-card-hover: #f8fafc;
+      --border-color: #e2e8f0;
+      --border-subtle: #cbd5e1;
+
       --text-main: #0f172a;
       --text-muted: #64748b;
-      background: radial-gradient(circle at 10% 10%, rgba(139, 92, 246, 0.07) 0%, transparent 45%),
-                  radial-gradient(circle at 90% 90%, rgba(217, 70, 239, 0.06) 0%, transparent 50%),
-                  #f8fafc;
-      color: var(--text-main);
-    }
+      --text-subtle: #94a3b8;
 
-    body.light-theme h1 {
-      background: linear-gradient(135deg, #0f172a 30%, #334155 70%, #db2777 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-soft: #eef2ff;
+      --primary-border: #c7d2fe;
 
-    body.light-theme .glass-card {
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.06), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-    }
+      --secondary: #f1f5f9;
+      --secondary-hover: #e2e8f0;
+      --secondary-text: #1e293b;
 
-    body.light-theme .master-card {
-      background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
-      border: 1px solid rgba(219, 39, 119, 0.28);
-      box-shadow: 0 15px 35px -10px rgba(219, 39, 119, 0.1);
-    }
+      --success: #059669;
+      --success-bg: #d1fae5;
+      --success-border: #a7f3d0;
+      --warning: #d97706;
+      --warning-bg: #fef3c7;
+      --warning-border: #fde68a;
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --danger-border: #fca5a5;
+      --info: #0284c7;
+      --info-bg: #e0f2fe;
+      --info-border: #bae6fd;
 
-    /* Corrige o título rosa pálido: Vinho escuro com alto contraste */
-    body.light-theme .playlist-card-title {
-      color: #831843 !important;
-    }
-
-    body.light-theme .stat-card {
-      background: rgba(255, 255, 255, 0.95);
-      border: 1px solid #e2e8f0;
-    }
-
-    body.light-theme .stat-value {
-      color: #0f172a;
-    }
-
-    body.light-theme input[type="text"],
-    body.light-theme input[type="url"],
-    body.light-theme input[type="number"] {
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      color: #0f172a;
-    }
-
-    body.light-theme input:focus {
-      background: #ffffff;
-      border-color: #db2777;
-      box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.16);
-    }
-
-    body.light-theme .device-row {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-    }
-
-    body.light-theme .device-row:hover {
-      background: #f8fafc;
-      border-color: #cbd5e1;
-    }
-
-    body.light-theme .pill-btn {
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      color: #475569;
-    }
-
-    body.light-theme .pill-btn:hover {
-      background: #e2e8f0;
-      color: #0f172a;
-    }
-
-    body.light-theme .pill-btn.active {
-      background: linear-gradient(135deg, #8b5cf6, #db2777);
-      color: #ffffff;
-      border-color: transparent;
-    }
-
-    body.light-theme .btn-secondary {
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      color: #1e293b;
-    }
-
-    body.light-theme .btn-secondary:hover:not(:disabled) {
-      background: #f1f5f9;
-    }
-
-    body.light-theme .btn-icon {
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      color: #475569;
-    }
-
-    body.light-theme .btn-icon:hover {
-      background: #e2e8f0;
-      color: #0f172a;
-    }
-
-    body.light-theme table th {
-      background: #f1f5f9;
-      color: #475569;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    body.light-theme table tr td {
-      border-bottom: 1px solid #f1f5f9;
-      color: #1e293b;
-    }
-
-    body.light-theme table tr:hover td {
-      background: #f8fafc;
+      --card-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
     }
 
     /* ==========================================================================
@@ -158,17 +106,15 @@
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: radial-gradient(circle at 10% 10%, rgba(139, 92, 246, 0.14) 0%, transparent 45%),
-                  radial-gradient(circle at 90% 90%, rgba(217, 70, 239, 0.12) 0%, transparent 50%),
-                  var(--bg-dark);
-      background-attachment: fixed;
+      background: var(--bg-body);
       color: var(--text-main);
       min-height: 100vh;
       padding: 1.75rem 1.25rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      transition: background 0.3s ease, color 0.3s ease;
+      transition: background 0.25s ease, color 0.25s ease;
+      -webkit-font-smoothing: antialiased;
     }
 
     .container {
@@ -191,9 +137,9 @@
       position: absolute;
       top: 0;
       right: 0;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: inherit;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
       padding: 0.45rem 0.9rem;
       border-radius: 9999px;
       font-size: 0.8rem;
@@ -202,32 +148,27 @@
       display: inline-flex;
       align-items: center;
       gap: 0.45rem;
-      backdrop-filter: blur(8px);
+      box-shadow: var(--card-shadow);
       transition: all 0.2s ease;
       z-index: 100;
     }
 
-    body.light-theme .theme-toggle-btn {
-      background: rgba(0, 0, 0, 0.05);
-      border: 1px solid rgba(0, 0, 0, 0.1);
-    }
-
     .theme-toggle-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      background: var(--bg-card-subtle);
+      transform: translateY(-1px);
     }
 
     .brand-pill {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      background: rgba(217, 70, 239, 0.12);
-      border: 1px solid rgba(217, 70, 239, 0.3);
+      background: var(--primary-soft);
+      border: 1px solid var(--primary-border);
       padding: 0.3rem 0.9rem;
       border-radius: 9999px;
       font-size: 0.78rem;
       font-weight: 600;
-      color: #f0abfc;
+      color: var(--primary);
       letter-spacing: 0.05em;
       text-transform: uppercase;
       margin-bottom: 0.65rem;
@@ -236,31 +177,34 @@
     .brand-pill .pulse-dot {
       width: 8px;
       height: 8px;
-      background: #ec4899;
+      background: var(--primary);
       border-radius: 50%;
       animation: pulse 2s infinite;
     }
 
     @keyframes pulse {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(236, 72, 153, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
     }
 
     h1 {
       font-size: 2.1rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #ffffff 30%, #e2e8f0 70%, #d946ef 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
       letter-spacing: -0.03em;
       margin-bottom: 0.35rem;
+      color: var(--text-main);
+    }
+
+    body.light-theme h1 {
+      color: #0f172a;
     }
 
     .subtitle {
       color: var(--text-muted);
       font-size: 0.92rem;
       max-width: 820px;
+      line-height: 1.45;
     }
 
     /* Stats Bar */
@@ -272,13 +216,19 @@
     }
 
     .stat-card {
-      background: rgba(17, 24, 39, 0.7);
-      border: 1px solid var(--card-border);
-      border-radius: 0.9rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
       padding: 1.1rem;
       display: flex;
       flex-direction: column;
       gap: 0.3rem;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .stat-card:hover {
+      border-color: var(--primary-border);
     }
 
     .stat-label {
@@ -292,7 +242,7 @@
     .stat-value {
       font-size: 1.35rem;
       font-weight: 700;
-      color: #fff;
+      color: var(--text-main);
       font-family: 'JetBrains Mono', monospace;
     }
 
@@ -308,26 +258,26 @@
     }
 
     .badge-online {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid var(--success-border);
     }
 
     .badge-paused {
-      background: rgba(245, 158, 11, 0.15);
-      color: #fbbf24;
-      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid var(--warning-border);
     }
 
     .badge-running {
-      background: rgba(6, 182, 212, 0.15);
-      color: #22d3ee;
-      border: 1px solid rgba(6, 182, 212, 0.3);
+      background: var(--info-bg);
+      color: var(--info);
+      border: 1px solid var(--info-border);
       animation: pulse 1.5s infinite;
     }
 
     /* ==========================================================================
-       1. GRID DE DUAS COLUNAS EQUILIBRADO E RESPONSIVO (Zero Overflow Horizontal)
+       GRID DE DUAS COLUNAS EQUILIBRADO E RESPONSIVO (Zero Overflow Horizontal)
        ========================================================================== */
     .main-dashboard-grid {
       display: grid;
@@ -354,16 +304,14 @@
       }
     }
 
-    /* Glass Cards */
+    /* Glass Cards -> Clean Modern Cards */
     .glass-card {
-      background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--card-border);
-      border-radius: 1.15rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
       padding: 1.5rem;
-      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.45);
-      transition: border-color 0.3s ease;
+      box-shadow: var(--card-shadow);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
       min-width: 0;
       max-width: 100%;
       box-sizing: border-box;
@@ -371,12 +319,13 @@
     }
 
     .glass-card:hover {
-      border-color: rgba(255, 255, 255, 0.14);
+      border-color: var(--border-subtle);
     }
 
     .card-title {
-      font-size: 1.15rem;
+      font-size: 1.12rem;
       font-weight: 700;
+      color: var(--text-main);
       margin-bottom: 0.85rem;
       display: flex;
       align-items: center;
@@ -384,79 +333,67 @@
     }
 
     .playlist-card-title {
-      color: #f0abfc;
-      font-weight: 700;
+      color: var(--text-main);
     }
 
     .master-card {
-      background: linear-gradient(135deg, rgba(30, 41, 59, 0.88) 0%, rgba(15, 23, 42, 0.96) 100%);
-      border: 1px solid rgba(217, 70, 239, 0.35);
-      box-shadow: 0 15px 35px -10px rgba(217, 70, 239, 0.15);
+      border-top: 3px solid var(--primary);
     }
 
     /* ==========================================================================
-       2. CORREÇÃO DAS LINHAS DE EQUIPAMENTOS (Sem corte no Nome e no TV ID)
+       LINHAS DE EQUIPAMENTOS (Alinhamento Grid Perfeito, sem corte e sem barra lateral rosa)
        ========================================================================== */
-    /* Grid interno: # (32px) | Nome (min 150px) | TV ID (min 245px) | Status (115px) | Ações (96px) */
+    /* Grid exato: # (28px) | Nome (1.2fr) | TV ID (1.8fr) | Status (90px) | Ações (90px) */
     .device-row,
     .device-header-row {
       display: grid;
-      grid-template-columns: 32px minmax(150px, 1fr) minmax(245px, 1.35fr) 115px 96px;
+      grid-template-columns: 28px minmax(130px, 1.2fr) minmax(220px, 1.8fr) 90px 90px;
       gap: 10px;
       align-items: center;
-      padding: 10px 12px;
-      background: rgba(15, 23, 42, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 0.65rem;
-      margin-bottom: 0.55rem;
-      transition: all 0.2s ease;
+      padding: 8px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.5rem;
+      transition: background 0.2s ease, border-color 0.2s ease;
+      box-sizing: border-box;
+      width: 100%;
     }
 
     .device-header-row {
       background: transparent;
       border: none;
-      padding: 0.4rem 0.75rem;
+      padding: 0.35rem 0.75rem;
       font-size: 0.72rem;
       text-transform: uppercase;
       color: var(--text-muted);
       font-weight: 700;
       letter-spacing: 0.04em;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.2rem;
     }
 
     .device-row:hover {
-      border-color: rgba(255, 255, 255, 0.16);
-      background: rgba(15, 23, 42, 0.8);
+      background: var(--bg-card-hover);
+      border-color: var(--border-subtle);
     }
 
     .device-row.is-empty-slot {
       opacity: 0.65;
-      background-color: rgba(15, 23, 42, 0.3);
+      background-color: var(--bg-card-subtle);
       border-style: dashed;
-    }
-
-    body.light-theme .device-row.is-empty-slot {
-      background-color: #f8fafc;
-      border: 1px dashed #cbd5e1;
     }
 
     .device-row.is-empty-slot:hover,
     .device-row.is-empty-slot:focus-within {
       opacity: 1;
       border-style: solid;
-      border-color: rgba(217, 70, 239, 0.4);
-    }
-
-    /* Oculta badge duplicada para não espremer o input */
-    .device-name-cell .badge,
-    .device-name-badge {
-      display: none !important;
+      border-color: var(--primary-border);
     }
 
     .device-num {
       font-size: 0.8rem;
       font-weight: 700;
-      color: #94a3b8;
+      color: var(--text-muted);
       font-family: 'JetBrains Mono', monospace;
       text-align: center;
     }
@@ -467,37 +404,44 @@
       font-size: 13px !important;
       font-weight: 600;
       padding: 7px 10px !important;
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-card-subtle) !important;
+      border: 1px solid var(--border-color) !important;
+      color: var(--text-main) !important;
     }
 
-    /* TV ID com tamanho exato para 29 caracteres */
+    .device-name-input:focus {
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 3px var(--primary-soft) !important;
+    }
+
+    /* TV ID com input neutro limpo (sem fundo verde excessivo) */
     .tv-id-wrapper {
       display: flex;
       align-items: center;
       gap: 6px;
       width: 100%;
+      min-width: 0;
     }
 
     .tv-id-input {
       width: 100%;
-      min-width: 215px;
+      min-width: 0;
+      flex: 1;
       font-family: 'JetBrains Mono', Consolas, monospace !important;
-      font-size: 11.8px !important;
+      font-size: 12px !important;
       letter-spacing: -0.2px;
-      padding: 7px 8px !important;
-      border-radius: 8px;
-      transition: all 0.2s ease;
+      padding: 7px 10px !important;
+      border-radius: var(--radius-sm);
+      background: var(--bg-card-subtle) !important;
+      border: 1px solid var(--border-color) !important;
+      color: var(--text-main) !important;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .tv-id-input.is-valid {
-      border-color: #10b981 !important;
-      background-color: #f0fdf4 !important;
-      color: #065f46 !important;
-    }
-
-    .tv-id-input.is-invalid {
-      border-color: #f59e0b !important;
-      background-color: #fffbeb !important;
+    .tv-id-input:focus {
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 3px var(--primary-soft) !important;
     }
 
     .device-actions {
@@ -509,12 +453,12 @@
 
     /* Action Buttons & Icons */
     .btn-icon {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #cbd5e1;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
       width: 30px;
       height: 30px;
-      border-radius: 0.45rem;
+      border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -525,22 +469,22 @@
     }
 
     .btn-icon:hover {
-      background: rgba(255, 255, 255, 0.15);
-      color: #fff;
+      background: var(--border-color);
+      color: var(--text-main);
       transform: translateY(-1px);
     }
 
     .btn-icon.delete:hover {
-      background: rgba(239, 68, 68, 0.2);
-      border-color: rgba(239, 68, 68, 0.4);
-      color: #f87171;
+      background: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: var(--danger);
     }
 
     /* Badges Semânticos */
     .badge-device {
-      padding: 0.22rem 0.45rem;
-      border-radius: 4px;
-      font-size: 0.68rem;
+      padding: 0.22rem 0.5rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.7rem;
       font-weight: 600;
       text-align: center;
       display: inline-block;
@@ -548,37 +492,37 @@
     }
 
     .badge-device.unconfigured {
-      background: rgba(148, 163, 184, 0.12);
-      color: #64748b;
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: var(--bg-card-subtle);
+      color: var(--text-subtle);
+      border: 1px solid var(--border-color);
     }
 
     .badge-device.ready {
-      background: rgba(2, 132, 199, 0.14);
-      color: #0284c7;
-      border: 1px solid rgba(2, 132, 199, 0.3);
+      background: var(--primary-soft);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
     }
 
     .badge-device.syncing {
-      background: rgba(6, 182, 212, 0.18);
-      color: #22d3ee;
-      border: 1px solid rgba(6, 182, 212, 0.3);
+      background: var(--info-bg);
+      color: var(--info);
+      border: 1px solid var(--info-border);
       animation: pulse 1.5s infinite;
     }
 
     .badge-device.success {
-      background: rgba(16, 185, 129, 0.18);
-      color: #10b981;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid var(--success-border);
     }
 
     .badge-device.error {
-      background: rgba(239, 68, 68, 0.18);
-      color: #ef4444;
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger-border);
     }
 
-    /* Buttons */
+    /* Botões */
     .btn-row {
       display: flex;
       gap: 0.75rem;
@@ -592,7 +536,7 @@
       justify-content: center;
       gap: 0.5rem;
       padding: 0.75rem 1.25rem;
-      border-radius: 0.65rem;
+      border-radius: var(--radius-md);
       font-size: 0.875rem;
       font-weight: 600;
       cursor: pointer;
@@ -600,53 +544,49 @@
       border: none;
       outline: none;
       flex: 1;
-      min-width: 180px;
+      min-width: 170px;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #db2777 0%, #be185d 100%);
-      color: #fff;
-      box-shadow: 0 10px 20px -5px rgba(219, 39, 119, 0.4);
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
     }
 
     .btn-primary:hover:not(:disabled) {
-      background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 15px 25px -5px rgba(219, 39, 119, 0.5);
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35);
     }
 
-    /* Botão de Salvar Inteligente */
     .btn-save-config {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #e2e8f0;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
       transition: all 0.2s ease;
     }
 
     .btn-save-config:disabled {
-      opacity: 0.55;
+      opacity: 0.6;
       cursor: default;
-      background-color: #f8fafc !important;
-      color: #64748b !important;
-      border-color: #e2e8f0 !important;
     }
 
     .btn-save-config.has-unsaved-changes {
       opacity: 1;
-      border-color: #db2777 !important;
-      color: #db2777 !important;
-      background-color: #fdf2f8 !important;
+      border-color: var(--primary) !important;
+      color: var(--primary) !important;
+      background-color: var(--primary-soft) !important;
       font-weight: 600;
-      box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.12);
+      box-shadow: 0 0 0 3px var(--primary-soft);
       cursor: pointer;
     }
 
     .pill-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
       color: var(--text-muted);
       padding: 0.35rem 0.75rem;
-      border-radius: 9999px;
+      border-radius: var(--radius-sm);
       font-size: 0.78rem;
       font-weight: 500;
       cursor: pointer;
@@ -654,23 +594,23 @@
     }
 
     .pill-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      color: #fff;
+      background: var(--border-color);
+      color: var(--text-main);
     }
 
     .pill-btn.active {
-      background: linear-gradient(135deg, var(--primary-purple), var(--primary-pink));
-      color: #fff;
-      border-color: transparent;
-      box-shadow: 0 4px 10px rgba(217, 70, 239, 0.3);
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
     }
 
     .btn-dashed-add-slot {
       background: transparent;
-      border: 1px dashed rgba(217, 70, 239, 0.4);
-      color: #f0abfc;
+      border: 1px dashed var(--primary-border);
+      color: var(--primary);
       padding: 0.65rem;
-      border-radius: 0.65rem;
+      border-radius: var(--radius-md);
       width: 100%;
       cursor: pointer;
       font-size: 0.825rem;
@@ -684,16 +624,11 @@
     }
 
     .btn-dashed-add-slot:hover {
-      background: rgba(217, 70, 239, 0.08);
-      border-color: #d946ef;
+      background: var(--primary-soft);
+      border-color: var(--primary);
     }
 
-    body.light-theme .btn-dashed-add-slot {
-      border-color: #db2777;
-      color: #be185d;
-    }
-
-    /* Accordion Toggle Bar */
+    /* Acordeão de Slots Vazios */
     .empty-slots-accordion {
       margin: 0.65rem 0 0.25rem 0;
     }
@@ -703,9 +638,9 @@
       align-items: center;
       justify-content: space-between;
       width: 100%;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 0.65rem;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
       padding: 0.6rem 0.9rem;
       color: var(--text-muted);
       font-size: 0.8rem;
@@ -714,25 +649,62 @@
       transition: all 0.2s ease;
     }
 
-    body.light-theme .accordion-toggle-btn {
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      color: #475569;
+    .accordion-toggle-btn:hover {
+      background: var(--border-color);
+      color: var(--text-main);
     }
 
-    .accordion-toggle-btn:hover {
-      background: rgba(217, 70, 239, 0.08);
-      color: #db2777;
-      border-color: rgba(219, 39, 119, 0.3);
+    /* Gavetas Recolhíveis (Drawer Cards) para Contas Mail.tm e Notificações */
+    .drawer-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+
+    .drawer-card:hover {
+      border-color: var(--border-subtle);
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      user-select: none;
+      background: var(--bg-card);
+      transition: background 0.2s ease;
+    }
+
+    .drawer-header:hover {
+      background: var(--bg-card-subtle);
+    }
+
+    .drawer-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .drawer-content {
+      padding: 1.25rem;
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-card);
     }
 
     /* ==========================================================================
-       3. CABEÇALHO DO FLUXO DIÁRIO COM TOGGLE 00:00 INTEGRADO
+       CABEÇALHO DO FLUXO DIÁRIO (Neutralizado em Slate & Indigo)
        ========================================================================== */
     .flow-box {
-      background: rgba(219, 39, 119, 0.07);
-      border: 1px solid rgba(219, 39, 119, 0.22);
-      border-radius: 0.85rem;
+      background: var(--primary-soft);
+      border: 1px solid var(--primary-border);
+      border-radius: var(--radius-md);
       padding: 0.85rem 1rem;
       margin-bottom: 1.25rem;
     }
@@ -745,11 +717,11 @@
     }
 
     .flow-title {
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       font-weight: 700;
-      color: #be185d;
+      color: var(--primary);
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
     }
 
     .flow-toggle-label {
@@ -758,8 +730,9 @@
       gap: 6px;
       font-size: 11.5px;
       font-weight: 600;
-      color: #047857;
-      background: #d1fae5;
+      color: var(--success);
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
       padding: 3px 9px;
       border-radius: 999px;
       cursor: pointer;
@@ -768,7 +741,7 @@
     }
 
     .flow-toggle-label input {
-      accent-color: #10b981;
+      accent-color: var(--success);
       cursor: pointer;
     }
 
@@ -781,9 +754,9 @@
     }
 
     .flow-step-box {
-      background: rgba(0, 0, 0, 0.18);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
       padding: 0.4rem 0.65rem;
       font-size: 0.75rem;
       text-align: center;
@@ -791,53 +764,44 @@
       min-width: 95px;
     }
 
-    body.light-theme .flow-step-box {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-    }
-
     .flow-arrow {
-      color: #ec4899;
-      font-weight: 800;
-      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.85rem;
     }
 
-    /* Inputs */
+    /* Inputs Universais */
     label {
       font-size: 0.825rem;
       font-weight: 600;
-      color: #cbd5e1;
+      color: var(--text-main);
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 0.35rem;
     }
 
-    body.light-theme label {
-      color: #334155;
-    }
-
-    input[type="text"], input[type="url"], input[type="number"] {
+    input[type="text"], input[type="url"], input[type="number"], input[type="password"] {
       width: 100%;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 0.65rem;
-      padding: 0.75rem 0.9rem;
-      color: #f8fafc;
-      font-size: 0.9rem;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 0.7rem 0.9rem;
+      color: var(--text-main);
+      font-size: 0.875rem;
       outline: none;
-      transition: all 0.2s ease;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
       font-family: inherit;
     }
 
     input.mono {
       font-family: 'JetBrains Mono', Consolas, monospace;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.02em;
     }
 
     input:focus {
-      border-color: var(--primary-pink);
-      box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.25);
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 3px var(--primary-soft) !important;
     }
 
     /* Ping Status Badge */
@@ -846,9 +810,28 @@
       align-items: center;
       gap: 0.35rem;
       padding: 0.25rem 0.55rem;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       font-size: 0.72rem;
       font-weight: 600;
+    }
+
+    /* Tabela de Histórico e Contas */
+    table th {
+      background: var(--bg-card-subtle);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    table tr td {
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    table tr:hover td {
+      background: var(--bg-card-hover);
     }
 
     /* Toast */
@@ -856,12 +839,12 @@
       position: fixed;
       bottom: 1.75rem;
       right: 1.75rem;
-      background: #1e293b;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #fff;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
       padding: 0.85rem 1.25rem;
-      border-radius: 0.65rem;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      border-radius: var(--radius-md);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
       font-size: 0.85rem;
       font-weight: 500;
       display: flex;
@@ -874,8 +857,8 @@
     }
     #toast.show { transform: translateY(0); opacity: 1; }
     #toast.success { border-left: 4px solid var(--success); }
-    #toast.error { border-left: 4px solid var(--error); }
-    #toast.info { border-left: 4px solid var(--info-blue); }
+    #toast.error { border-left: 4px solid var(--danger); }
+    #toast.info { border-left: 4px solid var(--primary); }
     #toast.warning { border-left: 4px solid var(--warning); }
   </style>
 </head>
@@ -976,11 +959,8 @@
 
           <!-- Botões de Ação Global -->
           <div class="btn-row" style="margin-top: 1.25rem;">
-            <button class="btn btn-full-flow" id="btnFullFlow" onclick="triggerFullFlow()" title="Executar Fluxo Completo: Criar Novo E-mail Diário + Extrair Playlist da Inbox + Ping M3U + Sincronizar Todos os Aparelhos via Playwright" style="background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%); color: #fff; box-shadow: 0 10px 20px -5px rgba(219, 39, 119, 0.4); font-weight: 700; flex: 1.2;">
-              ⚡ Executar Fluxo Completo
-            </button>
-            <button class="btn btn-primary" id="btnSyncAll" onclick="triggerSyncAll()" title="Disparar a sincronização em lote da playlist IPTV para todos os aparelhos agora">
-              🚀 Sincronizar Equipamentos
+            <button class="btn btn-primary" id="btnSyncAll" onclick="triggerSyncAll()" title="Disparar a sincronização em lote da playlist IPTV para todos os aparelhos ativos agora">
+              🚀 Sincronizar Equipamentos Ativos
             </button>
             <button class="btn btn-save-config" id="btnSaveConfig" onclick="saveAllConfig(true)" title="Salvar todas as configurações no servidor" disabled>
               ✔️ Configurações Salvas
@@ -1046,7 +1026,7 @@
             <div class="flow-header-bar">
               <span class="flow-title">🔄 Fluxo Diário (00:00 Brasília)</span>
               <div style="display: flex; align-items: center; gap: 0.45rem;">
-                <button type="button" class="pill-btn active" id="btnFlowBoxTrigger" onclick="triggerFullFlow()" title="Disparar todo o ciclo ponta a ponta agora" style="background: linear-gradient(135deg, #7c3aed, #db2777); border: none; font-size: 0.72rem; padding: 0.25rem 0.65rem; color: #fff;">
+                <button type="button" class="pill-btn active" id="btnFlowBoxTrigger" onclick="triggerFullFlow()" title="Disparar todo o ciclo ponta a ponta agora" style="background: var(--primary); border: none; font-size: 0.75rem; font-weight: 600; padding: 0.35rem 0.75rem; color: #fff; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);">
                   ⚡ Rodar Fluxo Completo
                 </button>
                 <label class="flow-toggle-label" title="Ativar ou desativar disparo automático diário à meia-noite">
@@ -1057,29 +1037,29 @@
             </div>
             <div class="flow-steps">
               <div class="flow-step-box">
-                <span style="font-weight: 700; color: #db2777;">📬 E-mail 00:00</span>
+                <span style="font-weight: 700; color: var(--primary);">📬 E-mail 00:00</span>
                 <div style="font-size: 0.68rem; color: var(--text-muted);">Novo e-mail diário</div>
               </div>
               <span class="flow-arrow">➔</span>
               <div class="flow-step-box">
-                <span style="font-weight: 700; color: #8b5cf6;">✨ Captura M3U</span>
+                <span style="font-weight: 700; color: var(--primary-hover);">✨ Captura M3U</span>
                 <div style="font-size: 0.68rem; color: var(--text-muted);">Varre link da inbox</div>
               </div>
               <span class="flow-arrow">➔</span>
               <div class="flow-step-box">
-                <span style="font-weight: 700; color: #10b981;">📺 SmartTV Club</span>
+                <span style="font-weight: 700; color: var(--success);">📺 SmartTV Club</span>
                 <div style="font-size: 0.68rem; color: var(--text-muted);">Replicado a todos</div>
               </div>
             </div>
 
             <!-- Barra de Progresso do Fluxo Completo -->
-            <div id="fullFlowProgressBar" style="display: none; margin-top: 0.65rem; background: rgba(0,0,0,0.25); border: 1px solid rgba(219,39,119,0.3); border-radius: 0.5rem; padding: 0.45rem 0.75rem;">
+            <div id="fullFlowProgressBar" style="display: none; margin-top: 0.65rem; background: var(--bg-card-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.45rem 0.75rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; margin-bottom: 0.25rem;">
-                <span id="fullFlowStatusText" style="font-weight: 600; color: #f0abfc;">⏳ Executando fluxo...</span>
-                <span id="fullFlowPercentText" style="font-weight: 700; color: #10b981;">0%</span>
+                <span id="fullFlowStatusText" style="font-weight: 600; color: var(--primary);">⏳ Executando fluxo...</span>
+                <span id="fullFlowPercentText" style="font-weight: 700; color: var(--success);">0%</span>
               </div>
-              <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-                <div id="fullFlowProgressFill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #8b5cf6, #ec4899); transition: width 0.3s ease;"></div>
+              <div style="width: 100%; height: 6px; background: var(--border-color); border-radius: 3px; overflow: hidden;">
+                <div id="fullFlowProgressFill" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease;"></div>
               </div>
             </div>
           </div>
@@ -1097,7 +1077,7 @@
               </button>
             </div>
             <!-- Feedback Detalhado do Ping M3U -->
-            <div id="playlistDetailedFeedback" style="display: none; margin-top: 0.5rem; padding: 0.55rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08);"></div>
+            <div id="playlistDetailedFeedback" style="display: none; margin-top: 0.5rem; padding: 0.55rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.75rem; background: var(--bg-card-subtle); border: 1px solid var(--border-color);"></div>
           </div>
 
           <!-- Input da URL de Contingência (Fallback) -->
@@ -1118,15 +1098,15 @@
           </div>
 
           <!-- Banner Destaque do Link Capturado por E-mail -->
-          <div id="newPlaylistBanner" style="margin-top: 0.85rem; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: 0.75rem; padding: 0.75rem 0.9rem;">
+          <div id="newPlaylistBanner" style="margin-top: 0.85rem; background: var(--success-bg); border: 1px solid var(--success-border); border-radius: var(--radius-md); padding: 0.75rem 0.9rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-              <span style="font-size: 0.72rem; font-weight: 700; color: #059669; text-transform: uppercase;">
+              <span style="font-size: 0.72rem; font-weight: 700; color: var(--success); text-transform: uppercase;">
                 ✨ Link Recebido por E-mail
               </span>
               <span id="lastPlaylistCheckTime" style="font-size: 0.68rem; color: var(--text-muted);">Aguardando verificação</span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.4rem;">
-              <input type="text" id="displayPlaylistLink" class="mono" readonly style="font-size: 0.78rem; padding: 0.4rem 0.6rem; background: rgba(0,0,0,0.03); border: 1px solid rgba(16,185,129,0.2); border-radius: 0.5rem; color: inherit; width: 100%;" placeholder="Aguardando link da playlist nova..." />
+              <input type="text" id="displayPlaylistLink" class="mono" readonly style="font-size: 0.78rem; padding: 0.4rem 0.6rem; background: var(--bg-card); border: 1px solid var(--success-border); border-radius: var(--radius-sm); color: inherit; width: 100%;" placeholder="Aguardando link da playlist nova..." />
               <button class="btn-icon" id="btnCopyPlaylist" style="width: 32px; height: 32px;" title="Copiar Link da Playlist" onclick="copyGenericText(this.previousElementSibling.value, 'Link da Playlist', this)">📋</button>
             </div>
             <div style="display: flex; gap: 0.4rem; margin-top: 0.5rem;">
@@ -1140,9 +1120,9 @@
           </div>
 
           <!-- Bloco do E-mail Ativo para Receber Playlist -->
-          <div style="margin-top: 0.85rem; background: rgba(0,0,0,0.02); border: 1px dashed rgba(219,39,119,0.3); border-radius: 0.75rem; padding: 0.75rem 0.9rem;">
+          <div style="margin-top: 0.85rem; background: var(--bg-card-subtle); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 0.75rem 0.9rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-              <span style="font-size: 0.72rem; font-weight: 700; color: #be185d; text-transform: uppercase;">📬 E-mail Ativo (Mail.tm)</span>
+              <span style="font-size: 0.72rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">📬 E-mail Ativo (Mail.tm)</span>
               <button class="pill-btn" style="padding: 0.2rem 0.5rem; font-size: 0.68rem;" onclick="generateDailyMailtmAccount()" title="Gerar nova conta de e-mail diária no Mail.tm">➕ Novo E-mail</button>
             </div>
             <div style="display: flex; align-items: center; gap: 0.4rem;">
@@ -1152,90 +1132,105 @@
           </div>
         </section>
 
-        <!-- Card de Contas & Caixas Postais Criadas (Mail.tm) -->
-        <section class="glass-card" id="card-contas-mailtm" style="border: 1px solid rgba(219, 39, 119, 0.2);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.4rem;">
-            <div>
-              <h2 class="card-title" style="margin-bottom: 0.15rem; color: #db2777; font-size: 1.05rem;">
-                📬 Contas Mail.tm (<span id="accountsCountBadge">0</span>)
-              </h2>
-              <span style="font-size: 0.72rem; color: var(--text-muted);">Caixas de entrada e links de confirmação</span>
-              <div id="deviceQuotaBadge" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 9999px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd;">
-                📺 Cota: 1 e-mail atende até 5 aparelhos (<span id="quotaDevCount">0</span>/5 cadastrados)
-              </div>
+        <!-- Card de Contas & Caixas Postais Criadas (Mail.tm) em Gaveta Recolhível -->
+        <section class="drawer-card" id="card-contas-mailtm">
+          <div class="drawer-header" onclick="toggleMailtmDrawer()" title="Clique para expandir ou recolher as contas Mail.tm">
+            <div class="drawer-title">
+              <span>📬 Contas Mail.tm</span>
+              <span class="badge-status badge-paused" id="accountsCountBadge" style="font-size: 0.72rem; padding: 0.15rem 0.5rem;">0</span>
             </div>
-            <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
-              <button class="pill-btn active" style="font-size: 0.72rem;" onclick="generateNewMailtmAccount()">➕ Nova Conta</button>
-              <button class="pill-btn" style="font-size: 0.72rem;" onclick="openInboxForEmail('all')" title="Ver mensagens recebidas em todas as caixas consolidadas">📬 Ver Todas</button>
-              <button class="pill-btn" style="font-size: 0.72rem;" onclick="loadMailtmAccounts()" title="Recarregar contas">🔄</button>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.75rem; color: var(--text-muted);" id="mailtmDrawerStatus">Recolhido</span>
+              <span id="mailtmDrawerArrow" style="font-size: 0.8rem; color: var(--text-muted); transition: transform 0.2s;">🔽</span>
             </div>
           </div>
-
-          <div style="overflow-x: auto; max-height: 220px; overflow-y: auto;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
-              <thead>
-                <tr style="color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left;">
-                  <th style="padding: 0.5rem;">E-mail</th>
-                  <th style="padding: 0.5rem;">Senha</th>
-                  <th style="padding: 0.5rem; text-align: right;">Ações</th>
-                </tr>
-              </thead>
-              <tbody id="accountsTableBody">
-                <tr>
-                  <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 1rem;">
-                    Carregando contas...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Caixa de Entrada Expansível -->
-          <div id="inboxContainer" style="display: none; margin-top: 1rem; background: rgba(0,0,0,0.02); border: 1px dashed rgba(219,39,119,0.3); border-radius: 0.65rem; padding: 0.85rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.35rem;">
+          <div class="drawer-content" id="mailtmDrawerContent" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.4rem;">
               <div>
-                <h4 style="font-size: 0.85rem; font-weight: 700; color: #be185d; margin: 0;">
-                  📥 Inbox: <span id="inboxCurrentEmail" class="mono" style="font-size: 0.75rem;"></span>
-                </h4>
-                <span style="font-size: 0.68rem; color: var(--text-muted);" id="inboxStatusLabel">Consultando...</span>
+                <span style="font-size: 0.72rem; color: var(--text-muted);">Caixas de entrada e links de confirmação</span>
+                <div id="deviceQuotaBadge" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 9999px; background: var(--info-bg); border: 1px solid var(--info-border); color: var(--info);">
+                  📺 Cota: 1 e-mail atende até 5 aparelhos (<span id="quotaDevCount">0</span>/5 cadastrados)
+                </div>
               </div>
-              <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
-                <button class="pill-btn" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7;" onclick="injectTestMessage()" title="Simular/Injetar e-mail de teste com playlist para homologação imediata">🧪 Simular Mensagem</button>
-                <button class="pill-btn" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="refreshCurrentInbox()">🔄</button>
-                <button class="pill-btn" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="closeInboxView()">✖️ Fechar</button>
+              <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                <button class="pill-btn active" style="font-size: 0.72rem;" onclick="generateNewMailtmAccount()">➕ Nova Conta</button>
+                <button class="pill-btn" style="font-size: 0.72rem;" onclick="openInboxForEmail('all')" title="Ver mensagens recebidas em todas as caixas consolidadas">📬 Ver Todas</button>
+                <button class="pill-btn" style="font-size: 0.72rem;" onclick="loadMailtmAccounts()" title="Recarregar contas">🔄</button>
               </div>
             </div>
-            <div id="inboxMessagesList"></div>
+
+            <div style="overflow-x: auto; max-height: 220px; overflow-y: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
+                <thead>
+                  <tr style="color: var(--text-muted); border-bottom: 1px solid var(--border-color); text-align: left;">
+                    <th style="padding: 0.5rem;">E-mail</th>
+                    <th style="padding: 0.5rem;">Senha</th>
+                    <th style="padding: 0.5rem; text-align: right;">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="accountsTableBody">
+                  <tr>
+                    <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 1rem;">
+                      Carregando contas...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Caixa de Entrada Expansível -->
+            <div id="inboxContainer" style="display: none; margin-top: 1rem; background: var(--bg-card-subtle); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 0.85rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.35rem;">
+                <div>
+                  <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin: 0;">
+                    📥 Inbox: <span id="inboxCurrentEmail" class="mono" style="font-size: 0.75rem;"></span>
+                  </h4>
+                  <span style="font-size: 0.68rem; color: var(--text-muted);" id="inboxStatusLabel">Consultando...</span>
+                </div>
+                <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+                  <button class="pill-btn" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: var(--success-bg); border-color: var(--success-border); color: var(--success);" onclick="injectTestMessage()" title="Simular/Injetar e-mail de teste com playlist para homologação imediata">🧪 Simular Mensagem</button>
+                  <button class="pill-btn" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="refreshCurrentInbox()">🔄</button>
+                  <button class="pill-btn" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="closeInboxView()">✖️ Fechar</button>
+                </div>
+              </div>
+              <div id="inboxMessagesList"></div>
+            </div>
           </div>
         </section>
 
-        <!-- Card de Notificações Externas (Telegram & Webhook) -->
-        <section class="glass-card" id="card-notificacoes" style="border: 1px solid rgba(59, 130, 246, 0.25); margin-top: 1.25rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.4rem;">
-            <div>
-              <h2 class="card-title" style="font-size: 1.05rem; margin-bottom: 0.15rem; color: #60a5fa;">
-                🔔 Notificações Externas (Telegram & Webhook)
-              </h2>
+        <!-- Card de Notificações Externas (Telegram & Webhook) em Gaveta Recolhível -->
+        <section class="drawer-card" id="card-notificacoes" style="margin-top: 0.5rem;">
+          <div class="drawer-header" onclick="toggleNotificationsDrawer()" title="Clique para expandir ou recolher as notificações externas">
+            <div class="drawer-title">
+              <span>🔔 Notificações Externas (Telegram & Webhook)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.75rem; color: var(--text-muted);" id="notificationsDrawerStatus">Recolhido</span>
+              <span id="notificationsDrawerArrow" style="font-size: 0.8rem; color: var(--text-muted); transition: transform 0.2s;">🔽</span>
+            </div>
+          </div>
+          <div class="drawer-content" id="notificationsDrawerContent" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.4rem;">
               <span style="font-size: 0.72rem; color: var(--text-muted);">Receba alertas instantâneos de sucesso ou falha nas sincronizações das 00:00</span>
+              <button class="pill-btn" style="font-size: 0.72rem; background: var(--info-bg); color: var(--info); border-color: var(--info-border);" onclick="testNotificationAlert()" title="Disparar notificação de teste agora">
+                🧪 Testar Alerta
+              </button>
             </div>
-            <button class="pill-btn" style="font-size: 0.72rem; background: rgba(59, 130, 246, 0.15); color: #93c5fd; border-color: rgba(59, 130, 246, 0.4);" onclick="testNotificationAlert()" title="Disparar notificação de teste agora">
-              🧪 Testar Alerta
-            </button>
-          </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-top: 0.5rem;">
-            <div>
-              <label for="tgBotToken" style="font-size: 0.75rem;">Telegram Bot Token</label>
-              <input type="password" id="tgBotToken" placeholder="123456789:ABCdefGhIJKlmNoPQRstuVWXyz" style="font-size: 0.78rem; padding: 0.5rem 0.65rem;" oninput="markUnsavedChanges()" onblur="triggerAutoSave()" />
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-top: 0.5rem;">
+              <div>
+                <label for="tgBotToken" style="font-size: 0.75rem;">Telegram Bot Token</label>
+                <input type="password" id="tgBotToken" placeholder="123456789:ABCdefGhIJKlmNoPQRstuVWXyz" style="font-size: 0.78rem; padding: 0.5rem 0.65rem;" oninput="markUnsavedChanges()" onblur="triggerAutoSave()" />
+              </div>
+              <div>
+                <label for="tgChatId" style="font-size: 0.75rem;">Telegram Chat ID</label>
+                <input type="text" id="tgChatId" placeholder="Ex: 987654321 ou -100..." style="font-size: 0.78rem; padding: 0.5rem 0.65rem;" oninput="markUnsavedChanges()" onblur="triggerAutoSave()" />
+              </div>
             </div>
-            <div>
-              <label for="tgChatId" style="font-size: 0.75rem;">Telegram Chat ID</label>
-              <input type="text" id="tgChatId" placeholder="Ex: 987654321 ou -100..." style="font-size: 0.78rem; padding: 0.5rem 0.65rem;" oninput="markUnsavedChanges()" onblur="triggerAutoSave()" />
+            <div style="margin-top: 0.65rem;">
+              <label for="webhookUrl" style="font-size: 0.75rem;">Webhook URL (Discord / Slack / n8n)</label>
+              <input type="url" id="webhookUrl" placeholder="https://discord.com/api/webhooks/... ou https://webhook.site/..." style="font-size: 0.78rem; padding: 0.5rem 0.65rem;" oninput="markUnsavedChanges()" onblur="triggerAutoSave()" />
             </div>
-          </div>
-          <div style="margin-top: 0.65rem;">
-            <label for="webhookUrl" style="font-size: 0.75rem;">Webhook URL (Discord / Slack / n8n)</label>
-            <input type="url" id="webhookUrl" placeholder="https://discord.com/api/webhooks/... ou https://webhook.site/..." style="font-size: 0.78rem; padding: 0.5rem 0.65rem;" oninput="markUnsavedChanges()" onblur="triggerAutoSave()" />
           </div>
         </section>
 
@@ -1391,6 +1386,29 @@
       }
     }
 
+    // Gestão das Gavetas (Drawers) Recolhíveis
+    let mailtmDrawerExpanded = false;
+    function toggleMailtmDrawer(forceState = null) {
+      mailtmDrawerExpanded = (forceState !== null) ? forceState : !mailtmDrawerExpanded;
+      const content = document.getElementById('mailtmDrawerContent');
+      const arrow = document.getElementById('mailtmDrawerArrow');
+      const status = document.getElementById('mailtmDrawerStatus');
+      if (content) content.style.display = mailtmDrawerExpanded ? 'block' : 'none';
+      if (arrow) arrow.innerText = mailtmDrawerExpanded ? '🔼' : '🔽';
+      if (status) status.innerText = mailtmDrawerExpanded ? 'Expandido' : 'Recolhido';
+    }
+
+    let notificationsDrawerExpanded = false;
+    function toggleNotificationsDrawer(forceState = null) {
+      notificationsDrawerExpanded = (forceState !== null) ? forceState : !notificationsDrawerExpanded;
+      const content = document.getElementById('notificationsDrawerContent');
+      const arrow = document.getElementById('notificationsDrawerArrow');
+      const status = document.getElementById('notificationsDrawerStatus');
+      if (content) content.style.display = notificationsDrawerExpanded ? 'block' : 'none';
+      if (arrow) arrow.innerText = notificationsDrawerExpanded ? '🔼' : '🔽';
+      if (status) status.innerText = notificationsDrawerExpanded ? 'Expandido' : 'Recolhido';
+    }
+
     // Aplica link recebido para o input Mestre
     function applyCapturedToMaster() {
       const link = document.getElementById('displayPlaylistLink').value.trim();
@@ -1499,7 +1517,7 @@
         const isTvValid = (dev.tv_id && dev.tv_id.replace(/[^a-zA-Z0-9]/g, '').length === 24);
 
         const rowHtml = `
-          <div class="device-row ${!hasTvId ? 'is-empty-slot' : ''}" id="deviceRow_${dev.id}" style="${isWashington ? 'border-left: 4px solid #db2777; background: rgba(219,39,119,0.03);' : ''}">
+          <div class="device-row ${!hasTvId ? 'is-empty-slot' : ''}" id="deviceRow_${dev.id}">
             <div class="device-num">${String(idx + 1).padStart(2, '0')}</div>
             <div class="device-name-cell">
               <input type="text" class="device-name-input" value="${dev.name || ''}" placeholder="Ex: Smart TV Quarto" oninput="markUnsavedChanges()" onchange="updateDeviceField(${dev.id}, 'name', this.value)" onblur="triggerAutoSave()" />
@@ -2097,6 +2115,7 @@
     }
 
     async function openInboxForEmail(email) {
+      if (!mailtmDrawerExpanded) toggleMailtmDrawer(true);
       currentInboxEmail = email;
       const box = document.getElementById('inboxContainer');
       const labelEmail = document.getElementById('inboxCurrentEmail');
@@ -2222,6 +2241,7 @@
     }
 
     async function generateNewMailtmAccount(force = false) {
+      if (!mailtmDrawerExpanded) toggleMailtmDrawer(true);
       showToast('Verificando cota e contas no Mail.tm...', 'info');
       try {
         const res = await fetch('/api/mailtm/new', {
@@ -2312,10 +2332,10 @@
         const devName = item.device_name || `ID ${item.device_id || '--'}`;
 
         return `
-          <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
-            <td style="padding: 0.45rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #94a3b8;">${dt}</td>
+          <tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 0.45rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted);">${dt}</td>
             <td style="padding: 0.45rem; font-weight: 600;">${devName}</td>
-            <td style="padding: 0.45rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #f0abfc;">${item.tv_id || '--'}</td>
+            <td style="padding: 0.45rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted);">${item.tv_id || '--'}</td>
             <td style="padding: 0.45rem;">${badge}</td>
           </tr>
         `;
