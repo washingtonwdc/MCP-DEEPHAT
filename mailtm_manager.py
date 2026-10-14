@@ -173,17 +173,70 @@ def obter_detalhes_mensagem(token: str, msg_id: str) -> Dict[str, Any]:
         return {}
 
 
+def analisar_mensagem_para_playlist(detalhe: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Analisa os detalhes de um e-mail para extrair URLs de playlist M3U/M3U8,
+    credenciais Xtream Codes (Host + User + Pass), links de ativação e anexos.
+    """
+    texto_corpo = detalhe.get("text") or ""
+    html_corpo = detalhe.get("html") or ""
+    corpo_combinado = f"{texto_corpo}\n{html_corpo}"
+
+    padrao_url = re.compile(r"https?://[^\s\"'<>]+")
+    urls_encontradas = set(padrao_url.findall(corpo_combinado))
+    urls_limpas = [u for u in urls_encontradas if not u.endswith((".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico"))]
+
+    playlists_detectadas = []
+
+    # 1. Busca URLs com extensões ou rotas clássicas de M3U / IPTV
+    for u in urls_limpas:
+        u_lower = u.lower()
+        if any(p in u_lower for p in [".m3u8", ".m3u", "get.php", "type=m3u", "output=ts", "output=m3u8", "/live/", "/playlist", "channels.m3u"]):
+            playlists_detectadas.append(u)
+
+    # 2. Busca credenciais Xtream Codes no texto do e-mail (Host, User, Senha)
+    host_match = re.search(r"(?:servidor|server|host|url|dns)[:=\s]+(https?://[^\s/:]+(?::\d+)?)", corpo_combinado, re.I)
+    user_match = re.search(r"(?:usu[aá]rio|user|username|login)[:=\s]+([a-zA-Z0-9_\-\.]+)", corpo_combinado, re.I)
+    pass_match = re.search(r"(?:senha|pass|password)[:=\s]+([a-zA-Z0-9_\-\.]+)", corpo_combinado, re.I)
+
+    xtream_info = None
+    if host_match and user_match and pass_match:
+        host = host_match.group(1).rstrip("/")
+        user = user_match.group(1).strip()
+        pwd = pass_match.group(1).strip()
+        m3u_sintetizado = f"{host}/get.php?username={user}&password={pwd}&type=m3u_plus&output=ts"
+        playlists_detectadas.append(m3u_sintetizado)
+        xtream_info = {"host": host, "username": user, "password": pwd, "m3u_url": m3u_sintetizado}
+
+    # 3. Anexos M3U
+    anexos = detalhe.get("attachments") or []
+    for att in anexos:
+        fn = att.get("filename", "").lower()
+        if fn.endswith((".m3u", ".m3u8")):
+            download_url = f"https://api.mail.tm{att.get('downloadUrl')}"
+            playlists_detectadas.append(download_url)
+
+    # 4. Links de ativação / confirmação
+    links_ativacao = [u for u in urls_limpas if any(k in u.lower() for k in ["confirm", "activat", "verif", "token", "auth", "valida", "clique", "ativar"])]
+
+    return {
+        "playlists_detectadas": list(dict.fromkeys(playlists_detectadas)),
+        "xtream_info": xtream_info,
+        "links_ativacao": links_ativacao,
+        "todos_links": urls_limpas,
+        "texto": texto_corpo[:400] + ("..." if len(texto_corpo) > 400 else "")
+    }
+
+
 def extrair_links_confirmacao(token: str) -> List[Dict[str, Any]]:
     """
-    Lê todas as mensagens da caixa e extrai links com foco em confirmação/ativação.
+    Lê todas as mensagens da caixa e extrai links com foco em confirmação, ativação e playlists IPTV.
     """
     mensagens = listar_mensagens(token)
     if not mensagens:
-        print("[-] Nenhuma mensagem na caixa de entrada.")
         return []
 
     resultados = []
-    padrao_url = re.compile(r"https?://[^\s\"'<>]+")
 
     for msg in mensagens:
         msg_id = msg.get("id")
@@ -191,43 +244,60 @@ def extrair_links_confirmacao(token: str) -> List[Dict[str, Any]]:
         assunto = msg.get("subject", "")
 
         detalhe = obter_detalhes_mensagem(token, msg_id)
-        texto_corpo = detalhe.get("text") or ""
-        html_corpo = detalhe.get("html") or ""
-
-        # Encontra todas as URLs em texto e html
-        urls_encontradas = set(padrao_url.findall(texto_corpo + " " + html_corpo))
-        # Filtra URLs irrelevantes (schemas, imagens, unsubscribes básicos se quiser)
-        urls_limpas = [u for u in urls_encontradas if not u.endswith((".png", ".jpg", ".jpeg", ".gif", ".svg"))]
-
-        # Prioriza links que contenham palavras-chave de ativação
-        links_ativacao = [u for u in urls_limpas if any(k in u.lower() for k in ["confirm", "activat", "verif", "token", "auth", "valida", "clique"])]
+        analise = analisar_mensagem_para_playlist(detalhe)
 
         item = {
             "id": msg_id,
             "remetente": remetente,
             "assunto": assunto,
             "data_recebimento": msg.get("createdAt"),
-            "links_ativacao": links_ativacao,
-            "todos_links": urls_limpas,
-            "texto": texto_corpo[:400] + ("..." if len(texto_corpo) > 400 else ""),
+            "playlists_detectadas": analise["playlists_detectadas"],
+            "xtream_info": analise["xtream_info"],
+            "links_ativacao": analise["links_ativacao"],
+            "todos_links": analise["todos_links"],
+            "texto": analise["texto"],
         }
         resultados.append(item)
 
         print("-" * 50)
-        print(f"📩 De:      {remetente}")
-        print(f"📌 Assunto: {assunto}")
-        if links_ativacao:
-            print("🔗 Links de Confirmação/Ativação Detectados:")
-            for lk in links_ativacao:
+        print(f"[INFO] De:      {remetente}")
+        print(f"[INFO] Assunto: {assunto}")
+        if analise["playlists_detectadas"]:
+            print("[INFO] Playlist IPTV Detectada:")
+            for pl in analise["playlists_detectadas"]:
+                print(f"   -> {pl}")
+        if analise["links_ativacao"]:
+            print("[INFO] Links de Confirmacao/Ativacao Detectados:")
+            for lk in analise["links_ativacao"]:
                 print(f"   -> {lk}")
-        elif urls_limpas:
-            print("🔗 Links Encontrados no e-mail:")
-            for lk in urls_limpas[:3]:
-                print(f"   -> {lk}")
-        else:
-            print("[-] Nenhum link encontrado no corpo desta mensagem.")
 
     return resultados
+
+
+def buscar_playlist_em_todas_as_contas() -> Tuple[Optional[str], Optional[str], Optional[Dict[str, Any]]]:
+    """
+    Varre todas as contas registradas em emails.json em busca de e-mails contendo playlists IPTV.
+    Retorna (email_encontrado, playlist_url, detalhes_item).
+    """
+    dados = carregar_dados()
+    contas = dados.get("contas", [])
+    for conta in reversed(contas):
+        token = conta.get("token")
+        if not token and conta.get("senha"):
+            token = autenticar_token(conta["email"], conta["senha"])
+            if token:
+                conta["token"] = token
+                salvar_dados(dados)
+        if not token:
+            continue
+
+        msgs = extrair_links_confirmacao(token)
+        for m in msgs:
+            pls = m.get("playlists_detectadas", [])
+            if pls:
+                return conta["email"], pls[0], m
+
+    return None, None, None
 
 
 def monitorar_caixa(token: str, timeout_segundos: int = 120, intervalo_segundos: int = 5) -> Optional[Dict[str, Any]]:

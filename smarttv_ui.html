@@ -1098,9 +1098,10 @@
               </h2>
               <span style="font-size: 0.72rem; color: var(--text-muted);">Caixas de entrada e links de confirmação</span>
             </div>
-            <div style="display: flex; gap: 0.35rem;">
+            <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
               <button class="pill-btn active" style="font-size: 0.72rem;" onclick="generateNewMailtmAccount()">➕ Nova Conta</button>
-              <button class="pill-btn" style="font-size: 0.72rem;" onclick="loadMailtmAccounts()">🔄</button>
+              <button class="pill-btn" style="font-size: 0.72rem;" onclick="openInboxForEmail('all')" title="Ver mensagens recebidas em todas as caixas consolidadas">📬 Ver Todas</button>
+              <button class="pill-btn" style="font-size: 0.72rem;" onclick="loadMailtmAccounts()" title="Recarregar contas">🔄</button>
             </div>
           </div>
 
@@ -1787,7 +1788,7 @@
       const statusLabel = document.getElementById('inboxStatusLabel');
       
       box.style.display = 'block';
-      labelEmail.innerText = email;
+      labelEmail.innerText = (email === 'all' || email === 'todas') ? 'Todas as Contas (Consolidado)' : email;
       statusLabel.innerText = 'Buscando mensagens...';
       box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
@@ -1828,21 +1829,39 @@
           listContainer.innerHTML = msgs.map(m => {
             const dt = m.data_recebimento ? new Date(m.data_recebimento).toLocaleString('pt-BR') : '--';
             const linksAtivacao = m.links_ativacao || [];
+            const playlists = m.playlists_detectadas || [];
+            const contaOrigem = m.conta_email ? `<span style="font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 4px; background: rgba(219,39,119,0.15); color: #db2777; margin-left: 0.4rem;">${m.conta_email}</span>` : '';
             
             return `
               <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 0.65rem; padding: 0.75rem; margin-bottom: 0.65rem;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 0.35rem;">
                   <div>
                     <span style="font-weight: 700; color: #f8fafc; font-size: 0.825rem;">${m.assunto || '(Sem Assunto)'}</span>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">De: <span class="mono">${m.remetente || '--'}</span></div>
+                    ${contaOrigem}
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem;">De: <span class="mono">${m.remetente || '--'}</span></div>
                   </div>
                   <span class="mono" style="font-size: 0.68rem; color: var(--text-muted);">${dt}</span>
                 </div>
 
+                ${playlists.length > 0 ? `
+                  <div style="margin: 0.5rem 0; padding: 0.55rem; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 0.5rem;">
+                    <div style="font-size: 0.7rem; font-weight: 700; color: #10b981; text-transform: uppercase; margin-bottom: 0.25rem;">
+                      📡 Playlist IPTV Detectada no E-mail:
+                    </div>
+                    ${playlists.map(pl => `
+                      <div style="display: flex; align-items: center; gap: 0.35rem; margin-top: 0.25rem; flex-wrap: wrap;">
+                        <input type="text" class="mono" readonly value="${pl}" style="flex: 1; min-width: 180px; font-size: 0.72rem; padding: 0.25rem 0.4rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 4px; color: #34d399;" />
+                        <button class="pill-btn active" style="font-size: 0.7rem; padding: 0.25rem 0.5rem; background: #059669;" onclick="document.getElementById('masterPlaylist').value='${pl}'; saveAllConfig(false); showToast('Playlist configurada como Mestre!', 'success');">📥 Usar como Mestre</button>
+                        <button class="btn-icon" style="width: 26px; height: 26px;" title="Copiar Link" onclick="copyGenericText('${pl}', 'Playlist IPTV', this)">📋</button>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : ''}
+
                 ${linksAtivacao.length > 0 ? `
                   <div style="margin: 0.5rem 0; padding: 0.5rem; background: rgba(219, 39, 119, 0.12); border: 1px solid rgba(219, 39, 119, 0.3); border-radius: 0.5rem;">
                     <div style="font-size: 0.68rem; font-weight: 700; color: #db2777; text-transform: uppercase; margin-bottom: 0.25rem;">
-                      🔗 Links Detectados:
+                      🔗 Links de Ativação / Confirmação Detectados:
                     </div>
                     ${linksAtivacao.map(lk => `
                       <div style="display: flex; align-items: center; gap: 0.35rem; margin-top: 0.25rem; flex-wrap: wrap;">

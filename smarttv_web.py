@@ -13,7 +13,8 @@ import os
 from pathlib import Path
 import sys
 import time
-from typing import Dict, Any, List, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Dict, Any, List, Optional, Tuple
 
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -444,6 +445,25 @@ async def post_config_handler(request: Request):
         return JSONResponse({"success": False, "error": str(e)}, status_code=400)
 
 
+def checar_msgs_conta(c_item: Dict[str, Any], dados: Dict[str, Any]) -> Tuple[str, List[Dict[str, Any]]]:
+    """Helper que extrai mensagens e playlists de uma conta específica."""
+    import mailtm_manager
+    tok = c_item.get("token")
+    if not tok and c_item.get("senha"):
+        tok = mailtm_manager.autenticar_token(c_item["email"], c_item["senha"])
+        if tok:
+            c_item["token"] = tok
+    if not tok:
+        return c_item["email"], []
+    try:
+        msgs = mailtm_manager.extrair_links_confirmacao(tok)
+        for m in msgs:
+            m["conta_email"] = c_item["email"]
+        return c_item["email"], msgs
+    except Exception:
+        return c_item["email"], []
+
+
 async def check_playlist_from_email_handler(request: Request):
     """Verifica e-mails recebidos na conta ativa e extrai automaticamente o link da nova playlist IPTV."""
     try:
@@ -482,38 +502,72 @@ async def check_playlist_from_email_handler(request: Request):
                 cfg["temp_email"] = endereco
                 salvar_config(cfg)
 
-        msgs = mailtm_manager.extrair_links_confirmacao(conta["token"])
-        playlist_link = None
+        # 1. Checa conta ativa primeiro (rápido, ~0.5s)
+        playlist_encontrada = None
+        email_com_playlist = None
+        detalhes_item = None
+        total_msgs_geral = 0
+        link_ativacao_pendente = None
 
-        for m in msgs:
-            for l in m.get("todos_links", []):
-                if any(p in l.lower() for p in [".m3u", ".m3u8", "get.php", "type=m3u", "playlist"]):
-                    playlist_link = l
-                    break
-            if playlist_link:
+        _, msgs_ativas = checar_msgs_conta(conta, dados)
+        total_msgs_geral += len(msgs_ativas)
+        for m in msgs_ativas:
+            pls = m.get("playlists_detectadas", [])
+            if pls:
+                playlist_encontrada = pls[0]
+                email_com_playlist = conta["email"]
+                detalhes_item = m
                 break
+            if not link_ativacao_pendente and m.get("links_ativacao"):
+                link_ativacao_pendente = m["links_ativacao"][0]
+
+        # 2. Se não encontrou na conta ativa, varre as demais contas em paralelo
+        if not playlist_encontrada:
+            outras_contas = [c for c in reversed(contas) if c.get("email") != email_ativo]
+            if outras_contas:
+                with ThreadPoolExecutor(max_workers=6) as executor:
+                    fut_map = {executor.submit(checar_msgs_conta, c, dados): c for c in outras_contas}
+                    for fut in as_completed(fut_map):
+                        em, msgs_c = fut.result()
+                        total_msgs_geral += len(msgs_c)
+                        for m in msgs_c:
+                            pls = m.get("playlists_detectadas", [])
+                            if pls and not playlist_encontrada:
+                                playlist_encontrada = pls[0]
+                                email_com_playlist = em
+                                detalhes_item = m
+                            if not link_ativacao_pendente and m.get("links_ativacao"):
+                                link_ativacao_pendente = m["links_ativacao"][0]
 
         cfg["last_playlist_check"] = datetime.now().isoformat()
 
-        if playlist_link:
-            cfg["master_playlist_url"] = playlist_link
-            cfg["new_playlist_url"] = playlist_link
+        if playlist_encontrada:
+            cfg["master_playlist_url"] = playlist_encontrada
+            cfg["new_playlist_url"] = playlist_encontrada
+            if email_com_playlist:
+                cfg["temp_email"] = email_com_playlist
             salvar_config(cfg)
             return JSONResponse({
                 "success": True,
                 "found": True,
-                "playlist_url": playlist_link,
-                "message": "Nova playlist identificada e configurada com sucesso para todos os aparelhos!",
-                "total_messages": len(msgs)
+                "playlist_url": playlist_encontrada,
+                "email_origem": email_com_playlist,
+                "message": f"Nova playlist identificada com sucesso na caixa de {email_com_playlist}!",
+                "total_messages": total_msgs_geral,
+                "detalhes": detalhes_item
             })
         else:
             salvar_config(cfg)
+            msg_retorno = "Nenhuma nova playlist identificada nas mensagens recentes ainda."
+            if link_ativacao_pendente:
+                msg_retorno = f"Link de confirmação/ativação detectado: {link_ativacao_pendente}"
             return JSONResponse({
                 "success": True,
                 "found": False,
                 "playlist_url": cfg.get("master_playlist_url", ""),
-                "message": "Nenhuma nova playlist identificada nas mensagens recentes ainda.",
-                "total_messages": len(msgs)
+                "message": msg_retorno,
+                "link_ativacao": link_ativacao_pendente,
+                "total_messages": total_msgs_geral
             })
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
@@ -582,12 +636,30 @@ async def list_mailtm_accounts_handler(request: Request):
 
 
 async def get_mailtm_messages_handler(request: Request):
-    """Busca as mensagens recebidas de uma conta Mail.tm específica."""
+    """Busca as mensagens recebidas de uma conta Mail.tm específica ou de todas (?email=all)."""
     try:
         import mailtm_manager
         target_email = request.query_params.get("email", "").strip()
         dados = mailtm_manager.carregar_dados()
         contas = dados.get("contas", [])
+
+        # Modo consolidado: busca em todas as contas em paralelo
+        if target_email.lower() in ["all", "todas", "*"]:
+            todas_mensagens = []
+            with ThreadPoolExecutor(max_workers=6) as executor:
+                fut_list = [executor.submit(checar_msgs_conta, c, dados) for c in reversed(contas)]
+                for fut in as_completed(fut_list):
+                    _, msgs_c = fut.result()
+                    todas_mensagens.extend(msgs_c)
+
+            # Ordena por data mais recente
+            todas_mensagens.sort(key=lambda m: str(m.get("data_recebimento", "")), reverse=True)
+            return JSONResponse({
+                "success": True,
+                "email": "todas",
+                "messages": todas_mensagens,
+                "total": len(todas_mensagens)
+            })
 
         if not target_email:
             cfg = carregar_config()
@@ -626,6 +698,8 @@ async def get_mailtm_messages_handler(request: Request):
 
         token = conta["token"]
         msgs = mailtm_manager.extrair_links_confirmacao(token)
+        for m in msgs:
+            m["conta_email"] = target_email
         return JSONResponse({"success": True, "email": target_email, "messages": msgs, "total": len(msgs)})
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)

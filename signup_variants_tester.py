@@ -224,7 +224,7 @@ def salvar_relatorios(resultados: List[Dict[str, Any]], prefixo_arquivo: str = "
 def main():
     parser = argparse.ArgumentParser(description="Automação de Testes de Normalização e Deduplicação de Cadastros")
     parser.add_argument("--url", default="https://httpbin.org/post", help="URL do endpoint POST de submissão do formulário (default: https://httpbin.org/post)")
-    parser.add_argument("--email", default="qa.tester@gmail.com", help="E-mail base de teste (default: qa.tester@gmail.com)")
+    parser.add_argument("--email", default="teste-washington@maxxspace.com", help="E-mail base de teste (default: teste-washington@maxxspace.com)")
     parser.add_argument("--emails-file", default="emails_alvo.txt" if Path("emails_alvo.txt").exists() else None, help="Arquivo de texto com lista de e-mails customizados (ex: emails_alvo.txt)")
     parser.add_argument("--phone", default="11987654321", help="Telefone base de teste (default: 11987654321)")
     parser.add_argument("--name", default="Teste QA DevSecOps", help="Nome do usuário no payload")
