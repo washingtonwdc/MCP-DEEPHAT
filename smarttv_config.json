@@ -4,14 +4,14 @@
   "auto_update_enabled": true,
   "sync_mode": "daily_midnight_brasilia",
   "scheduled_datetime": "",
-  "temp_email": "teste-2026-10-14-9a7e15@maxxspace.com",
+  "temp_email": "teste-2026-10-14-aae9a2@maxxspace.com",
   "devices": [
     {
       "id": 1,
       "name": "Celular de Washington",
       "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
       "enabled": true,
-      "last_sync": "2026-10-14T10:41:19.431462",
+      "last_sync": "2026-10-14T11:20:11.421696",
       "status": "success"
     },
     {
@@ -19,7 +19,7 @@
       "name": "iPad de Washington",
       "tv_id": "e9b4-9e58-a8b2-da67-25c9-c737",
       "enabled": true,
-      "last_sync": "2026-10-14T10:41:43.328611",
+      "last_sync": "2026-10-14T11:20:31.367549",
       "status": "success"
     },
     {
@@ -142,5 +142,5 @@
   "daily_time": "00:00",
   "timezone": "America/Sao_Paulo",
   "new_playlist_url": "",
-  "last_playlist_check": "2026-10-14T10:37:04.712698"
+  "last_playlist_check": "2026-10-14T11:20:07.151389"
 }
