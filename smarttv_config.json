@@ -26,7 +26,7 @@
       "id": 3,
       "name": "Equipamento 03 - Quarto Filhos",
       "tv_id": "",
-      "enabled": true,
+      "enabled": false,
       "last_sync": null,
       "status": "idle"
     },
@@ -34,7 +34,7 @@
       "id": 4,
       "name": "Equipamento 04 - Quarto Hóspedes",
       "tv_id": "",
-      "enabled": true,
+      "enabled": false,
       "last_sync": null,
       "status": "idle"
     },
@@ -42,7 +42,7 @@
       "id": 5,
       "name": "Equipamento 05 - Área Gourmet / Churrasqueira",
       "tv_id": "",
-      "enabled": true,
+      "enabled": false,
       "last_sync": null,
       "status": "idle"
     },
@@ -50,7 +50,7 @@
       "id": 6,
       "name": "Equipamento 06 - Cozinha",
       "tv_id": "",
-      "enabled": true,
+      "enabled": false,
       "last_sync": null,
       "status": "idle"
     },
@@ -58,7 +58,7 @@
       "id": 7,
       "name": "Equipamento 07 - Escritório / Home Office",
       "tv_id": "",
-      "enabled": true,
+      "enabled": false,
       "last_sync": null,
       "status": "idle"
     },
@@ -66,7 +66,7 @@
       "id": 8,
       "name": "Equipamento 08 - Smart TV Varanda",
       "tv_id": "",
-      "enabled": true,
+      "enabled": false,
       "last_sync": null,
       "status": "idle"
     },
@@ -74,7 +74,7 @@
       "id": 9,
       "name": "Equipamento 09 - TV Box Reserva 1",
       "tv_id": "",
-      "enabled": true,
+      "enabled": false,
       "last_sync": null,
       "status": "idle"
     },
@@ -82,7 +82,7 @@
       "id": 10,
       "name": "Equipamento 10 - TV Box Reserva 2",
       "tv_id": "",
-      "enabled": true,
+      "enabled": false,
       "last_sync": null,
       "status": "idle"
     }
@@ -92,5 +92,5 @@
   "daily_time": "00:00",
   "timezone": "America/Sao_Paulo",
   "new_playlist_url": "",
-  "last_playlist_check": "2026-10-13T20:46:25.609874"
+  "last_playlist_check": "2026-10-13T20:47:35.815741"
 }

@@ -696,6 +696,38 @@ async def lifespan(app: Starlette):
     scheduler_task.cancel()
 
 
+async def ping_playlist_handler(request: Request):
+    """Testa rapidamente a conectividade de um link M3U via HTTP."""
+    try:
+        body = await request.json()
+        url = body.get("url", "").strip()
+        if not url:
+            return JSONResponse({"success": False, "error": "URL não fornecida."}, status_code=400)
+
+        import httpx
+        async with httpx.AsyncClient(timeout=6.0, follow_redirects=True) as client:
+            try:
+                resp = await client.head(url)
+                if resp.status_code >= 400:
+                    resp = await client.get(url, headers={"Range": "bytes=0-100"})
+                is_ok = resp.status_code < 400
+                return JSONResponse({
+                    "success": True,
+                    "online": is_ok,
+                    "status_code": resp.status_code,
+                    "message": "Link M3U acessível e respondendo com sucesso!" if is_ok else f"Servidor retornou status {resp.status_code}"
+                })
+            except Exception as e:
+                return JSONResponse({
+                    "success": True,
+                    "online": False,
+                    "error": str(e),
+                    "message": "Falha de conexão com o servidor da playlist."
+                })
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
 routes = [
     Route("/", index_handler, methods=["GET"]),
     Route("/api/config", get_config_handler, methods=["GET"]),
@@ -704,6 +736,7 @@ routes = [
     Route("/api/device/delete", delete_device_handler, methods=["POST"]),
     Route("/api/trigger-all", trigger_all_handler, methods=["POST"]),
     Route("/api/trigger-device", trigger_single_device_handler, methods=["POST"]),
+    Route("/api/playlist/ping", ping_playlist_handler, methods=["POST"]),
     Route("/api/mailtm/new", create_mailtm_account_handler, methods=["POST"]),
     Route("/api/mailtm/new-daily", renew_daily_email_handler, methods=["POST"]),
     Route("/api/mailtm/check-playlist", check_playlist_from_email_handler, methods=["GET", "POST"]),
