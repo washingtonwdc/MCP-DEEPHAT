@@ -126,8 +126,12 @@ async def executar_upload_individual(device: Dict[str, Any], playlist_url: str) 
             browser = await p.chromium.launch(headless=True)
             page = await browser.new_page()
 
-            await page.goto("https://smarttv.club/upload-channels/", wait_until="networkidle", timeout=30000)
-            await asyncio.sleep(1.5)
+            await page.goto("https://smarttv.club/upload-channels/", wait_until="domcontentloaded", timeout=45000)
+            try:
+                await page.wait_for_selector("input", timeout=15000)
+            except Exception:
+                pass
+            await asyncio.sleep(1.0)
 
             # Localiza campo TV ID
             tv_input = None
@@ -171,10 +175,16 @@ async def executar_upload_individual(device: Dict[str, Any], playlist_url: str) 
                         except Exception:
                             await cb.click(force=True)
 
+            # Oculta anúncios e iframes que possam interceptar cliques
+            try:
+                await page.add_style_tag(content="iframe, ins.adsbygoogle, [id*='aswift'], header { pointer-events: none !important; }")
+            except Exception:
+                pass
+
             agree_label = page.locator("text='Agree to all'").first
-            if await agree_label.count() > 0 and await agree_label.is_visible():
+            if await agree_label.count() > 0:
                 try:
-                    await agree_label.click()
+                    await agree_label.click(force=True)
                 except Exception:
                     pass
 
@@ -184,12 +194,16 @@ async def executar_upload_individual(device: Dict[str, Any], playlist_url: str) 
             btn_send = None
             for b_sel in ["button:has-text('Send playlist to TV')", "button:has-text('Send playlist')", "button[type='submit']"]:
                 b = page.locator(b_sel).first
-                if await b.count() > 0 and await b.is_visible():
+                if await b.count() > 0:
                     btn_send = b
                     break
 
             if btn_send:
-                await btn_send.click()
+                try:
+                    await btn_send.click(force=True, timeout=8000)
+                except Exception:
+                    # Fallback com JavaScript nativo no DOM
+                    await btn_send.evaluate("b => b.click()")
                 await asyncio.sleep(3)
 
                 conteudo_tela = await page.content()
