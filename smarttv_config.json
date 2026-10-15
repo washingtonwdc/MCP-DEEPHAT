@@ -1,17 +1,17 @@
 {
-  "master_playlist_url": "http://line.iptvclub.net:80/get.php?username=teste_wash_20261015_0759&password=tv_075941&type=m3u_plus&output=ts",
+  "master_playlist_url": "http://zymv.shop/get.php?username=goldlnr020&password=56508193&type=m3u_plus&output=mpegts",
   "interval_minutes": 60,
   "auto_update_enabled": true,
   "sync_mode": "daily_midnight_brasilia",
   "scheduled_datetime": "",
-  "temp_email": "teste-2026-10-15-ba45cf@maxxspace.com",
+  "temp_email": "teste-2026-10-15-23fd5d@maxxspace.com",
   "devices": [
     {
       "id": 1,
       "name": "TV Washington",
       "tv_id": "N3T2-X4JT-J5JB-HCAR-8SDP",
       "enabled": true,
-      "last_sync": "2026-10-15T10:46:31.661812",
+      "last_sync": "2026-10-15T13:01:19.488982",
       "status": "success"
     },
     {
@@ -19,7 +19,7 @@
       "name": "iPad de Washington",
       "tv_id": "e9b4-9e58-a8b2-da67-25c9-c737",
       "enabled": true,
-      "last_sync": "2026-10-15T10:46:51.772256",
+      "last_sync": "2026-10-15T13:01:40.637407",
       "status": "success"
     },
     {
@@ -27,7 +27,7 @@
       "name": "Celular de Washington",
       "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
       "enabled": true,
-      "last_sync": "2026-10-15T10:47:04.879472",
+      "last_sync": "2026-10-15T13:01:53.500724",
       "status": "success"
     },
     {
@@ -91,11 +91,11 @@
     "device_id": 3,
     "device_name": "Celular de Washington",
     "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
-    "playlist_url": "http://line.iptvclub.net:80/get.php?username=teste_wash_20261015_0759&password=tv_075941&type=m3u_plus&output=ts",
-    "timestamp": "2026-10-15T10:47:04.879472",
+    "playlist_url": "http://zymv.shop/get.php?username=goldlnr020&password=56508193&type=m3u_plus&output=mpegts",
+    "timestamp": "2026-10-15T13:01:53.500724",
     "success": true,
     "message": "Playlist enviada com sucesso!",
-    "duration_ms": 10517
+    "duration_ms": 10151
   },
   "history": [
     {
@@ -277,16 +277,57 @@
       "success": true,
       "message": "Playlist enviada com sucesso!",
       "duration_ms": 10517
+    },
+    {
+      "device_id": 3,
+      "device_name": "Celular de Washington",
+      "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
+      "playlist_url": "http://line.iptvclub.net:80/get.php?username=teste_wash_20261015_0759&password=tv_075941&type=m3u_plus&output=ts",
+      "timestamp": "2026-10-15T11:01:07.923078",
+      "success": true,
+      "message": "Playlist enviada com sucesso!",
+      "duration_ms": 19103
+    },
+    {
+      "device_id": 1,
+      "device_name": "TV Washington",
+      "tv_id": "N3T2-X4JT-J5JB-HCAR-8SDP",
+      "playlist_url": "http://zymv.shop/get.php?username=goldlnr020&password=56508193&type=m3u_plus&output=mpegts",
+      "timestamp": "2026-10-15T13:01:19.488982",
+      "success": true,
+      "message": "Playlist enviada com sucesso!",
+      "duration_ms": 19127
+    },
+    {
+      "device_id": 2,
+      "device_name": "iPad de Washington",
+      "tv_id": "e9b4-9e58-a8b2-da67-25c9-c737",
+      "playlist_url": "http://zymv.shop/get.php?username=goldlnr020&password=56508193&type=m3u_plus&output=mpegts",
+      "timestamp": "2026-10-15T13:01:40.637407",
+      "success": true,
+      "message": "Playlist enviada com sucesso!",
+      "duration_ms": 10846
+    },
+    {
+      "device_id": 3,
+      "device_name": "Celular de Washington",
+      "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
+      "playlist_url": "http://zymv.shop/get.php?username=goldlnr020&password=56508193&type=m3u_plus&output=mpegts",
+      "timestamp": "2026-10-15T13:01:53.500724",
+      "success": true,
+      "message": "Playlist enviada com sucesso!",
+      "duration_ms": 10151
     }
   ],
   "daily_time": "00:00",
   "timezone": "America/Sao_Paulo",
-  "new_playlist_url": "http://line.iptvclub.net:80/get.php?username=teste_wash_20261015_0759&password=tv_075941&type=m3u_plus&output=ts",
+  "new_playlist_url": "http://zymv.shop/get.php?username=goldlnr020&password=56508193&type=m3u_plus&output=mpegts",
   "xtream_info": {
-    "host": "http://line.iptvclub.net:80",
-    "username": "teste_washington",
-    "password": "tv_smart_2026",
-    "m3u_url": "http://line.iptvclub.net:80/get.php?username=teste_wash_20261015_0759&password=tv_075941&type=m3u_plus&output=ts"
+    "host": "http://zymv.shop",
+    "username": "goldlnr020",
+    "password": "56508193",
+    "m3u_url": "http://zymv.shop/get.php?username=goldlnr020&password=56508193&type=m3u_plus&output=mpegts",
+    "generator": "https://www.testersbygold.fun/plajezev/prod808033"
   },
   "last_playlist_check": "2026-10-15T07:59:44.266457",
   "fallback_playlist_url": "https://iptv-org.github.io/iptv/index.m3u",

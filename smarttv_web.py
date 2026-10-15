@@ -376,48 +376,30 @@ async def executar_fluxo_completo_pipeline() -> Dict[str, Any]:
         import mailtm_manager
         cfg = carregar_config()
 
-        # ETAPA 1: Gerar novo e-mail temporário
-        full_flow_progress = 15
-        full_flow_step = "1/5: Gerando novo e-mail diário no Mail.tm..."
+        # ETAPA 1 e 2: Gerar novo teste IPTV via gerador oficial TestersByGold (https://www.testersbygold.fun/plajezev/prod808033)
+        full_flow_progress = 25
+        full_flow_step = "1/5: Gerando novo teste IPTV via TestersByGold Oficial (Gold Card)..."
         print(f"\n[⚡ FLUXO COMPLETO] {full_flow_step}")
-        endereco, senha, token = mailtm_manager.criar_email(descartar_anterior=True)
-        cfg["temp_email"] = endereco
-        salvar_config(cfg)
-        relatorio["novo_email"] = endereco
-        relatorio["steps"].append({"step": 1, "name": "Criar E-mail", "success": True, "detail": endereco})
-        print(f"  [OK] Novo e-mail ativo gerado: {endereco}")
+        import gold_generator
+        res_gold = await gold_generator.gerar_novo_teste_gold(descartar_email_anterior=True)
 
-        # ETAPA 2: Ler caixa de entrada e extrair link da mensagem
-        full_flow_progress = 35
-        full_flow_step = "2/5: Inspecionando caixa de entrada e extraindo playlist..."
-        print(f"[⚡ FLUXO COMPLETO] {full_flow_step}")
-        playlist_alvo = cfg.get("fallback_playlist_url") or cfg.get("master_playlist_url") or "https://iptv-org.github.io/iptv/index.m3u"
-        found_in_email = False
-        try:
-            msgs = mailtm_manager.extrair_links_confirmacao(token, endereco)
-            for m in msgs:
-                pls = m.get("playlists_detectadas", [])
-                if pls:
-                    playlist_alvo = pls[0]
-                    found_in_email = True
-                    break
-                link_enc = m.get("link_encontrado")
-                if link_enc:
-                    playlist_alvo = link_enc
-                    found_in_email = True
-                    break
-        except Exception as e_inbox:
-            print(f"  [AVISO] Verificação da inbox retornou: {e_inbox}")
+        endereco = res_gold.get("email", "")
+        playlist_alvo = res_gold.get("playlist_url") or cfg.get("master_playlist_url") or cfg.get("fallback_playlist_url") or "https://iptv-org.github.io/iptv/index.m3u"
+        found_in_gold = bool(res_gold.get("success") and res_gold.get("playlist_url"))
 
-        relatorio["playlist_url"] = playlist_alvo
+        if endereco:
+            cfg["temp_email"] = endereco
+            salvar_config(cfg)
+            relatorio["novo_email"] = endereco
+
         relatorio["steps"].append({
-            "step": 2,
-            "name": "Extrair Playlist",
-            "success": True,
-            "found_in_email": found_in_email,
-            "detail": playlist_alvo
+            "step": 1,
+            "name": "Gerar Teste Gold Card (testersbygold.fun)",
+            "success": found_in_gold,
+            "detail": f"Usuário: {res_gold.get('username')} | Playlist: {playlist_alvo}"
         })
-        print(f"  [OK] Playlist definida: {playlist_alvo} (Origem: {'E-mail' if found_in_email else 'Fallback/Mestre'})")
+        relatorio["playlist_url"] = playlist_alvo
+        print(f"  [{'OK' if found_in_gold else 'AVISO'}] Teste Gold Card: {playlist_alvo} (Origem: {'TestersByGold' if found_in_gold else 'Fallback'})")
 
         # ETAPA 3: Testar conectividade via Ping HTTP
         full_flow_progress = 55
@@ -524,43 +506,12 @@ async def background_scheduler():
                         next_run_dt = calcular_proxima_meia_noite_brasilia()
                         print(f"[*] Próxima sincronização diária agendada para: {next_run_dt.strftime('%d/%m/%Y às 00:00:00 (Brasília)')}")
                     elif agora >= next_run_dt and not is_running_batch:
-                        print(f"\n[🕛 CICLO DIÁRIO] Verificando playlist diária (Tentativa {retry_count + 1}/{MAX_MIDNIGHT_RETRIES})...")
+                        print(f"\n[🕛 CICLO DIÁRIO] Gerando novo teste IPTV via TestersByGold Oficial (Tentativa {retry_count + 1}/{MAX_MIDNIGHT_RETRIES})...")
                         try:
-                            import mailtm_manager
-                            # Na 1ª tentativa do dia, renova o e-mail no Mail.tm
-                            if retry_count == 0:
-                                novo_email, _, token = mailtm_manager.criar_email()
-                                cfg["temp_email"] = novo_email
-                                print(f"[📬] Novo e-mail diário criado para receber a playlist: {novo_email}")
-                            else:
-                                dados = mailtm_manager.carregar_dados()
-                                token = dados.get("contas", [{}])[0].get("token", "")
-
-                            # Verifica mensagens para extrair o link da nova playlist ("leia o conteudo da mensagem e tera um link")
-                            msgs = mailtm_manager.extrair_links_confirmacao(token, cfg.get("temp_email", ""))
-                            link_playlist = None
-                            for m in msgs:
-                                pls = m.get("playlists_detectadas", [])
-                                if pls:
-                                    link_playlist = pls[0]
-                                    break
-                                link_enc = m.get("link_encontrado")
-                                if link_enc:
-                                    link_playlist = link_enc
-                                    break
-
-                            # Valida o link capturado via ping rápido
-                            is_valid_link = False
-                            if link_playlist:
-                                try:
-                                    import httpx
-                                    async with httpx.AsyncClient(timeout=6.0, follow_redirects=True) as client:
-                                        resp_test = await client.head(link_playlist)
-                                        if resp_test.status_code >= 400:
-                                            resp_test = await client.get(link_playlist, headers={"Range": "bytes=0-100"})
-                                        is_valid_link = resp_test.status_code < 400
-                                except Exception:
-                                    is_valid_link = False
+                            import gold_generator
+                            res_gold = await gold_generator.gerar_novo_teste_gold(descartar_email_anterior=(retry_count == 0))
+                            link_playlist = res_gold.get("playlist_url")
+                            is_valid_link = bool(res_gold.get("success") and link_playlist)
 
                             if is_valid_link and link_playlist:
                                 cfg["master_playlist_url"] = link_playlist
@@ -1390,6 +1341,16 @@ async def get_full_flow_status_handler(request: Request):
     })
 
 
+async def generate_gold_test_handler(request: Request):
+    """Gera um teste gratuito IPTV oficial e exclusivo via https://www.testersbygold.fun/plajezev/prod808033."""
+    try:
+        import gold_generator
+        resultado = await gold_generator.gerar_novo_teste_gold()
+        return JSONResponse(resultado)
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
 routes = [
     Route("/", index_handler, methods=["GET"]),
     Route("/api/config", get_config_handler, methods=["GET"]),
@@ -1401,6 +1362,7 @@ routes = [
     Route("/api/playlist/ping", ping_playlist_handler, methods=["POST"]),
     Route("/api/full-flow", trigger_full_flow_handler, methods=["POST"]),
     Route("/api/full-flow/status", get_full_flow_status_handler, methods=["GET"]),
+    Route("/api/generator/gold-test", generate_gold_test_handler, methods=["POST"]),
     Route("/api/mailtm/new", create_mailtm_account_handler, methods=["POST"]),
     Route("/api/mailtm/new-daily", renew_daily_email_handler, methods=["POST"]),
     Route("/api/mailtm/check-playlist", check_playlist_from_email_handler, methods=["GET", "POST"]),
