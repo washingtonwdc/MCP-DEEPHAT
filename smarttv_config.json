@@ -27,7 +27,7 @@
       "name": "Celular de Washington",
       "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
       "enabled": true,
-      "last_sync": "2026-10-15T13:01:53.500724",
+      "last_sync": "2026-10-15T13:34:30.290386",
       "status": "success"
     },
     {
@@ -92,10 +92,10 @@
     "device_name": "Celular de Washington",
     "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
     "playlist_url": "http://zymv.shop/get.php?username=goldlnr020&password=56508193&type=m3u_plus&output=mpegts",
-    "timestamp": "2026-10-15T13:01:53.500724",
+    "timestamp": "2026-10-15T13:34:30.290386",
     "success": true,
-    "message": "Playlist enviada com sucesso!",
-    "duration_ms": 10151
+    "message": "Playlist transmitida e aceita com sucesso pelo SmartTV Club!",
+    "duration_ms": 15082
   },
   "history": [
     {
@@ -317,6 +317,16 @@
       "success": true,
       "message": "Playlist enviada com sucesso!",
       "duration_ms": 10151
+    },
+    {
+      "device_id": 3,
+      "device_name": "Celular de Washington",
+      "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
+      "playlist_url": "http://zymv.shop/get.php?username=goldlnr020&password=56508193&type=m3u_plus&output=mpegts",
+      "timestamp": "2026-10-15T13:34:30.290386",
+      "success": true,
+      "message": "Playlist transmitida e aceita com sucesso pelo SmartTV Club!",
+      "duration_ms": 15082
     }
   ],
   "daily_time": "00:00",

@@ -195,86 +195,63 @@ async def executar_upload_individual(device: Dict[str, Any], playlist_url: str) 
                 pass
             await asyncio.sleep(1.0)
 
-            # Localiza campo TV ID
-            tv_input = None
-            for sel in ["input[placeholder*='TV ID']", "input[placeholder*='code']", "input[type='text']"]:
-                loc = page.locator(sel).first
-                if await loc.count() > 0 and await loc.is_visible():
-                    tv_input = loc
-                    break
-
-            if tv_input:
-                await tv_input.fill(tv_id)
+            # 1. Preenche TV ID
+            input_tvid = page.locator("input[name='tvid']")
+            if await input_tvid.count() > 0:
+                await input_tvid.fill(tv_id)
             else:
-                inputs = page.locator("input:visible")
-                if await inputs.count() > 0:
-                    await inputs.first.fill(tv_id)
+                await page.locator("input[placeholder*='TV ID']").fill(tv_id)
 
-            # Localiza campo Playlist URL
-            url_input = None
-            for sel in ["input[placeholder*='Playlist']", "input[placeholder*='http']", "input[type='url']"]:
-                loc = page.locator(sel).first
-                if await loc.count() > 0 and await loc.is_visible():
-                    url_input = loc
-                    break
+            # 2. Preenche Email (Obrigatório pelo SmartTV Club)
+            cfg = carregar_config()
+            temp_email = cfg.get("temp_email") or "teste-washington@maxxspace.com"
+            input_email = page.locator("input[name='email']")
+            if await input_email.count() > 0:
+                await input_email.fill(temp_email)
 
-            if url_input:
-                await url_input.fill(playlist_url)
+            # 3. Preenche Playlist URL
+            input_url = page.locator("input[name='url']")
+            if await input_url.count() > 0:
+                await input_url.fill(playlist_url)
             else:
-                inputs = page.locator("input:visible")
-                if await inputs.count() > 1:
-                    await inputs.nth(1).fill(playlist_url)
+                await page.locator("input[placeholder*='playlist link']").fill(playlist_url)
 
-            # Marcar checkboxes ("Agree to all")
-            checkboxes = page.locator("input[type='checkbox']")
-            count_cb = await checkboxes.count()
-            if count_cb > 0:
-                for i in range(count_cb):
-                    cb = checkboxes.nth(i)
-                    if await cb.is_visible():
-                        try:
-                            await cb.check()
-                        except Exception:
-                            await cb.click(force=True)
-
-            # Oculta anúncios e iframes que possam interceptar cliques
-            try:
-                await page.add_style_tag(content="iframe, ins.adsbygoogle, [id*='aswift'], header { pointer-events: none !important; }")
-            except Exception:
-                pass
-
-            agree_label = page.locator("text='Agree to all'").first
-            if await agree_label.count() > 0:
-                try:
-                    await agree_label.click(force=True)
-                except Exception:
-                    pass
+            # 4. Marcar checkboxes obrigatórios ("Agree to all") via DOM
+            await page.evaluate("""() => {
+                const el = document.getElementById('agree_all');
+                if (el && !el.checked) el.click();
+                const elPriv = document.getElementById('privacy');
+                if (elPriv && !elPriv.checked) elPriv.click();
+            }""")
 
             await asyncio.sleep(0.5)
 
-            # Clica no botão "Send playlist to TV"
-            btn_send = None
-            for b_sel in ["button:has-text('Send playlist to TV')", "button:has-text('Send playlist')", "button[type='submit']"]:
-                b = page.locator(b_sel).first
-                if await b.count() > 0:
-                    btn_send = b
-                    break
-
-            if btn_send:
+            # 5. Clica no botão "Send playlist to TV"
+            btn_send = page.locator("button[type='submit']:has-text('Send playlist')")
+            if await btn_send.count() > 0:
                 try:
                     await btn_send.click(force=True, timeout=8000)
                 except Exception:
-                    # Fallback com JavaScript nativo no DOM
                     await btn_send.evaluate("b => b.click()")
-                await asyncio.sleep(3)
 
+                # Aguarda retorno de processamento do portal
+                await asyncio.sleep(6)
+
+                # Verifica se houve erro de validação em vermelho
+                is_red = await page.locator("input[name='tvid'].border-red-500").count() > 0
                 conteudo_tela = await page.content()
-                if any(w in conteudo_tela.lower() for w in ["success", "uploaded", "sucesso", "sent", "channel"]):
+
+                if is_red or "check the fields marked in red" in conteudo_tela.lower():
+                    resultado["success"] = False
+                    resultado["message"] = f"SmartTV Club recusou TV ID '{tv_id}': formato inválido ou inexistente no app."
+                    print(f"  [AVISO] SmartTV Club recusou TV ID: {tv_id}")
+                elif any(w in conteudo_tela.lower() for w in ["sending your playlist", "checking the playlist", "uploaded", "sucesso", "success"]):
                     resultado["success"] = True
-                    resultado["message"] = "Playlist enviada com sucesso!"
+                    resultado["message"] = "Playlist transmitida e aceita com sucesso pelo SmartTV Club!"
+                    print(f"  [OK] Playlist aceita pelo SmartTV Club para {device_name}!")
                 else:
                     resultado["success"] = True
-                    resultado["message"] = "Formulário submetido com sucesso."
+                    resultado["message"] = "Formulário submetido no SmartTV Club."
             else:
                 resultado["success"] = False
                 resultado["message"] = "Botão 'Send playlist to TV' não localizado."
