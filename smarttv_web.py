@@ -354,7 +354,7 @@ async def executar_fluxo_completo_pipeline() -> Dict[str, Any]:
     2. Lê caixa de entrada e extrai link de playlist do conteúdo da mensagem.
     3. Testa conectividade da Playlist via Ping HTTP.
     4. Atualiza a Playlist Mestre compartilhada e configurações no servidor.
-    5. Dispara a sincronização via Playwright para todos os equipamentos ativos (Celular, iPad, etc).
+    5. Dispara a sincronização via Playwright para todos os equipamentos ativos (TV Washington, iPad, Celular, etc).
     6. Dispara notificações externas (Telegram/Webhook) com o resultado.
     """
     global is_running_full_flow, full_flow_step, full_flow_progress, last_full_flow_result
@@ -459,7 +459,7 @@ async def executar_fluxo_completo_pipeline() -> Dict[str, Any]:
 
         # ETAPA 5: Disparar sincronização via Playwright para todos os equipamentos ativos
         full_flow_progress = 85
-        full_flow_step = "5/5: Sincronizando Celular, iPad e equipamentos ativos via Playwright..."
+        full_flow_step = "5/5: Sincronizando TV Washington, iPad, Celular e equipamentos ativos via Playwright..."
         print(f"[⚡ FLUXO COMPLETO] {full_flow_step}")
         resultados_lote = await executar_upload_em_lote()
         relatorio["devices_synced"] = len(resultados_lote)

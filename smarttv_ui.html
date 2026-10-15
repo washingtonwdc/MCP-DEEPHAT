@@ -1036,7 +1036,7 @@
         SmartTV Club Multi-Device Auto-Sync
       </div>
       <h1>Central de Equipamentos & Lista IPTV</h1>
-      <p class="subtitle">A mesma playlist IPTV diária é propagada às <strong>00:00 (Brasília)</strong> para a <strong>TV Washington</strong>, o <strong>iPad</strong> e todos os equipamentos ativos cadastrados.</p>
+      <p class="subtitle">A mesma playlist IPTV diária é propagada às <strong>00:00 (Brasília)</strong> para a <strong>TV Washington</strong>, o <strong>iPad de Washington</strong>, o <strong>Celular de Washington</strong> e todos os equipamentos ativos cadastrados.</p>
     </header>
 
     <!-- Stats Bar -->
@@ -1097,13 +1097,13 @@
             <div style="text-align: right; padding-right: 4px; white-space: nowrap !important;">Ações</div>
           </div>
 
-          <!-- Container dos Equipamentos Configurados (Ex: Celular e iPad) -->
+          <!-- Container dos Equipamentos Configurados (Ex: TV, iPad e Celular de Washington) -->
           <div id="configuredDevicesContainer"></div>
 
-          <!-- Acordeão Recolhível para Slots Vazios (03 a 10) -->
+          <!-- Acordeão Recolhível para Slots Vazios (04 a 10) -->
           <div class="empty-slots-accordion">
             <button type="button" class="accordion-toggle-btn" id="emptySlotsToggleBtn" onclick="toggleEmptySlotsAccordion()">
-              <span id="emptySlotsToggleLabel">🔽 Mostrar 8 slots disponíveis (Vazios)</span>
+              <span id="emptySlotsToggleLabel">🔽 Mostrar 7 slots disponíveis (Vazios)</span>
               <span style="font-size: 0.75rem; color: var(--text-muted);">Clique para expandir/recolher</span>
             </button>
 
@@ -1705,9 +1705,17 @@
 
       devicesList.forEach((dev, idx) => {
         const hasTvId = !!(dev.tv_id && dev.tv_id.trim());
-        const isCelular = (dev.tv_id === 'b44a-64c9-2dc8-8b62-593c-11de') || (dev.name && dev.name.toLowerCase().includes('celular'));
-        const isIpad = (dev.tv_id === 'e9b4-9e58-a8b2-da67-25c9-c737') || (dev.name && dev.name.toLowerCase().includes('ipad'));
-        const isWashington = isCelular || isIpad;
+        const devNameLower = (dev.name || '').toLowerCase();
+        const isCelular = devNameLower.includes('celular') || devNameLower.includes('phone');
+        const isIpad = devNameLower.includes('ipad') || dev.tv_id === 'e9b4-9e58-a8b2-da67-25c9-c737';
+        const isTv = devNameLower.includes('tv washington') || dev.tv_id === 'b44a-64c9-2dc8-8b62-593c-11de';
+        const isWashington = devNameLower.includes('washington');
+
+        // Ícone contextual por tipo de dispositivo
+        let devIcon = '📺';
+        if (isCelular) devIcon = '📱';
+        else if (isIpad) devIcon = '📲';
+        else if (!hasTvId) devIcon = '⚪';
 
         // Estado Semântico do Badge
         let statusBadgeHtml = '';
@@ -1731,10 +1739,10 @@
             <div class="device-num">${String(idx + 1).padStart(2, '0')}</div>
             <div class="device-name-cell">
               <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
-                <span>${hasTvId ? '📺' : '⚪'}</span>
+                <span>${devIcon}</span>
                 <span id="devNameDisplay_${dev.id}">${dev.name || 'Slot Disponível'}</span>
               </div>
-              <input type="text" class="device-name-input" id="devNameInput_${dev.id}" autocomplete="off" value="${dev.name || ''}" placeholder="Ex: TV Washington" oninput="const disp = document.getElementById('devNameDisplay_${dev.id}'); if(disp) disp.innerText = this.value || 'Slot Disponível'; markUnsavedChanges();" onchange="updateDeviceField(${dev.id}, 'name', this.value)" onblur="triggerAutoSave()" />
+              <input type="text" class="device-name-input" id="devNameInput_${dev.id}" autocomplete="off" value="${dev.name || ''}" placeholder="Ex: TV, iPad, Celular..." oninput="const disp = document.getElementById('devNameDisplay_${dev.id}'); if(disp) disp.innerText = this.value || 'Slot Disponível'; markUnsavedChanges();" onchange="updateDeviceField(${dev.id}, 'name', this.value)" onblur="triggerAutoSave()" />
               <span style="font-size: 0.68rem; color: var(--text-muted); display: block; margin-top: 2px;">${lastSyncLabel}</span>
             </div>
             <div>
@@ -1754,7 +1762,8 @@
           </div>
         `;
 
-        if (hasTvId || idx < 2) {
+        // Exibe no topo os 3 principais aparelhos de Washington (TV, iPad e Celular) ou qualquer um com TV ID preenchido
+        if (hasTvId || idx < 3 || isWashington) {
           configuredHtml += rowHtml;
         } else {
           emptyHtml += rowHtml;
@@ -2173,7 +2182,7 @@
       btn.disabled = true;
       btn.innerText = '⏳ Sincronizando Lote...';
 
-      showToast('Disparando sincronização para TV Washington, iPad e aparelhos ativos...', 'info');
+      showToast('Disparando sincronização para TV Washington, iPad, Celular e aparelhos ativos...', 'info');
 
       try {
         const res = await fetch('/api/trigger-all', { method: 'POST' });
