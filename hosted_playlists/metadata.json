@@ -1,0 +1,359 @@
+{
+  "status": "success",
+  "total_streams": 316064,
+  "totais_por_tipo": {
+    "canais_ao_vivo": 70970,
+    "filmes_vod": 312,
+    "series": 244782
+  },
+  "arquivos_gerados": {
+    "all": "all.m3u",
+    "canais": "canais.m3u",
+    "filmes": "filmes.m3u",
+    "series": "series.m3u"
+  },
+  "top_grupos": [
+    {
+      "group": "♦️ Novelas",
+      "count": 43625,
+      "file": "grupos/novelas.m3u"
+    },
+    {
+      "group": "♦️ Legendadas",
+      "count": 36216,
+      "file": "grupos/legendadas.m3u"
+    },
+    {
+      "group": "♦️ Netflix",
+      "count": 31799,
+      "file": "grupos/netflix.m3u"
+    },
+    {
+      "group": "♦️ Outras Produtoras",
+      "count": 24729,
+      "file": "grupos/outras_produtoras.m3u"
+    },
+    {
+      "group": "♦️ Prime Video",
+      "count": 21218,
+      "file": "grupos/prime_video.m3u"
+    },
+    {
+      "group": "♦️ Globoplay",
+      "count": 17557,
+      "file": "grupos/globoplay.m3u"
+    },
+    {
+      "group": "♦️ HBO Max",
+      "count": 16356,
+      "file": "grupos/hbo_max.m3u"
+    },
+    {
+      "group": "♦️ Disney+",
+      "count": 15499,
+      "file": "grupos/disney.m3u"
+    },
+    {
+      "group": "♦️ Doramas Legendados",
+      "count": 14555,
+      "file": "grupos/doramas_legendados.m3u"
+    },
+    {
+      "group": "♦️ Legendados ✔️",
+      "count": 10912,
+      "file": "grupos/legendados.m3u"
+    },
+    {
+      "group": "♦️ Adultos ❌❤️ [+18]",
+      "count": 10375,
+      "file": "grupos/adultos_18.m3u"
+    },
+    {
+      "group": "♦️ Paramount+",
+      "count": 8963,
+      "file": "grupos/paramount.m3u"
+    },
+    {
+      "group": "♦️ Discovery+",
+      "count": 7404,
+      "file": "grupos/discovery.m3u"
+    },
+    {
+      "group": "♦️ Crunchyroll",
+      "count": 6915,
+      "file": "grupos/crunchyroll.m3u"
+    },
+    {
+      "group": "♦️ Novelas Turcas",
+      "count": 6344,
+      "file": "grupos/novelas_turcas.m3u"
+    },
+    {
+      "group": "♦️ Apple TV+",
+      "count": 6205,
+      "file": "grupos/apple_tv.m3u"
+    },
+    {
+      "group": "♦️ Star+",
+      "count": 4062,
+      "file": "grupos/star.m3u"
+    },
+    {
+      "group": "♦️ Drama ✔️",
+      "count": 3462,
+      "file": "grupos/drama.m3u"
+    },
+    {
+      "group": "♦️ DirecTV",
+      "count": 3096,
+      "file": "grupos/directv.m3u"
+    },
+    {
+      "group": "♦️ Comedia ✔️",
+      "count": 2860,
+      "file": "grupos/comedia.m3u"
+    },
+    {
+      "group": "♦️ Doramas",
+      "count": 2580,
+      "file": "grupos/doramas.m3u"
+    },
+    {
+      "group": "♦️ Ação ✔️",
+      "count": 2556,
+      "file": "grupos/acao.m3u"
+    },
+    {
+      "group": "♦️ Terror ☠",
+      "count": 1909,
+      "file": "grupos/terror.m3u"
+    },
+    {
+      "group": "♦️ UHD| 4K ⭐",
+      "count": 1678,
+      "file": "grupos/uhd_4k.m3u"
+    },
+    {
+      "group": "♦️ Animacao ✔️",
+      "count": 1193,
+      "file": "grupos/animacao.m3u"
+    },
+    {
+      "group": "♦️ Nacionais ✔️",
+      "count": 1117,
+      "file": "grupos/nacionais.m3u"
+    },
+    {
+      "group": "♦️ Adultos ❌ [LEGENDADO]",
+      "count": 1080,
+      "file": "grupos/adultos_legendado.m3u"
+    },
+    {
+      "group": "♦️ Documentário ✔️",
+      "count": 999,
+      "file": "grupos/documentario.m3u"
+    },
+    {
+      "group": "♦️ Funimation Now",
+      "count": 956,
+      "file": "grupos/funimation_now.m3u"
+    },
+    {
+      "group": "♦️ Suspense ✔️",
+      "count": 941,
+      "file": "grupos/suspense.m3u"
+    },
+    {
+      "group": "♦️ SBT+",
+      "count": 782,
+      "file": "grupos/sbt.m3u"
+    },
+    {
+      "group": "♦️ Romance ✔️",
+      "count": 713,
+      "file": "grupos/romance.m3u"
+    },
+    {
+      "group": "♦️ Adultos ❌   [ONLYFANS]",
+      "count": 656,
+      "file": "grupos/adultos_onlyfans.m3u"
+    },
+    {
+      "group": "♦️ Ficcao Cientifica ✔️",
+      "count": 455,
+      "file": "grupos/ficcao_cientifica.m3u"
+    },
+    {
+      "group": "♦️ Fantasia ✔️",
+      "count": 414,
+      "file": "grupos/fantasia.m3u"
+    },
+    {
+      "group": "♦️ Crime ✔️",
+      "count": 371,
+      "file": "grupos/crime.m3u"
+    },
+    {
+      "group": "♦️ Programas de TV",
+      "count": 328,
+      "file": "grupos/programas_de_tv.m3u"
+    },
+    {
+      "group": "♦️  GLOBO | REGIONAIS",
+      "count": 287,
+      "file": "grupos/globo_regionais.m3u"
+    },
+    {
+      "group": "♦️Top  Lançamentos 2026  ⭐",
+      "count": 286,
+      "file": "grupos/top_lancamentos_2026.m3u"
+    },
+    {
+      "group": "♦️ Brasil Paralelo",
+      "count": 284,
+      "file": "grupos/brasil_paralelo.m3u"
+    }
+  ],
+  "amostra": [
+    {
+      "name": "RECORD SP FHD",
+      "group": "♦️  REDE RECORD",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/10JNXVX.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapL1mvYZfQl9ah5SeHX5FWiY/ts"
+    },
+    {
+      "name": "RECORD SP FHD [H265]",
+      "group": "♦️ CANAIS | FHD H265 ⭐",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/10JNXVX.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapKoxnOc0mMN-gdG3umRmYPU/ts"
+    },
+    {
+      "name": "RECORD SP HD",
+      "group": "♦️  REDE RECORD",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/10JNXVX.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapHUtpNTf7ECjAoz9slkd5wI/ts"
+    },
+    {
+      "name": "Record SP SD",
+      "group": "♦️  REDE RECORD",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/10JNXVX.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapLdzR1s0mrbcd2Zr1e1_q-M/ts"
+    },
+    {
+      "name": "BAND SP FHD",
+      "group": "♦️  REDE BANDEIRANTES",
+      "tipo": "canais",
+      "logo": "https://cdnplaynewcast.fun/logos/NOTICIAS/BAND.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapPzYOj-iY2m9XbAp_lDp15k/ts"
+    },
+    {
+      "name": "BAND SP FHD [H265]",
+      "group": "♦️ CANAIS | FHD H265 ⭐",
+      "tipo": "canais",
+      "logo": "https://cdnplaynewcast.fun/logos/NOTICIAS/BAND.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapKGcfxOXCvid9QorhlABByQ/ts"
+    },
+    {
+      "name": "BAND SP HD",
+      "group": "♦️  REDE BANDEIRANTES",
+      "tipo": "canais",
+      "logo": "https://cdnplaynewcast.fun/logos/NOTICIAS/BAND.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapNDelbvSJGIIPfCemVvJjZw/ts"
+    },
+    {
+      "name": "BAND SP SD",
+      "group": "♦️  REDE BANDEIRANTES",
+      "tipo": "canais",
+      "logo": "https://cdnplaynewcast.fun/logos/NOTICIAS/BAND.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapP5sd1DZKwxhrX0zM3jnqo0/ts"
+    },
+    {
+      "name": "GLOBO SP 4K FHDR",
+      "group": "♦️ CANAIS | UHD 4K ⭐",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/jv6Tehu.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapIIc01QVdl_EtgQJlyQx_Lo/ts"
+    },
+    {
+      "name": "GLOBO SP FHD",
+      "group": "♦️  GLOBO | CAPITAIS",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/jv6Tehu.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapP7U0gDgCWBmWqu8-Z2ZNek/ts"
+    },
+    {
+      "name": "GLOBO SP FHD [ALT]",
+      "group": "♦️  GLOBO | CAPITAIS",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/jv6Tehu.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapBVJ_QXvtEUQ-ygHxdJkLKZ1mL56YsdHLcyAmrU2dXtt/ts"
+    },
+    {
+      "name": "GLOBO SP HD",
+      "group": "♦️  GLOBO | CAPITAIS",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/jv6Tehu.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapKWxN5rGZBXLeX_OF42ZbBw/ts"
+    },
+    {
+      "name": "GLOBO SP HD [ALT]",
+      "group": "♦️  GLOBO | CAPITAIS",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/jv6Tehu.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapHnbzpiKFNBnlp8Pa83rzTbTa0JfVsQLPIILPhWhBBzF/ts"
+    },
+    {
+      "name": "GLOBO SP SD",
+      "group": "♦️  GLOBO | CAPITAIS",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/jv6Tehu.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapMw_2o_Xjhi45swU904vzXA/ts"
+    },
+    {
+      "name": "RECORD RJ FHD",
+      "group": "♦️  REDE RECORD",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/10JNXVX.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapB4BDQg-_Bqh4toERPcGkkY/ts"
+    },
+    {
+      "name": "RECORD RJ HD",
+      "group": "♦️  REDE RECORD",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/10JNXVX.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapI-NQ0Iaiqg9kbXNrtnQlyI/ts"
+    },
+    {
+      "name": "RECORD RJ HD [Alt]",
+      "group": "♦️  REDE RECORD",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/10JNXVX.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapAduTwatMcrDUO1dGBFt83k/ts"
+    },
+    {
+      "name": "RECORD RJ SD",
+      "group": "♦️  REDE RECORD",
+      "tipo": "canais",
+      "logo": "https://i.imgur.com/10JNXVX.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapHrblVR1vDXQbQycnUS8qog/ts"
+    },
+    {
+      "name": "BAND RJ FHD",
+      "group": "♦️  REDE BANDEIRANTES",
+      "tipo": "canais",
+      "logo": "https://cdnplaynewcast.fun/logos/NOTICIAS/BAND.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapE6aHQcyNsk2sgUwK4AsMy0/ts"
+    },
+    {
+      "name": "BAND RJ HD",
+      "group": "♦️  REDE BANDEIRANTES",
+      "tipo": "canais",
+      "logo": "https://cdnplaynewcast.fun/logos/NOTICIAS/BAND.png",
+      "stream_url": "http://209.14.88.180:80/play/HzQPIM5IljnZtVoNUfGapJn8P-9b1jxPu4Ynp3YbMWA/ts"
+    }
+  ]
+}

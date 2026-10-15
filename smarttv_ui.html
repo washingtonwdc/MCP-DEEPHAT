@@ -1730,6 +1730,78 @@
           </div>
         </section>
 
+        <!-- Card de Playlists Hospedadas na VPS & Descompilação (M3U Links) -->
+        <section class="drawer-card" id="card-hosted-playlists" style="margin-top: 0.5rem;">
+          <div class="drawer-header" onclick="toggleHostedDrawer()" title="Clique para expandir ou recolher as listas hospedadas">
+            <div class="drawer-title">
+              <span>📡 Playlists Hospedadas na VPS (Links Diretos M3U)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.75rem; color: var(--text-muted);" id="hostedDrawerStatus">Expandido</span>
+              <span id="hostedDrawerArrow" style="font-size: 0.8rem; color: var(--text-muted); transition: transform 0.2s;">🔼</span>
+            </div>
+          </div>
+          <div class="drawer-content" id="hostedDrawerContent" style="display: block;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.4rem;">
+              <span style="font-size: 0.72rem; color: var(--text-muted);">Listas descompiladas e servidas pela VPS (compatíveis com qualquer app IPTV)</span>
+              <button class="pill-btn" style="font-size: 0.72rem; background: var(--primary-soft); color: var(--primary); border-color: var(--primary);" onclick="triggerDecompileList()" id="btnTriggerDecompile" title="Baixar e descompilar a lista agora">
+                ⚡ Descompilar Lista
+              </button>
+            </div>
+
+            <!-- Resumo Estatístico das Playlists -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-bottom: 0.75rem; text-align: center;">
+              <div style="background: var(--bg-card-subtle); padding: 0.45rem; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.68rem; color: var(--text-muted);">Canais TV</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: #10b981;" id="hostedCountCanais">70.970</div>
+              </div>
+              <div style="background: var(--bg-card-subtle); padding: 0.45rem; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.68rem; color: var(--text-muted);">Séries</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: #6366f1;" id="hostedCountSeries">244.782</div>
+              </div>
+              <div style="background: var(--bg-card-subtle); padding: 0.45rem; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.68rem; color: var(--text-muted);">Total Streams</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-main);" id="hostedCountTotal">316.064</div>
+              </div>
+            </div>
+
+            <!-- Links Diretos Gerados -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <div>
+                <label style="font-size: 0.73rem; font-weight: 600; display: flex; justify-content: space-between;">
+                  <span>📺 Somente Canais ao Vivo (Recomendado para TV)</span>
+                  <span style="font-size: 0.68rem; color: #10b981;">~21 MB (Rápido)</span>
+                </label>
+                <div style="display: flex; gap: 0.35rem; align-items: center; margin-top: 0.2rem;">
+                  <input type="text" class="url-input" id="linkHostedCanais" readonly value="" style="flex: 1;" />
+                  <button class="btn-icon" title="Copiar Link" onclick="copyGenericText(document.getElementById('linkHostedCanais').value, 'Link Canais', this)">📋</button>
+                  <button class="pill-btn" style="font-size: 0.7rem; background: var(--primary); color: #fff;" onclick="useHostedAsMaster('canais.m3u')" title="Usar esta playlist como Mestre">📥 Usar</button>
+                </div>
+              </div>
+
+              <div>
+                <label style="font-size: 0.73rem; font-weight: 600; display: flex; justify-content: space-between;">
+                  <span>🌐 Lista Completa (Canais + Séries + Filmes)</span>
+                  <span style="font-size: 0.68rem; color: var(--text-muted);">~91 MB</span>
+                </label>
+                <div style="display: flex; gap: 0.35rem; align-items: center; margin-top: 0.2rem;">
+                  <input type="text" class="url-input" id="linkHostedAll" readonly value="" style="flex: 1;" />
+                  <button class="btn-icon" title="Copiar Link" onclick="copyGenericText(document.getElementById('linkHostedAll').value, 'Link Completo', this)">📋</button>
+                  <button class="pill-btn" style="font-size: 0.7rem;" onclick="useHostedAsMaster('all.m3u')" title="Usar esta playlist como Mestre">📥 Usar</button>
+                </div>
+              </div>
+
+              <div>
+                <label style="font-size: 0.73rem; font-weight: 600;">🍿 Séries & Novelas (~71 MB)</label>
+                <div style="display: flex; gap: 0.35rem; align-items: center; margin-top: 0.2rem;">
+                  <input type="text" class="url-input" id="linkHostedSeries" readonly value="" style="flex: 1;" />
+                  <button class="btn-icon" title="Copiar Link" onclick="copyGenericText(document.getElementById('linkHostedSeries').value, 'Link Séries', this)">📋</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
       </div>
 
     </div>
@@ -3074,8 +3146,84 @@
       }
     }
 
+    // Gestão das Playlists Hospedadas na VPS
+    let hostedDrawerExpanded = true;
+    function toggleHostedDrawer(forceOpen = null) {
+      const content = document.getElementById('hostedDrawerContent');
+      const arrow = document.getElementById('hostedDrawerArrow');
+      const status = document.getElementById('hostedDrawerStatus');
+      if (!content) return;
+      hostedDrawerExpanded = forceOpen !== null ? forceOpen : !hostedDrawerExpanded;
+      content.style.display = hostedDrawerExpanded ? 'block' : 'none';
+      if (arrow) arrow.innerText = hostedDrawerExpanded ? '🔼' : '🔽';
+      if (status) status.innerText = hostedDrawerExpanded ? 'Expandido' : 'Recolhido';
+    }
+
+    function initHostedPlaylistLinks() {
+      const origin = window.location.origin;
+      const canaisInput = document.getElementById('linkHostedCanais');
+      const allInput = document.getElementById('linkHostedAll');
+      const seriesInput = document.getElementById('linkHostedSeries');
+      if (canaisInput) canaisInput.value = `${origin}/playlist/canais.m3u`;
+      if (allInput) allInput.value = `${origin}/playlist/all.m3u`;
+      if (seriesInput) seriesInput.value = `${origin}/playlist/series.m3u`;
+      loadHostedMetadata();
+    }
+
+    async function loadHostedMetadata() {
+      try {
+        const res = await fetch('/api/playlist/hosted/metadata');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.totais_por_tipo) {
+            const canais = document.getElementById('hostedCountCanais');
+            const series = document.getElementById('hostedCountSeries');
+            const total = document.getElementById('hostedCountTotal');
+            if (canais && data.totais_por_tipo.canais_ao_vivo) canais.innerText = Number(data.totais_por_tipo.canais_ao_vivo).toLocaleString('pt-BR');
+            if (series && data.totais_por_tipo.series) series.innerText = Number(data.totais_por_tipo.series).toLocaleString('pt-BR');
+            if (total && data.total_streams) total.innerText = Number(data.total_streams).toLocaleString('pt-BR');
+          }
+        }
+      } catch (e) {}
+    }
+
+    function useHostedAsMaster(filename) {
+      const url = `${window.location.origin}/playlist/${filename}`;
+      document.getElementById('masterPlaylist').value = url;
+      showToast(`Playlist ${filename} definida como Mestre!`, 'success');
+      markUnsavedChanges();
+      triggerAutoSave();
+    }
+
+    async function triggerDecompileList() {
+      const btn = document.getElementById('btnTriggerDecompile');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Processando...';
+      }
+      showToast('Iniciando download e descompilação da lista...', 'info');
+      try {
+        const res = await fetch('/api/playlist/hosted/decompile', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Lista descompilada com sucesso!', 'success');
+          loadHostedMetadata();
+        } else {
+          showToast(data.error || 'Erro ao descompilar lista.', 'error');
+        }
+      } catch (e) {
+        showToast('Erro de conexão ao descompilar.', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '⚡ Descompilar Lista';
+        }
+      }
+    }
+
     // Inicialização
     initTheme();
+    initHostedPlaylistLinks();
     loadStatus();
     loadMailtmAccounts();
     setInterval(() => {

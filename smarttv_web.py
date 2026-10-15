@@ -25,12 +25,13 @@ import uvicorn
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse, HTMLResponse
+from starlette.responses import JSONResponse, HTMLResponse, FileResponse
 from starlette.routing import Route
 
 BASE_DIR = Path(__file__).resolve().parent
 CONFIG_FILE = BASE_DIR / "smarttv_config.json"
 UI_FILE = BASE_DIR / "smarttv_ui.html"
+HOSTED_PLAYLISTS_DIR = BASE_DIR / "hosted_playlists"
 
 # Estado em memória
 is_running_batch = False
@@ -1448,6 +1449,64 @@ async def generate_gold_test_handler(request: Request):
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
 
+async def get_hosted_playlist_handler(request: Request):
+    """Serve playlists M3U hospedadas diretamente com cabeçalhos apropriados."""
+    filename = request.path_params.get("filename", "all.m3u")
+    safe_name = os.path.basename(filename)
+    target_file = HOSTED_PLAYLISTS_DIR / safe_name
+    
+    if not target_file.exists():
+        raw_file = BASE_DIR / "lista_completa.m3u"
+        if raw_file.exists() and safe_name == "all.m3u":
+            target_file = raw_file
+        else:
+            return JSONResponse({"error": f"Playlist '{safe_name}' não encontrada. Execute a descompilação primeiro."}, status_code=404)
+            
+    headers = {
+        "Content-Type": "application/x-mpegurl; charset=utf-8",
+        "Content-Disposition": f'inline; filename="{safe_name}"',
+        "Access-Control-Allow-Origin": "*",
+        "Cache-Control": "public, max-age=1800"
+    }
+    return FileResponse(target_file, headers=headers, media_type="application/x-mpegurl")
+
+
+async def get_hosted_metadata_handler(request: Request):
+    """Retorna estatísticas e categorias das playlists descompiladas."""
+    meta_file = HOSTED_PLAYLISTS_DIR / "metadata.json"
+    if meta_file.exists():
+        try:
+            with open(meta_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return JSONResponse(data)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+    return JSONResponse({"status": "not_decompiled", "total_streams": 0, "totais_por_tipo": {}})
+
+
+async def trigger_decompile_handler(request: Request):
+    """Dispara a rotina de download e descompilação da playlist em background."""
+    try:
+        body = await request.json() if request.method == "POST" else {}
+        url = body.get("url") or carregar_config().get("master_playlist_url") or "http://zymv.shop/get.php?username=goldlnr020&password=56508193&type=m3u_plus&output=mpegts"
+        import m3u_decompiler
+        
+        loop = asyncio.get_event_loop()
+        raw_dest = HOSTED_PLAYLISTS_DIR / "raw_download.m3u"
+        
+        def run_proc():
+            src = BASE_DIR / "lista_completa.m3u"
+            if not src.exists():
+                m3u_decompiler.baixar_playlist(url, raw_dest)
+                src = raw_dest
+            return m3u_decompiler.decompilar_m3u(src, HOSTED_PLAYLISTS_DIR)
+
+        resumo = await loop.run_in_executor(None, run_proc)
+        return JSONResponse({"success": True, "resumo": resumo})
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
 routes = [
     Route("/", index_handler, methods=["GET"]),
     Route("/api/auth/login", auth_login_handler, methods=["POST"]),
@@ -1473,6 +1532,9 @@ routes = [
     Route("/api/notifications/test", test_notification_handler, methods=["POST"]),
     Route("/api/backup/export", export_backup_handler, methods=["GET"]),
     Route("/api/backup/import", import_backup_handler, methods=["POST"]),
+    Route("/playlist/{filename}", get_hosted_playlist_handler, methods=["GET"]),
+    Route("/api/playlist/hosted/metadata", get_hosted_metadata_handler, methods=["GET"]),
+    Route("/api/playlist/hosted/decompile", trigger_decompile_handler, methods=["POST"]),
 ]
 
 app = Starlette(debug=True, routes=routes, lifespan=lifespan)

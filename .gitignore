@@ -41,3 +41,10 @@ mensagens_locais.json
 relatorio_deduplicacao_*
 *.csv
 *.log
+
+# Large IPTV Playlists & Archives
+*.m3u
+*.tar.gz
+hosted_playlists/*.m3u
+hosted_playlists/grupos/
+
