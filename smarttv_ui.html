@@ -1018,7 +1018,290 @@
     #toast.success { border-left: 4px solid var(--success); }
     #toast.error { border-left: 4px solid var(--danger); }
     #toast.info { border-left: 4px solid var(--primary); }
-    #toast.warning { border-left: 4px solid var(--warning); }
+    /* ==========================================================================
+       OTIMIZAÇÕES RESPONSIVAS MODERNAS PARA DISPOSITIVOS MÓVEIS (SMARTPHONES E TABLETS)
+       ========================================================================== */
+    .mobile-only-text {
+      display: none !important;
+    }
+
+    .device-enable-label {
+      display: flex;
+      align-items: center;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .device-action-buttons {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    @media (max-width: 1100px) {
+      .main-dashboard-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 0.75rem 0.6rem !important;
+      }
+
+      .container {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      /* Top Header Mobile */
+      header {
+        position: relative !important;
+        padding-top: 2.4rem !important;
+        margin-bottom: 1.1rem !important;
+      }
+
+      .theme-toggle-btn {
+        top: 0 !important;
+        right: 0 !important;
+        padding: 0.35rem 0.75rem !important;
+        font-size: 0.72rem !important;
+      }
+
+      .brand-pill {
+        font-size: 0.68rem !important;
+        padding: 0.25rem 0.65rem !important;
+        margin-bottom: 0.4rem !important;
+        max-width: 100% !important;
+      }
+
+      h1 {
+        font-size: 1.35rem !important;
+        line-height: 1.25 !important;
+        margin-bottom: 0.35rem !important;
+      }
+
+      .subtitle {
+        font-size: 0.78rem !important;
+        line-height: 1.4 !important;
+        max-width: 100% !important;
+      }
+
+      /* Stats Bar Mobile: Grid 2x2 Compacto */
+      .stats-bar {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem !important;
+        margin-bottom: 1rem !important;
+      }
+
+      .stat-card {
+        padding: 0.65rem 0.75rem !important;
+        gap: 0.2rem !important;
+      }
+
+      .stat-label {
+        font-size: 0.65rem !important;
+      }
+
+      .stat-value {
+        font-size: 1.15rem !important;
+      }
+
+      .badge-status {
+        font-size: 0.68rem !important;
+        padding: 0.2rem 0.5rem !important;
+      }
+
+      /* Cards Gerais */
+      .glass-card {
+        padding: 0.95rem 0.85rem !important;
+        border-radius: var(--radius-md) !important;
+      }
+
+      .card-title {
+        font-size: 1rem !important;
+      }
+
+      /* Ocultar cabeçalho de tabela rígida no mobile */
+      .device-header-row {
+        display: none !important;
+      }
+
+      /* Transforma linha de equipamento em Card Mobile Touch-Friendly */
+      .device-row {
+        display: grid !important;
+        grid-template-columns: 24px 1fr auto !important;
+        grid-template-areas:
+          "num  name   status"
+          "tvid tvid   tvid"
+          "acts acts   acts" !important;
+        gap: 8px 6px !important;
+        padding: 10px 10px !important;
+        border-radius: var(--radius-md) !important;
+        margin-bottom: 0.65rem !important;
+      }
+
+      .device-row .device-num {
+        grid-area: num;
+        align-self: center;
+        font-size: 0.72rem;
+      }
+
+      .device-row .device-name-cell {
+        grid-area: name;
+        min-width: 0 !important;
+      }
+
+      .device-row .device-status-cell {
+        grid-area: status;
+        justify-self: end;
+        align-self: center;
+      }
+
+      .device-row .device-tvid-cell {
+        grid-area: tvid;
+        width: 100% !important;
+      }
+
+      .device-row .device-actions {
+        grid-area: acts;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding-top: 6px !important;
+        border-top: 1px dashed var(--border-color) !important;
+        margin-top: 2px !important;
+      }
+
+      .mobile-only-text {
+        display: inline !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+      }
+
+      .device-actions .device-enable-label {
+        gap: 6px !important;
+        font-size: 0.75rem !important;
+        color: var(--text-muted) !important;
+      }
+
+      .device-actions .device-enable-chk {
+        width: 18px !important;
+        height: 18px !important;
+      }
+
+      .device-actions .device-action-buttons {
+        gap: 6px !important;
+      }
+
+      .device-actions .btn-sync-single {
+        width: auto !important;
+        padding: 0 10px !important;
+        height: 28px !important;
+        background: var(--primary-soft) !important;
+        border-color: var(--primary-border) !important;
+        color: var(--primary) !important;
+        border-radius: var(--radius-sm) !important;
+      }
+
+      .device-actions .btn-icon.delete {
+        width: 28px !important;
+        height: 28px !important;
+      }
+
+      /* Botões de Ação Geral (Sincronizar Todos e Salvar) em Coluna Touch */
+      .btn-row {
+        flex-direction: column !important;
+        gap: 0.55rem !important;
+      }
+
+      .btn-row .btn {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 0.75rem 1rem !important;
+      }
+
+      /* Fluxo Diário e Botão Full Mobile */
+      .flow-box {
+        padding: 0.75rem 0.8rem !important;
+      }
+
+      .btn-flow-full {
+        white-space: normal !important;
+        text-align: center !important;
+        font-size: 0.78rem !important;
+        padding: 0.65rem 0.75rem !important;
+        line-height: 1.25 !important;
+      }
+
+      .flow-steps {
+        display: grid !important;
+        grid-template-columns: 1fr auto 1fr auto 1fr !important;
+        gap: 3px !important;
+        align-items: center !important;
+      }
+
+      .flow-step-box {
+        min-width: 0 !important;
+        padding: 0.35rem 0.3rem !important;
+        font-size: 0.68rem !important;
+      }
+
+      .flow-arrow {
+        font-size: 0.7rem !important;
+      }
+
+      /* Tabela de Histórico Mobile: Rolagem Touch Suave */
+      .history-scroll-container {
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .history-scroll-container table {
+        min-width: 440px !important;
+      }
+
+      /* Gavetas e Notificações */
+      .notifications-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      /* Toast Mobile */
+      #toast {
+        left: 0.85rem !important;
+        right: 0.85rem !important;
+        bottom: 0.85rem !important;
+        justify-content: center !important;
+        text-align: center !important;
+        font-size: 0.8rem !important;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .form-group div[style*="display: flex"] {
+        flex-direction: column !important;
+        align-items: stretch !important;
+      }
+
+      .form-group div[style*="display: flex"] .pill-btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 0.45rem !important;
+        text-align: center !important;
+      }
+
+      #capturedCredentialsBox {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.35rem !important;
+      }
+
+      #capturedCredentialsBox > div {
+        justify-content: space-between !important;
+        width: 100% !important;
+      }
+    }
   </style>
 </head>
 <body class="light-theme">
@@ -1398,7 +1681,7 @@
               </button>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-top: 0.5rem;">
+            <div class="notifications-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-top: 0.5rem;">
               <div>
                 <label for="tgBotToken" style="font-size: 0.75rem;">Telegram Bot Token</label>
                 <input type="password" id="tgBotToken" placeholder="123456789:ABCdefGhIJKlmNoPQRstuVWXyz" style="font-size: 0.78rem; padding: 0.5rem 0.65rem;" oninput="markUnsavedChanges()" onblur="triggerAutoSave()" />
@@ -1758,19 +2041,26 @@
               <input type="text" class="device-name-input" id="devNameInput_${dev.id}" autocomplete="off" value="${dev.name || ''}" placeholder="Ex: TV, iPad, Celular..." oninput="const disp = document.getElementById('devNameDisplay_${dev.id}'); if(disp) disp.innerText = this.value || 'Slot Disponível'; markUnsavedChanges();" onchange="updateDeviceField(${dev.id}, 'name', this.value)" onblur="triggerAutoSave()" />
               <span style="font-size: 0.68rem; color: var(--text-muted); display: block; margin-top: 2px;">${lastSyncLabel}</span>
             </div>
-            <div>
+            <div class="device-tvid-cell">
               <div class="tv-id-wrapper">
                 <input type="text" class="tv-id-input ${isTvValid ? 'is-valid' : ''}" id="devTvIdInput_${dev.id}" autocomplete="off" value="${dev.tv_id || ''}" placeholder="xxxx-xxxx-xxxx-xxxx..." oninput="formatTvIdInput(this, ${dev.id})" onblur="triggerAutoSave()" title="Código TV ID do aplicativo" />
                 <button class="btn-icon" title="Copiar TV ID" onclick="copyGenericText('${dev.tv_id}', 'TV ID', this)">📋</button>
               </div>
             </div>
-            <div style="text-align: center;">
+            <div class="device-status-cell" style="text-align: center;">
               ${statusBadgeHtml}
             </div>
             <div class="device-actions">
-              <input type="checkbox" class="device-enable-chk" title="Ativar/Desativar na sincronização diária" ${dev.enabled && hasTvId ? 'checked' : ''} onchange="updateDeviceField(${dev.id}, 'enabled', this.checked); markUnsavedChanges(); triggerAutoSave();" style="cursor: pointer; width: 17px; height: 17px;" />
-              <button class="btn-icon" title="Sincronizar apenas este aparelho agora com a playlist IPTV" onclick="triggerSingleDevice(${dev.id})">🚀</button>
-              <button class="btn-icon delete" title="Limpar/Remover este equipamento" onclick="deleteDevice(${dev.id})">🗑️</button>
+              <label class="device-enable-label" title="Ativar/Desativar na sincronização diária">
+                <input type="checkbox" class="device-enable-chk" ${dev.enabled && hasTvId ? 'checked' : ''} onchange="updateDeviceField(${dev.id}, 'enabled', this.checked); markUnsavedChanges(); triggerAutoSave();" style="cursor: pointer;" />
+                <span class="mobile-only-text">Ativo</span>
+              </label>
+              <div class="device-action-buttons">
+                <button class="btn-icon btn-sync-single" title="Sincronizar apenas este aparelho agora com a playlist IPTV" onclick="triggerSingleDevice(${dev.id})">
+                  🚀 <span class="mobile-only-text">Sincronizar</span>
+                </button>
+                <button class="btn-icon delete" title="Limpar/Remover este equipamento" onclick="deleteDevice(${dev.id})">🗑️</button>
+              </div>
             </div>
           </div>
         `;
