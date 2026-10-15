@@ -1426,7 +1426,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="SmartTV Club Multi-Device Auto-Sync")
     parser.add_argument("--port", type=int, default=5050, help="Porta do servidor Web (default: 5050)")
-    parser.add_argument("--host", default="127.0.0.1", help="Host do servidor Web (default: 127.0.0.1)")
+    parser.add_argument("--host", default="0.0.0.0", help="Host do servidor Web (default: 0.0.0.0)")
     args = parser.parse_args()
 
     print(f"\n===========================================================")

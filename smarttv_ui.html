@@ -1730,12 +1730,16 @@
           <div class="device-row ${!hasTvId ? 'is-empty-slot' : ''}" id="deviceRow_${dev.id}">
             <div class="device-num">${String(idx + 1).padStart(2, '0')}</div>
             <div class="device-name-cell">
-              <input type="text" class="device-name-input" value="${dev.name || ''}" placeholder="Ex: Smart TV Quarto" oninput="markUnsavedChanges()" onchange="updateDeviceField(${dev.id}, 'name', this.value)" onblur="triggerAutoSave()" />
+              <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                <span>${hasTvId ? '📺' : '⚪'}</span>
+                <span id="devNameDisplay_${dev.id}">${dev.name || 'Slot Disponível'}</span>
+              </div>
+              <input type="text" class="device-name-input" id="devNameInput_${dev.id}" autocomplete="off" value="${dev.name || ''}" placeholder="Ex: TV Washington" oninput="const disp = document.getElementById('devNameDisplay_${dev.id}'); if(disp) disp.innerText = this.value || 'Slot Disponível'; markUnsavedChanges();" onchange="updateDeviceField(${dev.id}, 'name', this.value)" onblur="triggerAutoSave()" />
               <span style="font-size: 0.68rem; color: var(--text-muted); display: block; margin-top: 2px;">${lastSyncLabel}</span>
             </div>
             <div>
               <div class="tv-id-wrapper">
-                <input type="text" class="tv-id-input ${isTvValid ? 'is-valid' : ''}" value="${dev.tv_id || ''}" placeholder="xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" oninput="formatTvIdInput(this, ${dev.id})" onblur="triggerAutoSave()" title="Código TV ID de 24 caracteres do aplicativo" />
+                <input type="text" class="tv-id-input ${isTvValid ? 'is-valid' : ''}" id="devTvIdInput_${dev.id}" autocomplete="off" value="${dev.tv_id || ''}" placeholder="xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" oninput="formatTvIdInput(this, ${dev.id})" onblur="triggerAutoSave()" title="Código TV ID de 24 caracteres do aplicativo" />
                 <button class="btn-icon" title="Copiar TV ID" onclick="copyGenericText('${dev.tv_id}', 'TV ID', this)">📋</button>
               </div>
             </div>
@@ -1760,6 +1764,16 @@
 
       configuredBox.innerHTML = configuredHtml;
       emptyBox.innerHTML = emptyHtml;
+
+      // FORÇA atribuição direta via propriedade DOM (ignora cache de formulário do navegador)
+      devicesList.forEach((dev) => {
+        const nameInp = document.getElementById(`devNameInput_${dev.id}`);
+        if (nameInp) nameInp.value = dev.name || '';
+        const tvInp = document.getElementById(`devTvIdInput_${dev.id}`);
+        if (tvInp) tvInp.value = dev.tv_id || '';
+        const disp = document.getElementById(`devNameDisplay_${dev.id}`);
+        if (disp) disp.innerText = dev.name || 'Slot Disponível';
+      });
 
       const label = document.getElementById('emptySlotsToggleLabel');
       if (label && !emptySlotsExpanded) {
