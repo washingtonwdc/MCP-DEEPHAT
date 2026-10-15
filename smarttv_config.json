@@ -9,9 +9,9 @@
     {
       "id": 1,
       "name": "TV Washington",
-      "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
+      "tv_id": "N3T2-X4JT-J5JB-HCAR-8SDP",
       "enabled": true,
-      "last_sync": "2026-10-15T07:59:47.209697",
+      "last_sync": "2026-10-15T10:39:37.870236",
       "status": "success"
     },
     {
@@ -25,10 +25,10 @@
     {
       "id": 3,
       "name": "Celular de Washington",
-      "tv_id": "",
+      "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
       "enabled": true,
-      "last_sync": null,
-      "status": "idle"
+      "last_sync": "2026-10-15T07:59:47.209697",
+      "status": "success"
     },
     {
       "id": 4,
@@ -90,12 +90,12 @@
   "last_run": {
     "device_id": 1,
     "device_name": "TV Washington",
-    "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
+    "tv_id": "N3T2-X4JT-J5JB-HCAR-8SDP",
     "playlist_url": "http://line.iptvclub.net:80/get.php?username=teste_wash_20261015_0759&password=tv_075941&type=m3u_plus&output=ts",
-    "timestamp": "2026-10-15T07:59:47.209697",
+    "timestamp": "2026-10-15T10:39:37.870236",
     "success": true,
     "message": "Playlist enviada com sucesso!",
-    "duration_ms": 11040
+    "duration_ms": 13069
   },
   "history": [
     {
@@ -237,6 +237,16 @@
       "success": true,
       "message": "Playlist enviada com sucesso!",
       "duration_ms": 12500
+    },
+    {
+      "device_id": 1,
+      "device_name": "TV Washington",
+      "tv_id": "N3T2-X4JT-J5JB-HCAR-8SDP",
+      "playlist_url": "http://line.iptvclub.net:80/get.php?username=teste_wash_20261015_0759&password=tv_075941&type=m3u_plus&output=ts",
+      "timestamp": "2026-10-15T10:39:37.870236",
+      "success": true,
+      "message": "Playlist enviada com sucesso!",
+      "duration_ms": 13069
     }
   ],
   "daily_time": "00:00",

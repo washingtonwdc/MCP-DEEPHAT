@@ -1455,24 +1455,39 @@
         const data = await res.json();
         currentConfig = data;
 
-        document.getElementById('masterPlaylist').value = data.master_playlist_url || '';
-        
-        const fallbackInput = document.getElementById('fallbackPlaylist');
-        if (fallbackInput) fallbackInput.value = data.fallback_playlist_url || '';
+        const isEditing = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+        const hasUnsaved = document.getElementById('btnSaveConfig')?.classList.contains('has-unsaved-changes');
 
-        const tgTokenInput = document.getElementById('tgBotToken');
-        if (tgTokenInput) tgTokenInput.value = data.telegram_bot_token || '';
+        if (!isEditing && !hasUnsaved) {
+          const masterInput = document.getElementById('masterPlaylist');
+          if (masterInput && document.activeElement !== masterInput) masterInput.value = data.master_playlist_url || '';
+          
+          const fallbackInput = document.getElementById('fallbackPlaylist');
+          if (fallbackInput && document.activeElement !== fallbackInput) fallbackInput.value = data.fallback_playlist_url || '';
 
-        const tgChatInput = document.getElementById('tgChatId');
-        if (tgChatInput) tgChatInput.value = data.telegram_chat_id || '';
+          const tgTokenInput = document.getElementById('tgBotToken');
+          if (tgTokenInput && document.activeElement !== tgTokenInput) tgTokenInput.value = data.telegram_bot_token || '';
 
-        const webhookInput = document.getElementById('webhookUrl');
-        if (webhookInput) webhookInput.value = data.webhook_url || '';
-        
-        const autoToggle = document.getElementById('autoUpdateToggle');
-        if (autoToggle) {
-          autoToggle.checked = !!data.auto_update_enabled;
-          updateAutoSyncLabel(data.auto_update_enabled);
+          const tgChatInput = document.getElementById('tgChatId');
+          if (tgChatInput && document.activeElement !== tgChatInput) tgChatInput.value = data.telegram_chat_id || '';
+
+          const webhookInput = document.getElementById('webhookUrl');
+          if (webhookInput && document.activeElement !== webhookInput) webhookInput.value = data.webhook_url || '';
+          
+          const autoToggle = document.getElementById('autoUpdateToggle');
+          if (autoToggle) {
+            autoToggle.checked = !!data.auto_update_enabled;
+            updateAutoSyncLabel(data.auto_update_enabled);
+          }
+
+          if (data.temp_email) {
+            const mailInput = document.getElementById('mailtmEmail');
+            if (mailInput && document.activeElement !== mailInput) mailInput.value = data.temp_email;
+          }
+
+          devicesList = data.devices || [];
+          renderDevices();
+          setSavedState();
         }
 
         // Link da Playlist Recebida
@@ -1490,11 +1505,6 @@
           }
         }
 
-        // E-mail Mail.tm
-        if (data.temp_email) {
-          document.getElementById('mailtmEmail').value = data.temp_email;
-        }
-
         updateStatusBadge(data.status, data.auto_update_enabled, data.is_syncing);
 
         if (data.next_run) {
@@ -1503,20 +1513,16 @@
           nextRunTimestamp = null;
         }
 
-        devicesList = data.devices || [];
-        renderDevices();
         renderLogsTable(data.history || []);
 
-        const ativos = devicesList.filter(d => d.enabled && d.tv_id && d.tv_id.trim()).length;
-        document.getElementById('activeDevicesCount').innerText = `${ativos} / ${devicesList.length}`;
+        const ativos = (data.devices || devicesList).filter(d => d.enabled && d.tv_id && d.tv_id.trim()).length;
+        document.getElementById('activeDevicesCount').innerText = `${ativos} / ${(data.devices || devicesList).length}`;
         document.getElementById('totalRunsCount').innerText = (data.history || []).length;
 
         const quotaSpan = document.getElementById('quotaDevCount');
         if (quotaSpan) {
           quotaSpan.innerText = data.total_registered_devices !== undefined ? data.total_registered_devices : ativos;
         }
-
-        setSavedState();
       } catch (err) {
         console.error('Erro ao carregar dados:', err);
       }
@@ -1660,15 +1666,15 @@
        3. MÁSCARA AUTOMÁTICA E VALIDAÇÃO DO TV ID (xxxx-xxxx-xxxx-xxxx-xxxx-xxxx)
        ======================================================================== */
     function formatTvIdInput(input, devId) {
-      // Mantém apenas caracteres hexadecimais (0-9, a-f) e limita a 24 chars
-      let raw = input.value.replace(/[^0-9a-fA-F]/g, '').toLowerCase().slice(0, 24);
+      // Aceita caracteres alfanuméricos completos (0-9, a-z, A-Z) e preserva blocos de 4
+      let raw = input.value.replace(/[^0-9a-zA-Z]/g, '').slice(0, 32);
       let formatted = raw.match(/.{1,4}/g)?.join('-') || '';
       input.value = formatted;
 
       const row = document.getElementById(`deviceRow_${devId}`);
       const chk = row ? row.querySelector('.device-enable-chk') : null;
 
-      if (raw.length === 24) {
+      if (raw.length >= 16) {
         input.classList.add('is-valid');
         input.classList.remove('is-invalid');
         if (row) row.classList.remove('is-empty-slot');
@@ -1732,7 +1738,8 @@
         }
 
         const lastSyncLabel = dev.last_sync ? `Último sync: ${new Date(dev.last_sync).toLocaleString('pt-BR')}` : 'Aguardando sincronização';
-        const isTvValid = (dev.tv_id && dev.tv_id.replace(/[^a-zA-Z0-9]/g, '').length === 24);
+        const cleanTvLen = (dev.tv_id || '').replace(/[^a-zA-Z0-9]/g, '').length;
+        const isTvValid = cleanTvLen >= 16;
 
         const rowHtml = `
           <div class="device-row ${!hasTvId ? 'is-empty-slot' : ''}" id="deviceRow_${dev.id}">
@@ -1747,7 +1754,7 @@
             </div>
             <div>
               <div class="tv-id-wrapper">
-                <input type="text" class="tv-id-input ${isTvValid ? 'is-valid' : ''}" id="devTvIdInput_${dev.id}" autocomplete="off" value="${dev.tv_id || ''}" placeholder="xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" oninput="formatTvIdInput(this, ${dev.id})" onblur="triggerAutoSave()" title="Código TV ID de 24 caracteres do aplicativo" />
+                <input type="text" class="tv-id-input ${isTvValid ? 'is-valid' : ''}" id="devTvIdInput_${dev.id}" autocomplete="off" value="${dev.tv_id || ''}" placeholder="xxxx-xxxx-xxxx-xxxx..." oninput="formatTvIdInput(this, ${dev.id})" onblur="triggerAutoSave()" title="Código TV ID do aplicativo" />
                 <button class="btn-icon" title="Copiar TV ID" onclick="copyGenericText('${dev.tv_id}', 'TV ID', this)">📋</button>
               </div>
             </div>
@@ -1774,12 +1781,12 @@
       configuredBox.innerHTML = configuredHtml;
       emptyBox.innerHTML = emptyHtml;
 
-      // FORÇA atribuição direta via propriedade DOM (ignora cache de formulário do navegador)
+      // FORÇA atribuição direta via propriedade DOM respeitando o foco ativo do usuário
       devicesList.forEach((dev) => {
         const nameInp = document.getElementById(`devNameInput_${dev.id}`);
-        if (nameInp) nameInp.value = dev.name || '';
+        if (nameInp && document.activeElement !== nameInp) nameInp.value = dev.name || '';
         const tvInp = document.getElementById(`devTvIdInput_${dev.id}`);
-        if (tvInp) tvInp.value = dev.tv_id || '';
+        if (tvInp && document.activeElement !== tvInp) tvInp.value = dev.tv_id || '';
         const disp = document.getElementById(`devNameDisplay_${dev.id}`);
         if (disp) disp.innerText = dev.name || 'Slot Disponível';
       });
