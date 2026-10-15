@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  smarttv-sync:
+    build: .
+    container_name: smarttv-sync
+    restart: always
+    ports:
+      - "5050:5050"
+    environment:
+      - TZ=America/Sao_Paulo
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./smarttv_config.json:/app/smarttv_config.json
+      - ./emails.json:/app/emails.json

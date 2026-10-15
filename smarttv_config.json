@@ -343,5 +343,7 @@
   "fallback_playlist_url": "https://iptv-org.github.io/iptv/index.m3u",
   "telegram_bot_token": "",
   "telegram_chat_id": "",
-  "webhook_url": ""
+  "webhook_url": "",
+  "admin_password": "0808",
+  "auth_enabled": true
 }

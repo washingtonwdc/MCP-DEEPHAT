@@ -1,0 +1,15 @@
+[Unit]
+Description=SmartTV Club Multi-Device Auto-Sync Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/smarttv-sync
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/smarttv-sync/.venv/bin/python smarttv_web.py --host 0.0.0.0 --port 5050
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

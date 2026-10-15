@@ -1306,13 +1306,48 @@
 </head>
 <body class="light-theme">
 
+  <!-- Modal de Autenticação do Administrador (Senha Padrão: 0808) -->
+  <div id="loginOverlay" style="display: none; position: fixed; inset: 0; background: rgba(9, 13, 22, 0.88); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 100%; max-width: 410px; padding: 2rem 1.75rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); text-align: center;">
+      <div class="brand-pill" style="margin-bottom: 0.85rem;">
+        <span class="pulse-dot"></span>
+        Área Administrativa Restrita
+      </div>
+      <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.35rem; color: var(--text-main);">SmartTV Club Auto-Sync</h2>
+      <p style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.45;">
+        Acesso restrito ao painel de controle e propagação de playlists na VPS. Digite a senha do administrador:
+      </p>
+
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+        <div style="margin-bottom: 1.25rem; text-align: left;">
+          <label for="adminPasswordInput" style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.4rem; display: block;">
+            🔑 Senha do Administrador
+          </label>
+          <input type="password" id="adminPasswordInput" placeholder="Digite a senha (padrão: 0808)" autofocus required style="width: 100%; padding: 0.75rem 1rem; font-size: 1rem; text-align: center; letter-spacing: 0.15em; border-radius: var(--radius-md); background: var(--bg-card-subtle); border: 1px solid var(--border-color); color: var(--text-main);" />
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.45rem; text-align: center;">
+            Senha padrão de fábrica configurada: <strong style="color: var(--primary);">0808</strong>
+          </span>
+        </div>
+
+        <button type="submit" id="btnLoginSubmit" class="btn btn-primary" style="width: 100%; padding: 0.8rem 1rem; font-size: 0.9rem; font-weight: 700;">
+          🔓 Entrar no Painel
+        </button>
+      </form>
+    </div>
+  </div>
+
   <div class="container">
     
     <!-- Top Header -->
     <header>
-      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Alternar entre Modo Claro e Escuro">
-        <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">Modo Escuro</span>
-      </button>
+      <div style="position: absolute; top: 0; right: 0; display: flex; align-items: center; gap: 6px; z-index: 100;">
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Alternar entre Modo Claro e Escuro" style="position: static;">
+          <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">Modo Escuro</span>
+        </button>
+        <button class="theme-toggle-btn" id="logoutBtn" onclick="handleLogout()" title="Sair da sessão administrativa" style="position: static; display: none; color: var(--danger); border-color: var(--danger-border); background: var(--danger-bg);">
+          🚪 <span>Sair</span>
+        </button>
+      </div>
 
       <div class="brand-pill">
         <span class="pulse-dot"></span>
@@ -1736,12 +1771,96 @@
       btn.innerHTML = '💾 Salvar Alterações';
     }
 
+    // Autenticação e Login do Administrador
+    async function handleLoginSubmit(e) {
+      if (e) e.preventDefault();
+      const pwdInput = document.getElementById('adminPasswordInput');
+      const submitBtn = document.getElementById('btnLoginSubmit');
+      const pwd = pwdInput ? pwdInput.value.trim() : '';
+
+      if (!pwd) {
+        showToast('Digite a senha de administrador.', 'warning');
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Verificando...';
+      }
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pwd })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showToast('Login realizado com sucesso! Bem-vindo.', 'success');
+          const overlay = document.getElementById('loginOverlay');
+          if (overlay) overlay.style.display = 'none';
+          const logoutBtn = document.getElementById('logoutBtn');
+          if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+          pwdInput.value = '';
+          loadStatus();
+        } else {
+          showToast(data.error || 'Senha incorreta. Tente 0808.', 'error');
+          if (pwdInput) {
+            pwdInput.value = '';
+            pwdInput.focus();
+          }
+        }
+      } catch (err) {
+        showToast('Erro ao comunicar com o servidor.', 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = '🔓 Entrar no Painel';
+        }
+      }
+    }
+
+    async function handleLogout() {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        showToast('Sessão encerrada com sucesso.', 'info');
+        const overlay = document.getElementById('loginOverlay');
+        if (overlay) overlay.style.display = 'flex';
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) logoutBtn.style.display = 'none';
+        const pwdInput = document.getElementById('adminPasswordInput');
+        if (pwdInput) {
+          pwdInput.value = '';
+          pwdInput.focus();
+        }
+      } catch (e) {
+        showToast('Erro ao encerrar sessão.', 'warning');
+      }
+    }
+
     // Carregar Estado Inicial
     async function loadStatus() {
       try {
         const res = await fetch('/api/config');
+        if (res.status === 401) {
+          const overlay = document.getElementById('loginOverlay');
+          if (overlay) overlay.style.display = 'flex';
+          const logoutBtn = document.getElementById('logoutBtn');
+          if (logoutBtn) logoutBtn.style.display = 'none';
+          const pwdInput = document.getElementById('adminPasswordInput');
+          if (pwdInput) pwdInput.focus();
+          return;
+        }
         if (!res.ok) return;
         const data = await res.json();
+
+        // Autenticado com sucesso
+        const overlay = document.getElementById('loginOverlay');
+        if (overlay) overlay.style.display = 'none';
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+
         currentConfig = data;
 
         const isEditing = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');

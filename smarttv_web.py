@@ -571,6 +571,108 @@ async def background_scheduler():
             await asyncio.sleep(10)
 
 
+import hashlib
+
+# Conjunto de sessões ativas autenticadas em memória
+ACTIVE_SESSIONS = set()
+
+
+def gerar_token_sessao(senha: str) -> str:
+    """Gera hash seguro de token de sessão para a senha de administrador."""
+    secret = "smarttv_admin_salt_2026_washington_0808"
+    return hashlib.sha256(f"{senha}:{secret}".encode()).hexdigest()
+
+
+def is_request_authenticated(request: Request) -> bool:
+    """Verifica se a requisição possui credenciais válidas de administrador."""
+    cfg = carregar_config()
+    if not cfg.get("auth_enabled", True):
+        return True
+
+    admin_pwd = str(cfg.get("admin_password", "0808")).strip()
+    valid_token = gerar_token_sessao(admin_pwd)
+
+    # 1. Cookie de sessão HttpOnly
+    cookie_token = request.cookies.get("smarttv_session")
+    if cookie_token and (cookie_token == valid_token or cookie_token in ACTIVE_SESSIONS):
+        return True
+
+    # 2. Header Authorization Bearer
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:].strip()
+        if token == valid_token or token in ACTIVE_SESSIONS:
+            return True
+
+    # 3. Query string token ou pwd (útil para automações headless)
+    query_token = request.query_params.get("token") or request.query_params.get("pwd")
+    if query_token and (query_token == admin_pwd or query_token == valid_token):
+        return True
+
+    return False
+
+
+async def auth_login_handler(request: Request):
+    """Autentica o administrador com a senha informada (padrão: 0808)."""
+    try:
+        body = await request.json()
+        pwd = str(body.get("password", "")).strip()
+        cfg = carregar_config()
+        expected_pwd = str(cfg.get("admin_password", "0808")).strip()
+
+        if pwd == expected_pwd:
+            token = gerar_token_sessao(pwd)
+            ACTIVE_SESSIONS.add(token)
+            resp = JSONResponse({
+                "success": True,
+                "authenticated": True,
+                "token": token,
+                "message": "Login realizado com sucesso! Bem-vindo, Administrador."
+            })
+            resp.set_cookie(
+                key="smarttv_session",
+                value=token,
+                max_age=86400 * 30,  # 30 dias de validade
+                path="/",
+                httponly=True,
+                samesite="lax"
+            )
+            return resp
+        else:
+            return JSONResponse({
+                "success": False,
+                "authenticated": False,
+                "error": "Senha de administrador incorreta. Tente novamente."
+            }, status_code=401)
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=400)
+
+
+async def auth_status_handler(request: Request):
+    """Retorna se o cliente atual está autenticado."""
+    cfg = carregar_config()
+    auth_enabled = bool(cfg.get("auth_enabled", True))
+    is_auth = is_request_authenticated(request)
+    return JSONResponse({
+        "authenticated": is_auth,
+        "auth_enabled": auth_enabled
+    })
+
+
+async def auth_logout_handler(request: Request):
+    """Encerra a sessão ativa do administrador."""
+    cookie_token = request.cookies.get("smarttv_session")
+    if cookie_token and cookie_token in ACTIVE_SESSIONS:
+        ACTIVE_SESSIONS.discard(cookie_token)
+    resp = JSONResponse({
+        "success": True,
+        "authenticated": False,
+        "message": "Sessão encerrada com sucesso."
+    })
+    resp.delete_cookie(key="smarttv_session", path="/")
+    return resp
+
+
 # Rotas HTTP
 async def index_handler(request: Request):
     """Renderiza a interface web moderna."""
@@ -613,11 +715,23 @@ def total_dispositivos_cadastrados(cfg: Dict[str, Any]) -> int:
 async def get_config_handler(request: Request):
     """Retorna configuração global, equipamentos e status."""
     cfg = carregar_config()
+    is_auth = is_request_authenticated(request)
+
+    # Se autenticação estiver ativa e cliente não autenticado, bloqueia dados confidenciais
+    if cfg.get("auth_enabled", True) and not is_auth:
+        return JSONResponse({
+            "authenticated": False,
+            "auth_required": True,
+            "status": "locked",
+            "message": "Autenticação requerida. Digite a senha de administrador (padrão: 0808)."
+        }, status_code=401)
+
     cfg["is_syncing"] = is_running_batch
     cfg["current_device_id"] = current_running_device_id
     cfg["status"] = "running" if is_running_batch else ("online" if cfg.get("auto_update_enabled") else "paused")
     cfg["total_registered_devices"] = total_dispositivos_cadastrados(cfg)
-    
+    cfg["authenticated"] = True
+
     # Credenciais Xtream extraídas da playlist ativa
     creds = cfg.get("xtream_info") or {}
     if not creds.get("username"):
@@ -641,6 +755,9 @@ async def get_config_handler(request: Request):
 async def post_config_handler(request: Request):
     """Salva configurações globais e/ou lista de equipamentos."""
     global next_run_dt
+    if not is_request_authenticated(request):
+        return JSONResponse({"success": False, "authenticated": False, "error": "Acesso não autorizado. Digite a senha 0808."}, status_code=401)
+
     try:
         body = await request.json()
         cfg = carregar_config()
@@ -1330,6 +1447,9 @@ async def generate_gold_test_handler(request: Request):
 
 routes = [
     Route("/", index_handler, methods=["GET"]),
+    Route("/api/auth/login", auth_login_handler, methods=["POST"]),
+    Route("/api/auth/status", auth_status_handler, methods=["GET"]),
+    Route("/api/auth/logout", auth_logout_handler, methods=["POST"]),
     Route("/api/config", get_config_handler, methods=["GET"]),
     Route("/api/config", post_config_handler, methods=["POST"]),
     Route("/api/device/add", add_device_handler, methods=["POST"]),
