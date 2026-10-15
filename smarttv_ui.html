@@ -1036,7 +1036,7 @@
         SmartTV Club Multi-Device Auto-Sync
       </div>
       <h1>Central de Equipamentos & Lista IPTV</h1>
-      <p class="subtitle">A mesma playlist IPTV diária é propagada às <strong>00:00 (Brasília)</strong> para o <strong>Celular</strong>, <strong>iPad</strong> e todos os equipamentos ativos cadastrados.</p>
+      <p class="subtitle">A mesma playlist IPTV diária é propagada às <strong>00:00 (Brasília)</strong> para a <strong>TV Washington</strong>, o <strong>iPad</strong> e todos os equipamentos ativos cadastrados.</p>
     </header>
 
     <!-- Stats Bar -->
@@ -2159,7 +2159,7 @@
       btn.disabled = true;
       btn.innerText = '⏳ Sincronizando Lote...';
 
-      showToast('Disparando sincronização para Celular, iPad e aparelhos ativos...', 'info');
+      showToast('Disparando sincronização para TV Washington, iPad e aparelhos ativos...', 'info');
 
       try {
         const res = await fetch('/api/trigger-all', { method: 'POST' });
@@ -2514,10 +2514,11 @@
         knownDevs.forEach(d => {
           optionsHtml += `<option value="${d.id}">${d.name || 'ID ' + d.id}</option>`;
         });
-        if (filterSelect.dataset.lastCount !== String(knownDevs.length)) {
+        const optionsSignature = knownDevs.map(d => `${d.id}:${d.name}`).join('|');
+        if (filterSelect.dataset.lastSig !== optionsSignature) {
           filterSelect.innerHTML = optionsHtml;
           filterSelect.value = currentVal;
-          filterSelect.dataset.lastCount = String(knownDevs.length);
+          filterSelect.dataset.lastSig = optionsSignature;
         }
       }
 

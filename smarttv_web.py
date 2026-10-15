@@ -650,7 +650,12 @@ async def index_handler(request: Request):
         html_content = UI_FILE.read_text(encoding="utf-8")
     else:
         html_content = "<h1>UI file not found</h1>"
-    return HTMLResponse(content=html_content)
+    headers = {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    }
+    return HTMLResponse(content=html_content, headers=headers)
 
 
 def extrair_credenciais_de_url(url: str) -> Dict[str, str]:
@@ -1187,6 +1192,14 @@ async def trigger_single_device_handler(request: Request):
         # Atualiza status individual
         dispositivo["status"] = "success" if res["success"] else "error"
         dispositivo["last_sync"] = res["timestamp"]
+
+        # Registra no histórico geral
+        if "history" not in cfg:
+            cfg["history"] = []
+        cfg["history"].append(res)
+        if len(cfg["history"]) > 60:
+            cfg["history"] = cfg["history"][-60:]
+        cfg["last_run"] = res
         salvar_config(cfg)
 
         return JSONResponse(res)
