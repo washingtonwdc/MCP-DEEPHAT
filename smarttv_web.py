@@ -723,7 +723,7 @@ async def get_config_handler(request: Request):
             "authenticated": False,
             "auth_required": True,
             "status": "locked",
-            "message": "Autenticação requerida. Digite a senha de administrador (padrão: 0808)."
+            "message": "Autenticação requerida. Digite a senha de administrador."
         }, status_code=401)
 
     cfg["is_syncing"] = is_running_batch
@@ -749,14 +749,17 @@ async def get_config_handler(request: Request):
     else:
         cfg["next_run"] = None
 
-    return JSONResponse(cfg)
+    # Oculta a senha de administrador do payload enviado ao cliente
+    cfg_clean = dict(cfg)
+    cfg_clean.pop("admin_password", None)
+    return JSONResponse(cfg_clean)
 
 
 async def post_config_handler(request: Request):
     """Salva configurações globais e/ou lista de equipamentos."""
     global next_run_dt
     if not is_request_authenticated(request):
-        return JSONResponse({"success": False, "authenticated": False, "error": "Acesso não autorizado. Digite a senha 0808."}, status_code=401)
+        return JSONResponse({"success": False, "authenticated": False, "error": "Acesso não autorizado. Digite a senha de administrador."}, status_code=401)
 
     try:
         body = await request.json()

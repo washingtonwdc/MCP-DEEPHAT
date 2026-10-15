@@ -1323,10 +1323,7 @@
           <label for="adminPasswordInput" style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.4rem; display: block;">
             🔑 Senha do Administrador
           </label>
-          <input type="password" id="adminPasswordInput" placeholder="Digite a senha (padrão: 0808)" autofocus required style="width: 100%; padding: 0.75rem 1rem; font-size: 1rem; text-align: center; letter-spacing: 0.15em; border-radius: var(--radius-md); background: var(--bg-card-subtle); border: 1px solid var(--border-color); color: var(--text-main);" />
-          <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.45rem; text-align: center;">
-            Senha padrão de fábrica configurada: <strong style="color: var(--primary);">0808</strong>
-          </span>
+          <input type="password" id="adminPasswordInput" placeholder="Digite a senha do administrador" autofocus required style="width: 100%; padding: 0.75rem 1rem; font-size: 1rem; text-align: center; letter-spacing: 0.15em; border-radius: var(--radius-md); background: var(--bg-card-subtle); border: 1px solid var(--border-color); color: var(--text-main);" />
         </div>
 
         <button type="submit" id="btnLoginSubmit" class="btn btn-primary" style="width: 100%; padding: 0.8rem 1rem; font-size: 0.9rem; font-weight: 700;">
@@ -1805,7 +1802,7 @@
           pwdInput.value = '';
           loadStatus();
         } else {
-          showToast(data.error || 'Senha incorreta. Tente 0808.', 'error');
+          showToast(data.error || 'Senha incorreta. Verifique e tente novamente.', 'error');
           if (pwdInput) {
             pwdInput.value = '';
             pwdInput.focus();
