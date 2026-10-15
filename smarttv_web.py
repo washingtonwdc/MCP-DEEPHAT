@@ -177,7 +177,15 @@ async def executar_upload_individual(device: Dict[str, Any], playlist_url: str) 
 
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            browser = await p.chromium.launch(
+                headless=True,
+                args=[
+                    "--host-resolver-rules=MAP smarttv.club 104.21.24.154, MAP *.smarttv.club 104.21.24.154",
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                    "--disable-dev-shm-usage"
+                ]
+            )
             page = await browser.new_page()
 
             await page.goto("https://smarttv.club/upload-channels/", wait_until="domcontentloaded", timeout=45000)

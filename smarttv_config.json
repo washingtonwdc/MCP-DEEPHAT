@@ -1,17 +1,17 @@
 {
-  "master_playlist_url": "http://line.iptvclub.net:80/get.php?username=teste_washington&password=tv_smart_2026&type=m3u_plus&output=ts",
+  "master_playlist_url": "http://line.iptvclub.net:80/get.php?username=teste_wash_20261015_0759&password=tv_075941&type=m3u_plus&output=ts",
   "interval_minutes": 60,
   "auto_update_enabled": true,
   "sync_mode": "daily_midnight_brasilia",
   "scheduled_datetime": "",
-  "temp_email": "teste-2026-10-14-29cf23@maxxspace.com",
+  "temp_email": "teste-2026-10-15-ba45cf@maxxspace.com",
   "devices": [
     {
       "id": 1,
-      "name": "Celular de Washington",
+      "name": "TV Washington",
       "tv_id": "b44a-64c9-2dc8-8b62-593c-11de",
       "enabled": true,
-      "last_sync": "2026-10-14T15:23:55.832444",
+      "last_sync": "2026-10-15T07:59:47.209697",
       "status": "success"
     },
     {
@@ -19,7 +19,7 @@
       "name": "iPad de Washington",
       "tv_id": "e9b4-9e58-a8b2-da67-25c9-c737",
       "enabled": true,
-      "last_sync": "2026-10-14T15:24:14.461990",
+      "last_sync": "2026-10-15T08:00:00.249885",
       "status": "success"
     },
     {
@@ -221,14 +221,14 @@
   ],
   "daily_time": "00:00",
   "timezone": "America/Sao_Paulo",
-  "new_playlist_url": "http://line.iptvclub.net:80/get.php?username=teste_washington&password=tv_smart_2026&type=m3u_plus&output=ts",
+  "new_playlist_url": "http://line.iptvclub.net:80/get.php?username=teste_wash_20261015_0759&password=tv_075941&type=m3u_plus&output=ts",
   "xtream_info": {
     "host": "http://line.iptvclub.net:80",
     "username": "teste_washington",
     "password": "tv_smart_2026",
-    "m3u_url": "http://line.iptvclub.net:80/get.php?username=teste_washington&password=tv_smart_2026&type=m3u_plus&output=ts"
+    "m3u_url": "http://line.iptvclub.net:80/get.php?username=teste_wash_20261015_0759&password=tv_075941&type=m3u_plus&output=ts"
   },
-  "last_playlist_check": "2026-10-14T16:18:10.224056",
+  "last_playlist_check": "2026-10-15T07:59:44.266457",
   "fallback_playlist_url": "https://iptv-org.github.io/iptv/index.m3u",
   "telegram_bot_token": "",
   "telegram_chat_id": "",
