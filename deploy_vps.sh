@@ -25,7 +25,20 @@ REPO_URL="https://github.com/washingtonwdc/MCP-DEEPHAT.git"
 echo "[1/6] Atualizando pacotes do sistema e instalando dependências..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
-apt-get install -y python3 python3-pip python3-venv git curl ufw libglib2.0-0 libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2
+apt-get install -y python3 python3-pip python3-venv git curl ufw iptables-persistent libglib2.0-0 libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2
+
+# Adiciona 2 GB de SWAP se necessário (essencial para Playwright Chromium em VPS de 1GB RAM)
+SWAP_TOTAL=$(free -m | awk '/^Swap:/ {print $2}')
+if [ "$SWAP_TOTAL" -lt 1024 ]; then
+  echo "  Criando arquivo de SWAP de 2 GB para estabilidade operacional..."
+  fallocate -l 2G /swapfile 2>/dev/null || dd if=/dev/zero of=/swapfile bs=1M count=2048
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile 2>/dev/null || true
+  if ! grep -q "/swapfile" /etc/fstab; then
+    echo "/swapfile none swap sw 0 0" >> /etc/fstab
+  fi
+fi
 
 # 3. Download / Clonagem do Repositório Oficial
 echo "[2/6] Baixando a aplicação para ${APP_DIR}..."
@@ -78,12 +91,18 @@ systemctl daemon-reload
 systemctl enable smarttv.service
 systemctl restart smarttv.service
 
-# 7. Liberação da Porta 5050 no Firewall do Sistema (UFW / iptables)
+# 7. Liberação da Porta 5050 no Firewall do Sistema (UFW e iptables do Oracle Cloud)
 echo "[6/6] Configurando firewall e abrindo a porta 5050..."
 if command -v ufw >/dev/null 2>&1; then
   ufw allow 22/tcp || true
   ufw allow 5050/tcp || true
   echo "y" | ufw enable || true
+fi
+
+# Regra direta no iptables (essencial para imagens oficiais da Oracle Cloud Ubuntu)
+iptables -I INPUT 1 -p tcp --dport 5050 -j ACCEPT || true
+if command -v netfilter-persistent >/dev/null 2>&1; then
+  netfilter-persistent save || true
 fi
 
 # Descobre o IP Público da VPS
