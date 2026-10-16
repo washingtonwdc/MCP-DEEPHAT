@@ -1457,11 +1457,16 @@ async def get_hosted_playlist_handler(request: Request):
     target_file = HOSTED_PLAYLISTS_DIR / safe_name
     
     if not target_file.exists():
-        raw_file = BASE_DIR / "lista_completa.m3u"
-        if raw_file.exists() and safe_name == "all.m3u":
-            target_file = raw_file
+        if safe_name in ["ao_vivo.m3u", "aovivo.m3u", "live.m3u"] and (HOSTED_PLAYLISTS_DIR / "canais.m3u").exists():
+            target_file = HOSTED_PLAYLISTS_DIR / "canais.m3u"
+        elif safe_name == "canais.m3u" and (HOSTED_PLAYLISTS_DIR / "ao_vivo.m3u").exists():
+            target_file = HOSTED_PLAYLISTS_DIR / "ao_vivo.m3u"
         else:
-            return JSONResponse({"error": f"Playlist '{safe_name}' não encontrada. Execute a descompilação primeiro."}, status_code=404)
+            raw_file = BASE_DIR / "lista_completa.m3u"
+            if raw_file.exists() and safe_name == "all.m3u":
+                target_file = raw_file
+            else:
+                return JSONResponse({"error": f"Playlist '{safe_name}' não encontrada. Execute a descompilação primeiro."}, status_code=404)
             
     headers = {
         "Content-Type": "application/x-mpegurl; charset=utf-8",

@@ -6,6 +6,11 @@ WashingtonProNet - SmartTV Club Multi-Device Ecosystem
 
 Baixa, descompila, categoriza e gera arquivos de playlist M3U e metadados JSON
 estruturados para hospedagem local e remota na VPS.
+Separa rigorosamente:
+  1. canais.m3u / ao_vivo.m3u: Canais de TV Linear / Ao Vivo
+  2. filmes.m3u: Filmes sob Demanda (VOD)
+  3. series.m3u: Séries e Novelas On Demand
+  4. all.m3u: Catálogo completo unificado
 """
 
 import os
@@ -23,33 +28,186 @@ import httpx
 DEFAULT_URL = "http://zymv.shop/get.php?username=goldlnr020&password=56508193&type=m3u_plus&output=mpegts"
 DEFAULT_OUTPUT_DIR = Path(__file__).parent / "hosted_playlists"
 
+# Mapeamentos exatos das categorias da playlist oficial do provedor
+EXACT_SERIES_GROUPS = {
+    "♦️ Novelas",
+    "♦️ Legendadas",
+    "♦️ Netflix",
+    "♦️ Outras Produtoras",
+    "♦️ Prime Video",
+    "♦️ Globoplay",
+    "♦️ HBO Max",
+    "♦️ Disney+",
+    "♦️ Doramas Legendados",
+    "♦️ Paramount+",
+    "♦️ Discovery+",
+    "♦️ Crunchyroll",
+    "♦️ Novelas Turcas",
+    "♦️ Apple TV+",
+    "♦️ Star+",
+    "♦️ DirecTV",
+    "♦️ Doramas",
+    "♦️ Funimation Now",
+    "♦️ SBT+",
+    "♦️ Programas de TV",
+    "♦️ Brasil Paralelo",
+    "♦️ Univer",
+    "♦️ Claro video",
+    "♦️ PlutoTV",
+    "♦️ Lionsgate",
+    "♦️ AMC Plus"
+}
+
+EXACT_MOVIE_GROUPS = {
+    "♦️ Legendados ✔️",
+    "♦️ Adultos ❌❤️ [+18]",
+    "♦️ Drama ✔️",
+    "♦️ Comedia ✔️",
+    "♦️ Ação ✔️",
+    "♦️ Terror ☠",
+    "♦️ UHD| 4K ⭐",
+    "♦️ Animacao ✔️",
+    "♦️ Nacionais ✔️",
+    "♦️ Adultos ❌ [LEGENDADO]",
+    "♦️ Documentário ✔️",
+    "♦️ Suspense ✔️",
+    "♦️ Romance ✔️",
+    "♦️ Adultos ❌   [ONLYFANS]",
+    "♦️ Ficcao Cientifica ✔️",
+    "♦️ Fantasia ✔️",
+    "♦️ Crime ✔️",
+    "♦️Top  Lançamentos 2026  ⭐",
+    "♦️ Adultos ❌ [TRANS]",
+    "⭐ ReelsShorts",
+    "♦️ Esportes ✔️",
+    "♦️ Faroeste ✔️",
+    "♦️ Adultos ❌ [Bella da Semana]",
+    "♦️ Guerra ⚔",
+    "♦️ Adultos ❌ [GAYS]",
+    "♦️ Religiosos ✔️",
+    "♦️ Familia ✔️",
+    "♦️ Aventura ✔️",
+    "♦️ Shows ✔️",
+    "♦️ Especial Infantil ✔️",
+    "♦️ Dublagem Nao Oficial ✔️",
+    "♦️ Stand Up Comedy ✔️",
+    "♦️ Cinema ⭐",
+    "Filmes | Drama",
+    "Filmes | Ficcao",
+    "Documentarios"
+}
+
+EXACT_LIVE_GROUPS = {
+    "♦️  FILMES E SÉRIES",
+    "♦️  GLOBO | REGIONAIS",
+    "♦️  GLOBO | CAPITAIS",
+    "♦️ CANAIS 24H | DESENHOS ⭐",
+    "♦️ CANAIS 24H | SERIES ⭐",
+    "♦️ CANAIS | FHD H265 ⭐",
+    "♦️  REDE RECORD",
+    "♦️  ABERTOS",
+    "♦️  VARIEDADES",
+    "♦️ CANAIS 24H | LIVES & SHOWS ⭐",
+    "♦️  NOTICIAS",
+    "♦️  SBT",
+    "♦️  RELIGIOSOS",
+    "♦️  INFANTIL",
+    "♦️  HBO",
+    "♦️  DISCOVERY",
+    "♦️  PREMIERE",
+    "♦️ CANAIS 24H  | PREMIUM ⭐",
+    "♦️  REDE BANDEIRANTES",
+    "♦️  ESPN",
+    "♦️  TELECINE",
+    "♦️ CANAIS | UHD 4K ⭐",
+    "♦️ EVENTOS EM DESTAQUE",
+    "♦️  DOCUMENTÁRIOS",
+    "♦️  ESPORTES",
+    "♦️  SPORTV",
+    "♦️ PPV | NFL",
+    "♦️  CINE SKY",
+    "♦️  PPV | ESPORTES ⛳",
+    "♦️  PPV | NBA PASS",
+    "♦️ PPV | PARAMOUNT+ ⚽️",
+    "♦️  HISTORY",
+    "♦️ PPV | DISNEY+ ⚽️",
+    "♦️ A FAZENDA 2026 ⭐",
+    "♦️  PPV | AMAZON PRIME ⚽️",
+    "♦️ PPV | MAX ⚽",
+    "♦️  PPV | DAZN ⚽️",
+    "♦️ PPV | GOAT ⚽️",
+    "♦️ PPV | APPLE TV⛳",
+    "♦️ PPV | NSPORTS ⚽️",
+    "♦️  PPV | ONE FOOTBAL ⚽️",
+    "♦️  SPORTYNET ⚽️",
+    "♦️ PPV | CAZÉTV ⚽️",
+    "♦️ UFC PARAMOUNT+ ⭐",
+    "♦️ ADULTOS +18 ❌♠️",
+    "Update"
+}
+
 
 def sanitize_filename(name: str) -> str:
     """Converte um nome de categoria para um nome de arquivo seguro."""
-    # Remove acentos
     name = unicodedata.normalize('NFKD', name).encode('ASCII', 'ignore').decode('ASCII')
-    # Remove caracteres especiais
     name = re.sub(r'[^\w\s-]', '', name).strip().lower()
     name = re.sub(r'[-\s]+', '_', name)
     return name or "outros"
 
 
-def classificar_tipo(grupo: str, nome: str) -> str:
-    """Classifica se o item é Canal ao Vivo, Filme (VOD) ou Série."""
-    g_upper = grupo.upper()
-    n_upper = nome.upper()
-    
-    # Séries
-    if any(k in g_upper for k in ["SERIE", "SÉRIE", "SERIES", "TEMPORADA", "EPISODIO", "EPISÓDIO"]):
+def classificar_tipo(grupo: str, nome: str, stream_url: str = "") -> str:
+    """
+    Classifica rigorosamente o item em:
+      - 'canais': Canal de TV Linear / Ao Vivo
+      - 'filmes': Filme sob Demanda (VOD)
+      - 'series': Série de TV, Novela ou Dorama On Demand
+    Garante separação estrita sem misturar séries com filmes ou canais ao vivo.
+    """
+    g_raw = (grupo or "").strip()
+    g_upper = g_raw.upper()
+    n_raw = (nome or "").strip()
+    n_upper = n_raw.upper()
+    u_lower = (stream_url or "").lower()
+
+    # 1. Correspondência exata pelo conjunto oficial de grupos da Gold/M3U
+    if g_raw in EXACT_SERIES_GROUPS:
         return "series"
-    if re.search(r'\bS\d{2}E\d{2}\b', n_upper) or re.search(r'\bT\d{1,2}\s*E\d{1,2}\b', n_upper):
+    if g_raw in EXACT_MOVIE_GROUPS:
+        return "filmes"
+    if g_raw in EXACT_LIVE_GROUPS:
+        return "canais"
+
+    # 2. Heurística estrita de marcação de episódio (S01E01, T01E01, etc.)
+    # Séries sempre contêm identificação de temporada/episódio no título
+    if re.search(r'\bS\d{1,2}\s*E\d{1,3}\b', n_upper) or \
+       re.search(r'\bT\d{1,2}\s*E\d{1,3}\b', n_upper) or \
+       re.search(r'\bTEMPORADA\s*\d+\b', n_upper) or \
+       re.search(r'\bEPIS[OÓ]DIO\s*\d+\b', n_upper) or \
+       re.search(r'\bCAP[IÍ]TULO\s*\d+\b', n_upper):
         return "series"
 
-    # Filmes / VOD
-    if any(k in g_upper for k in ["FILME", "FILMES", "VOD", "CINEMA", "4K FILMES", "LANCAMENTOS", "LANÇAMENTOS"]):
+    # 3. Análise da rota do stream
+    if "/series/" in u_lower:
+        return "series"
+    if "/movie/" in u_lower:
+        return "filmes"
+    if "/live/" in u_lower:
+        return "canais"
+
+    # 4. Palavras-chave no nome do grupo
+    if "✔️" in g_raw or any(k in g_upper for k in ["VOD", "CINEMA", "FILME", "FILMES", "LANÇAMENTO", "LANCAMENTO"]):
         return "filmes"
 
-    # Canais ao vivo
+    if any(k in g_upper for k in ["SERIE", "SÉRIE", "SERIES", "NOVELA", "DORAMA"]):
+        return "series"
+
+    if any(k in g_upper for k in ["CANAL", "CANAIS", "24H", "AO VIVO", "LIVE", "ABERTO", "PPV", "ESPORTE", "GLOBO", "RECORD", "SBT"]):
+        return "canais"
+
+    # 5. Sufixos típicos de canais de TV linear (FHD, HD, SD, [ALT], H265) sem numeração de ano
+    if re.search(r'\b(FHD|HD|SD|4K|H265)\b', n_upper) and not re.search(r'\b(19\d\d|20\d\d)\b', n_upper):
+        return "canais"
+
     return "canais"
 
 
@@ -79,7 +237,6 @@ def parse_extinf(extinf_line: str) -> Dict[str, str]:
     grp = re.search(r'group-title="([^"]*)"', extinf_line)
     if grp: res["group_title"] = grp.group(1).strip()
 
-    # O nome do canal fica após a última vírgula da linha #EXTINF
     name_match = re.search(r',([^,]+)$', extinf_line)
     if name_match:
         res["name"] = name_match.group(1).strip()
@@ -119,27 +276,37 @@ def baixar_playlist(url: str, destino_arquivo: Path) -> bool:
 def decompilar_m3u(arquivo_origem: Path, pasta_saida: Path) -> Dict[str, Any]:
     """
     Decompila o arquivo M3U linha a linha, gerando sub-playlists e metadados.
+    Garante separação estrita: canais.m3u/ao_vivo.m3u, filmes.m3u, series.m3u e all.m3u.
     """
     print(f"[INFO] Iniciando descompilação de {arquivo_origem}...")
     pasta_saida.mkdir(parents=True, exist_ok=True)
     pasta_grupos = pasta_saida / "grupos"
     pasta_grupos.mkdir(parents=True, exist_ok=True)
 
-    # Handlers para os arquivos de saída principais
+    # Handlers para os arquivos de saída principais (com escrita atômica segura via .tmp)
     path_all = pasta_saida / "all.m3u"
     path_canais = pasta_saida / "canais.m3u"
+    path_ao_vivo = pasta_saida / "ao_vivo.m3u"
     path_filmes = pasta_saida / "filmes.m3u"
     path_series = pasta_saida / "series.m3u"
 
-    f_all = open(path_all, "w", encoding="utf-8")
-    f_canais = open(path_canais, "w", encoding="utf-8")
-    f_filmes = open(path_filmes, "w", encoding="utf-8")
-    f_series = open(path_series, "w", encoding="utf-8")
+    tmp_all = pasta_saida / "all.m3u.tmp"
+    tmp_canais = pasta_saida / "canais.m3u.tmp"
+    tmp_ao_vivo = pasta_saida / "ao_vivo.m3u.tmp"
+    tmp_filmes = pasta_saida / "filmes.m3u.tmp"
+    tmp_series = pasta_saida / "series.m3u.tmp"
+
+    f_all = open(tmp_all, "w", encoding="utf-8")
+    f_canais = open(tmp_canais, "w", encoding="utf-8")
+    f_ao_vivo = open(tmp_ao_vivo, "w", encoding="utf-8")
+    f_filmes = open(tmp_filmes, "w", encoding="utf-8")
+    f_series = open(tmp_series, "w", encoding="utf-8")
 
     # Cabeçalho padrão M3U Plus
     header = "#EXTM3U\n#EXT-X-SESSION-DATA:DATA-ID=\"com.xui.1_5_5r2\"\n"
     f_all.write(header)
     f_canais.write(header)
+    f_ao_vivo.write(header)
     f_filmes.write(header)
     f_series.write(header)
 
@@ -162,14 +329,12 @@ def decompilar_m3u(arquivo_origem: Path, pasta_saida: Path) -> Dict[str, Any]:
             elif current_extinf and (line_str.startswith("http://") or line_str.startswith("https://")):
                 stream_url = line_str
                 meta = parse_extinf(current_extinf)
-                tipo = classificar_tipo(meta["group_title"], meta["name"])
+                tipo = classificar_tipo(meta["group_title"], meta["name"], stream_url)
 
-                # Atualiza contadores
                 total_itens += 1
                 tipo_stats[tipo] += 1
                 grupos_stats[meta["group_title"]] += 1
 
-                # Bloco M3U formatado
                 bloco = f"{current_extinf}\n{stream_url}\n"
 
                 # 1. Grava no all.m3u
@@ -178,12 +343,13 @@ def decompilar_m3u(arquivo_origem: Path, pasta_saida: Path) -> Dict[str, Any]:
                 # 2. Grava no arquivo do tipo correspondente
                 if tipo == "canais":
                     f_canais.write(bloco)
+                    f_ao_vivo.write(bloco)
                 elif tipo == "filmes":
                     f_filmes.write(bloco)
                 elif tipo == "series":
                     f_series.write(bloco)
 
-                # 3. Grava no arquivo de grupo específico (se for canal ao vivo)
+                # 3. Grava no arquivo de grupo específico (apenas canais ao vivo)
                 if tipo == "canais":
                     safe_grp = sanitize_filename(meta["group_title"])
                     if safe_grp not in group_handles:
@@ -193,8 +359,8 @@ def decompilar_m3u(arquivo_origem: Path, pasta_saida: Path) -> Dict[str, Any]:
                         group_handles[safe_grp] = gh
                     group_handles[safe_grp].write(bloco)
 
-                # Coleta amostra inicial para exibição na UI
-                if len(amostra_canais) < 50:
+                # Amostra para conferência
+                if len(amostra_canais) < 60:
                     amostra_canais.append({
                         "name": meta["name"],
                         "group": meta["group_title"],
@@ -205,13 +371,21 @@ def decompilar_m3u(arquivo_origem: Path, pasta_saida: Path) -> Dict[str, Any]:
 
                 current_extinf = None
 
-    # Fecha todos os handles
+    # Fecha todos os arquivos
     f_all.close()
     f_canais.close()
+    f_ao_vivo.close()
     f_filmes.close()
     f_series.close()
     for gh in group_handles.values():
         gh.close()
+
+    # Aplica substituição atômica dos arquivos
+    os.replace(tmp_all, path_all)
+    os.replace(tmp_canais, path_canais)
+    os.replace(tmp_ao_vivo, path_ao_vivo)
+    os.replace(tmp_filmes, path_filmes)
+    os.replace(tmp_series, path_series)
 
     # Prepara JSON de Metadados e Estatísticas
     resumo = {
@@ -225,6 +399,7 @@ def decompilar_m3u(arquivo_origem: Path, pasta_saida: Path) -> Dict[str, Any]:
         "arquivos_gerados": {
             "all": "all.m3u",
             "canais": "canais.m3u",
+            "ao_vivo": "ao_vivo.m3u",
             "filmes": "filmes.m3u",
             "series": "series.m3u"
         },
@@ -235,7 +410,6 @@ def decompilar_m3u(arquivo_origem: Path, pasta_saida: Path) -> Dict[str, Any]:
         "amostra": amostra_canais[:20]
     }
 
-    # Salva metadata.json
     path_meta = pasta_saida / "metadata.json"
     with open(path_meta, "w", encoding="utf-8") as fm:
         json.dump(resumo, fm, indent=2, ensure_ascii=False)

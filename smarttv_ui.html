@@ -1781,14 +1781,18 @@
             </div>
 
             <!-- Resumo Estatístico das Playlists -->
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-bottom: 0.75rem; text-align: center;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; margin-bottom: 0.75rem; text-align: center;">
               <div style="background: var(--bg-card-subtle); padding: 0.45rem; border-radius: 6px; border: 1px solid var(--border-color);">
                 <div style="font-size: 0.68rem; color: var(--text-muted);">Canais TV</div>
-                <div style="font-size: 0.95rem; font-weight: 700; color: #10b981;" id="hostedCountCanais">70.970</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: #10b981;" id="hostedCountCanais">2.035</div>
+              </div>
+              <div style="background: var(--bg-card-subtle); padding: 0.45rem; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.68rem; color: var(--text-muted);">Filmes VOD</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: #ef4444;" id="hostedCountFilmes">43.816</div>
               </div>
               <div style="background: var(--bg-card-subtle); padding: 0.45rem; border-radius: 6px; border: 1px solid var(--border-color);">
                 <div style="font-size: 0.68rem; color: var(--text-muted);">Séries</div>
-                <div style="font-size: 0.95rem; font-weight: 700; color: #6366f1;" id="hostedCountSeries">244.782</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: #6366f1;" id="hostedCountSeries">270.213</div>
               </div>
               <div style="background: var(--bg-card-subtle); padding: 0.45rem; border-radius: 6px; border: 1px solid var(--border-color);">
                 <div style="font-size: 0.68rem; color: var(--text-muted);">Total Streams</div>
@@ -1800,8 +1804,8 @@
             <div style="display: flex; flex-direction: column; gap: 0.5rem;">
               <div>
                 <label style="font-size: 0.73rem; font-weight: 600; display: flex; justify-content: space-between;">
-                  <span>📺 Somente Canais ao Vivo (Recomendado para TV)</span>
-                  <span style="font-size: 0.68rem; color: #10b981;">~21 MB (Rápido)</span>
+                  <span>📺 Somente Canais ao Vivo (Live TV)</span>
+                  <span style="font-size: 0.68rem; color: #10b981;">2.035 canais | Rápido</span>
                 </label>
                 <div style="display: flex; gap: 0.35rem; align-items: center; margin-top: 0.2rem;">
                   <input type="text" class="url-input" id="linkHostedCanais" readonly value="" style="flex: 1;" />
@@ -1812,21 +1816,35 @@
 
               <div>
                 <label style="font-size: 0.73rem; font-weight: 600; display: flex; justify-content: space-between;">
+                  <span>🎬 Filmes On Demand (VOD)</span>
+                  <span style="font-size: 0.68rem; color: #ef4444;">43.816 filmes (sem séries)</span>
+                </label>
+                <div style="display: flex; gap: 0.35rem; align-items: center; margin-top: 0.2rem;">
+                  <input type="text" class="url-input" id="linkHostedFilmes" readonly value="" style="flex: 1;" />
+                  <button class="btn-icon" title="Copiar Link" onclick="copyGenericText(document.getElementById('linkHostedFilmes').value, 'Link Filmes', this)">📋</button>
+                </div>
+              </div>
+
+              <div>
+                <label style="font-size: 0.73rem; font-weight: 600; display: flex; justify-content: space-between;">
+                  <span>🍿 Séries & Novelas On Demand</span>
+                  <span style="font-size: 0.68rem; color: #6366f1;">270.213 episódios</span>
+                </label>
+                <div style="display: flex; gap: 0.35rem; align-items: center; margin-top: 0.2rem;">
+                  <input type="text" class="url-input" id="linkHostedSeries" readonly value="" style="flex: 1;" />
+                  <button class="btn-icon" title="Copiar Link" onclick="copyGenericText(document.getElementById('linkHostedSeries').value, 'Link Séries', this)">📋</button>
+                </div>
+              </div>
+
+              <div>
+                <label style="font-size: 0.73rem; font-weight: 600; display: flex; justify-content: space-between;">
                   <span>🌐 Lista Completa (Canais + Séries + Filmes)</span>
-                  <span style="font-size: 0.68rem; color: var(--text-muted);">~91 MB</span>
+                  <span style="font-size: 0.68rem; color: var(--text-muted);">316.064 streams (~91 MB)</span>
                 </label>
                 <div style="display: flex; gap: 0.35rem; align-items: center; margin-top: 0.2rem;">
                   <input type="text" class="url-input" id="linkHostedAll" readonly value="" style="flex: 1;" />
                   <button class="btn-icon" title="Copiar Link" onclick="copyGenericText(document.getElementById('linkHostedAll').value, 'Link Completo', this)">📋</button>
                   <button class="pill-btn" style="font-size: 0.7rem;" onclick="useHostedAsMaster('all.m3u')" title="Usar esta playlist como Mestre">📥 Usar</button>
-                </div>
-              </div>
-
-              <div>
-                <label style="font-size: 0.73rem; font-weight: 600;">🍿 Séries & Novelas (~71 MB)</label>
-                <div style="display: flex; gap: 0.35rem; align-items: center; margin-top: 0.2rem;">
-                  <input type="text" class="url-input" id="linkHostedSeries" readonly value="" style="flex: 1;" />
-                  <button class="btn-icon" title="Copiar Link" onclick="copyGenericText(document.getElementById('linkHostedSeries').value, 'Link Séries', this)">📋</button>
                 </div>
               </div>
             </div>
@@ -3193,11 +3211,13 @@
     function initHostedPlaylistLinks() {
       const origin = window.location.origin;
       const canaisInput = document.getElementById('linkHostedCanais');
-      const allInput = document.getElementById('linkHostedAll');
+      const filmesInput = document.getElementById('linkHostedFilmes');
       const seriesInput = document.getElementById('linkHostedSeries');
+      const allInput = document.getElementById('linkHostedAll');
       if (canaisInput) canaisInput.value = `${origin}/playlist/canais.m3u`;
-      if (allInput) allInput.value = `${origin}/playlist/all.m3u`;
+      if (filmesInput) filmesInput.value = `${origin}/playlist/filmes.m3u`;
       if (seriesInput) seriesInput.value = `${origin}/playlist/series.m3u`;
+      if (allInput) allInput.value = `${origin}/playlist/all.m3u`;
       loadHostedMetadata();
     }
 
@@ -3208,9 +3228,11 @@
           const data = await res.json();
           if (data.totais_por_tipo) {
             const canais = document.getElementById('hostedCountCanais');
+            const filmes = document.getElementById('hostedCountFilmes');
             const series = document.getElementById('hostedCountSeries');
             const total = document.getElementById('hostedCountTotal');
             if (canais && data.totais_por_tipo.canais_ao_vivo) canais.innerText = Number(data.totais_por_tipo.canais_ao_vivo).toLocaleString('pt-BR');
+            if (filmes && data.totais_por_tipo.filmes_vod) filmes.innerText = Number(data.totais_por_tipo.filmes_vod).toLocaleString('pt-BR');
             if (series && data.totais_por_tipo.series) series.innerText = Number(data.totais_por_tipo.series).toLocaleString('pt-BR');
             if (total && data.total_streams) total.innerText = Number(data.total_streams).toLocaleString('pt-BR');
           }
