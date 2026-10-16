@@ -1,6 +1,6 @@
 {
-  "master_playlist_url": "http://163.176.216.39:5050/playlist/canais.m3u",
-  "upstream_url": "http://zymv.shop/get.php?username=goldlnr020&password=56508193&type=m3u_plus&output=mpegts",
+  "master_playlist_url": "http://163.176.216.39:5050/get.php?username=washington&password=tv_washington_2026&type=m3u_plus&output=ts",
+  "upstream_url": "http://163.176.216.39:5050/playlist/canais.m3u",
   "interval_minutes": 60,
   "auto_update_enabled": true,
   "sync_mode": "daily_midnight_brasilia",
