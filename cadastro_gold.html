@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR" class="dark scroll-smooth">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GoldCardTv - Cadastro de Teste Gratuito 24h</title>
+  <title>GoldCardTv - Teste Gratuito 24h & Plataforma Oficial</title>
   <meta name="description" content="Plataforma de Testes Gratuitos Gold Card TV com gerenciamento Bladestar IPTV-Manager" />
   <link rel="icon" href="favicon.ico" />
 
@@ -16,6 +16,7 @@
         extend: {
           colors: {
             gold: {
+              300: '#fde047',
               400: '#fbbf24',
               500: '#f59e0b',
               600: '#d97706',
@@ -31,7 +32,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background: radial-gradient(circle at 50% 10%, #1c1917 0%, #09090b 60%, #000000 100%);
+      background: radial-gradient(circle at 50% 0%, #1c1917 0%, #09090b 45%, #000000 100%);
       color: #f4f4f5;
     }
     .gold-gradient {
@@ -49,6 +50,11 @@
       box-shadow: 0 6px 25px 0 rgba(245, 158, 11, 0.6);
       transform: translateY(-2px);
     }
+    .glass-nav {
+      background: rgba(10, 10, 12, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+    }
     .glass-card {
       background: rgba(24, 24, 27, 0.65);
       backdrop-filter: blur(16px);
@@ -63,23 +69,115 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-black">
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-black pt-20">
 
-  <!-- Header -->
-  <header class="pt-8 pb-4 text-center px-4">
-    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold mb-4 tracking-wider uppercase">
-      <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-      24 Horas de Teste Gratuito Imediato
+  <!-- =========================================================================
+       1. NAVBAR SUPERIOR INTELIGENTE (MENU DESKTOP + MOBILE)
+       ========================================================================= -->
+  <nav class="fixed top-0 left-0 right-0 z-50 glass-nav transition-all duration-300">
+    <div class="container mx-auto px-4 max-w-6xl h-20 flex items-center justify-between">
+      
+      <!-- Logo + Marca -->
+      <a href="#cadastro" class="flex items-center gap-3 group">
+        <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-200 p-0.5 shadow-lg shadow-amber-500/20 group-hover:scale-105 transition">
+          <div class="w-full h-full bg-black rounded-full flex items-center justify-center">
+            <svg class="w-6 h-6 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zM8 8l7 4-7 4V8z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xl font-black tracking-tight leading-none">
+            <span class="gold-gradient">GOLD CARD</span> <span class="text-white">TV</span>
+          </span>
+          <span class="text-[10px] text-amber-400 font-semibold tracking-widest uppercase mt-0.5">IPTV Manager v7.0</span>
+        </div>
+      </a>
+
+      <!-- Links Desktop -->
+      <div class="hidden md:flex items-center gap-7 text-xs font-semibold uppercase tracking-wider text-gray-300">
+        <a href="#cadastro" class="hover:text-amber-400 transition flex items-center gap-1.5 text-amber-400">
+          <span>⚡</span> Teste 24h
+        </a>
+        <a href="#conteudos" class="hover:text-amber-400 transition">
+          🎬 Catálogo
+        </a>
+        <a href="#dispositivos" class="hover:text-amber-400 transition">
+          📱 Dispositivos
+        </a>
+        <a href="#tutorial" class="hover:text-amber-400 transition">
+          📖 Como Instalar
+        </a>
+        <a href="#planos" class="hover:text-amber-400 transition">
+          💎 Planos
+        </a>
+        <a href="#faq" class="hover:text-amber-400 transition">
+          ❓ Dúvidas
+        </a>
+      </div>
+
+      <!-- Ações do Header (Desktop) -->
+      <div class="hidden md:flex items-center gap-3">
+        <a href="http://163.176.216.39:5050" target="_blank"
+          class="px-3.5 py-2 rounded-xl text-xs font-bold text-gray-300 hover:text-white bg-zinc-800/80 border border-zinc-700 hover:border-amber-500/50 transition">
+          ⚙️ Painel Admin
+        </a>
+        <a href="#cadastro"
+          class="gold-btn px-4 py-2 rounded-xl text-xs font-black text-black uppercase tracking-wider flex items-center gap-1.5">
+          <span>⚡</span> Ativar Teste
+        </a>
+      </div>
+
+      <!-- Botão Hambúrguer Mobile -->
+      <button type="button" id="btn-menu-mobile" onclick="toggleMenuMobile()"
+        class="md:hidden w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-amber-400 focus:outline-none"
+        aria-label="Abrir Menu">
+        <svg id="icon-menu-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        <svg id="icon-menu-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
     </div>
 
-    <div class="flex justify-center items-center mb-3">
-      <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-200 p-0.5 shadow-xl shadow-amber-500/20">
-        <div class="w-full h-full bg-black rounded-full flex items-center justify-center">
-          <svg class="w-10 h-10 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zM8 8l7 4-7 4V8z"/>
-          </svg>
-        </div>
+    <!-- Gaveta de Menu Mobile -->
+    <div id="drawer-mobile" class="hidden md:hidden px-4 pt-2 pb-6 bg-black/95 border-b border-amber-500/20 space-y-3 text-sm font-semibold">
+      <a href="#cadastro" onclick="toggleMenuMobile()" class="block py-2.5 px-3 rounded-lg text-amber-400 hover:bg-zinc-900">
+        ⚡ Ativar Teste Gratuito de 24h
+      </a>
+      <a href="#conteudos" onclick="toggleMenuMobile()" class="block py-2.5 px-3 rounded-lg text-gray-300 hover:bg-zinc-900">
+        🎬 Catálogo (+50.000 Filmes & Séries)
+      </a>
+      <a href="#dispositivos" onclick="toggleMenuMobile()" class="block py-2.5 px-3 rounded-lg text-gray-300 hover:bg-zinc-900">
+        📱 Dispositivos e Aplicativos
+      </a>
+      <a href="#tutorial" onclick="toggleMenuMobile()" class="block py-2.5 px-3 rounded-lg text-gray-300 hover:bg-zinc-900">
+        📖 Como Instalar na Smart TV
+      </a>
+      <a href="#planos" onclick="toggleMenuMobile()" class="block py-2.5 px-3 rounded-lg text-gray-300 hover:bg-zinc-900">
+        💎 Planos & Preços
+      </a>
+      <a href="#faq" onclick="toggleMenuMobile()" class="block py-2.5 px-3 rounded-lg text-gray-300 hover:bg-zinc-900">
+        ❓ Perguntas Frequentes
+      </a>
+      <div class="pt-2 border-t border-zinc-800 flex flex-col gap-2">
+        <a href="http://163.176.216.39:5050" target="_blank"
+          class="w-full text-center py-2.5 rounded-xl text-xs font-bold text-gray-300 bg-zinc-800 border border-zinc-700">
+          ⚙️ Acessar Painel Admin (Porta 5050)
+        </a>
       </div>
+    </div>
+  </nav>
+
+  <!-- =========================================================================
+       2. HERO HEADER & SEÇÃO DE CADASTRO
+       ========================================================================= -->
+  <header class="pt-6 pb-4 text-center px-4">
+    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold mb-4 tracking-wider uppercase">
+      <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+      24 Horas de Teste Totalmente Gratuito
     </div>
 
     <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-2">
@@ -90,8 +188,8 @@
     </p>
   </header>
 
-  <!-- Container Principal -->
-  <main class="container mx-auto px-4 py-6 max-w-5xl flex-1">
+  <!-- Container Principal de Cadastro -->
+  <main id="cadastro" class="container mx-auto px-4 py-4 max-w-6xl flex-1 scroll-mt-24">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
       <!-- Coluna 1: Formulário de Cadastro (7 Colunas) -->
@@ -181,13 +279,13 @@
               </label>
 
               <div class="pt-2 border-t border-zinc-800 text-[11px] text-gray-400 leading-relaxed">
-                ℹ️ <strong>Importante:</strong> Seus dados são protegidos e usados apenas para gerar as credenciais de teste no servidor IPTV Manager.
+                ℹ️ <strong>Importante:</strong> Seus dados são protegidos e usados exclusivamente para gerar as credenciais do seu teste.
               </div>
             </div>
 
             <!-- Botão de Submissão CTA -->
             <button type="submit" id="btn-submit"
-              class="w-full gold-btn py-3.5 px-6 rounded-xl font-bold text-black text-base uppercase tracking-wider flex items-center justify-center gap-2">
+              class="w-full gold-btn py-3.5 px-6 rounded-xl font-bold text-black text-base uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer">
               <span id="btn-icon">⚡</span>
               <span id="btn-text">Ativar Teste Gratuito de 24h</span>
             </button>
@@ -273,7 +371,267 @@
     </div>
   </main>
 
-  <!-- Modal de Sucesso: Credenciais Liberadas -->
+  <!-- =========================================================================
+       3. SEÇÃO DE CATÁLOGO & CONTEÚDOS (#conteudos)
+       ========================================================================= -->
+  <section id="conteudos" class="container mx-auto px-4 py-16 max-w-6xl scroll-mt-24">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">Catálogo Completo</span>
+      <h2 class="text-3xl md:text-4xl font-extrabold text-white mt-1 mb-3">Tudo o que você ama em um só lugar</h2>
+      <p class="text-sm text-gray-400">Do futebol aos lançamentos do cinema, com sinal estável e imagem cristalina em 4K e Full HD.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="glass-card rounded-2xl p-6 border border-zinc-800 hover:border-amber-500/40 transition group">
+        <div class="text-3xl mb-3">⚽</div>
+        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-amber-400 transition">Esportes Ao Vivo</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Brasileirão Séries A e B, Libertadores, Champions League, Premier League, NBA, UFC Combate e Fórmula 1 sem atrasos.</p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-6 border border-zinc-800 hover:border-amber-500/40 transition group">
+        <div class="text-3xl mb-3">🍿</div>
+        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-amber-400 transition">Cinema em Casa (VOD)</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Filmes recém-lançados do cinema e catálogo completo de sucessos atualizado semanalmente em resolução 4K e dublados.</p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-6 border border-zinc-800 hover:border-amber-500/40 transition group">
+        <div class="text-3xl mb-3">📺</div>
+        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-amber-400 transition">Séries & Novelas</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Todas as temporadas dos principais serviços de streaming (Netflix, HBO Max, Prime Video, Disney+, Apple TV) e novelas clássicas.</p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-6 border border-zinc-800 hover:border-amber-500/40 transition group">
+        <div class="text-3xl mb-3">📡</div>
+        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-amber-400 transition">Canais Abertos & Fechados</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Grade completa de canais nacionais e regionais (Globo, SBT, Record, Band) e por assinatura (Discovery, History, Warner).</p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-6 border border-zinc-800 hover:border-amber-500/40 transition group">
+        <div class="text-3xl mb-3">🧸</div>
+        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-amber-400 transition">Crianças & Família</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Canais infantis 24 horas (Cartoon Network, Disney Jr, Nickelodeon) com controle parental e dublagem em português.</p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-6 border border-zinc-800 hover:border-amber-500/40 transition group">
+        <div class="text-3xl mb-3">📰</div>
+        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-amber-400 transition">Notícias & Documentários</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Cobertura jornalística 24 horas com GloboNews, CNN Brasil, Jovem Pan News, BandNews e canais internacionais.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       4. SEÇÃO DE DISPOSITIVOS & COMPATIBILIDADE (#dispositivos)
+       ========================================================================= -->
+  <section id="dispositivos" class="container mx-auto px-4 py-16 max-w-6xl scroll-mt-24 border-t border-zinc-900">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">Compatibilidade Total</span>
+      <h2 class="text-3xl md:text-4xl font-extrabold text-white mt-1 mb-3">Funciona no seu aparelho favorito</h2>
+      <p class="text-sm text-gray-400">Instalação descomplicada nos principais players e sistemas operacionais do mercado.</p>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-center">
+      <div class="glass-card p-5 rounded-2xl border border-zinc-800 hover:border-amber-400/40 transition">
+        <div class="text-3xl mb-2">📺</div>
+        <h4 class="font-bold text-sm text-white">Smart TVs</h4>
+        <p class="text-[11px] text-gray-400 mt-1">Samsung (Tizen), LG (webOS) e Android TV</p>
+      </div>
+
+      <div class="glass-card p-5 rounded-2xl border border-zinc-800 hover:border-amber-400/40 transition">
+        <div class="text-3xl mb-2">📦</div>
+        <h4 class="font-bold text-sm text-white">TV Box</h4>
+        <p class="text-[11px] text-gray-400 mt-1">Xiaomi Mi Box, TX9, MXQ e genéricos</p>
+      </div>
+
+      <div class="glass-card p-5 rounded-2xl border border-zinc-800 hover:border-amber-400/40 transition">
+        <div class="text-3xl mb-2">🔥</div>
+        <h4 class="font-bold text-sm text-white">Fire Stick</h4>
+        <p class="text-[11px] text-gray-400 mt-1">Amazon Fire TV Stick Lite, 4K e Max</p>
+      </div>
+
+      <div class="glass-card p-5 rounded-2xl border border-zinc-800 hover:border-amber-400/40 transition">
+        <div class="text-3xl mb-2">📱</div>
+        <h4 class="font-bold text-sm text-white">Celulares</h4>
+        <p class="text-[11px] text-gray-400 mt-1">Android e iPhone (iOS) com XCIPTV ou Smarters</p>
+      </div>
+
+      <div class="glass-card p-5 rounded-2xl border border-zinc-800 hover:border-amber-400/40 transition">
+        <div class="text-3xl mb-2">💻</div>
+        <h4 class="font-bold text-sm text-white">Computadores</h4>
+        <p class="text-[11px] text-gray-400 mt-1">Windows, Mac e Linux via VLC ou WebPlayer</p>
+      </div>
+
+      <div class="glass-card p-5 rounded-2xl border border-zinc-800 hover:border-amber-400/40 transition">
+        <div class="text-3xl mb-2">🎮</div>
+        <h4 class="font-bold text-sm text-white">Videogames</h4>
+        <p class="text-[11px] text-gray-400 mt-1">Xbox One, Series X/S e navegadores</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       5. SEÇÃO DE TUTORIAL DE INSTALAÇÃO (#tutorial)
+       ========================================================================= -->
+  <section id="tutorial" class="container mx-auto px-4 py-16 max-w-6xl scroll-mt-24 border-t border-zinc-900">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">Passo a Passo Rápido</span>
+      <h2 class="text-3xl md:text-4xl font-extrabold text-white mt-1 mb-3">Como assistir em 3 passos</h2>
+      <p class="text-sm text-gray-400">Ative seu teste e comece a assistir na sua Smart TV em menos de 2 minutos.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="glass-card rounded-2xl p-6 border border-zinc-800 relative">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 text-black font-black text-lg flex items-center justify-center mb-4">
+          1
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2">Cadastre-se para o Teste</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Preencha o formulário no topo da página. O sistema do servidor irá gerar suas credenciais e sua lista M3U na hora.</p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-6 border border-zinc-800 relative">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 text-black font-black text-lg flex items-center justify-center mb-4">
+          2
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2">Baixe um Aplicativo</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Na loja da sua TV ou celular, baixe um dos aplicativos recomendados: <strong>TiviMate, SmartOne, IPTV Smarters Pro, XCIPTV ou IBO Player</strong>.</p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-6 border border-zinc-800 relative">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 text-black font-black text-lg flex items-center justify-center mb-4">
+          3
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2">Insira os Dados e Assista</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">Abra o aplicativo, selecione "Login via Xtream Codes" ou "Adicionar Lista M3U", digite os dados gerados e aproveite!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       6. SEÇÃO DE PLANOS & ASSINATURA (#planos)
+       ========================================================================= -->
+  <section id="planos" class="container mx-auto px-4 py-16 max-w-6xl scroll-mt-24 border-t border-zinc-900">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">Planos Flexíveis</span>
+      <h2 class="text-3xl md:text-4xl font-extrabold text-white mt-1 mb-3">Escolha o plano ideal após o teste</h2>
+      <p class="text-sm text-gray-400">Sem fidelidade, sem contratos e com cancelamento a qualquer momento.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+      <!-- Plano Mensal -->
+      <div class="glass-card rounded-2xl p-6 border border-zinc-800 flex flex-col justify-between hover:border-zinc-700 transition">
+        <div>
+          <span class="text-xs uppercase font-bold text-gray-400 tracking-wider">Acesso Mensal</span>
+          <h3 class="text-2xl font-black text-white mt-1">Plano Básico</h3>
+          <div class="my-4">
+            <span class="text-3xl font-extrabold text-white">R$ 35</span>
+            <span class="text-xs text-gray-400">/mês</span>
+          </div>
+          <ul class="text-xs text-gray-300 space-y-2.5 my-6">
+            <li class="flex items-center gap-2"><span>✓</span> 1 Tela Simultânea</li>
+            <li class="flex items-center gap-2"><span>✓</span> Mais de 50.000 Filmes & Séries</li>
+            <li class="flex items-center gap-2"><span>✓</span> Canais em 4K e Full HD</li>
+            <li class="flex items-center gap-2"><span>✓</span> Suporte via WhatsApp</li>
+          </ul>
+        </div>
+        <a href="#cadastro" class="w-full py-3 rounded-xl text-center text-xs font-bold text-white bg-zinc-800 hover:bg-zinc-700 transition">
+          Testar Primeiro por 24h
+        </a>
+      </div>
+
+      <!-- Plano Trimestral (Destaque) -->
+      <div class="glass-card rounded-2xl p-6 border-2 border-amber-500 relative flex flex-col justify-between shadow-2xl shadow-amber-500/10">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-amber-500 text-black text-[10px] font-black uppercase tracking-wider rounded-full">
+          Mais Escolhido ⭐
+        </div>
+        <div>
+          <span class="text-xs uppercase font-bold text-amber-400 tracking-wider">Trimestral (3 Meses)</span>
+          <h3 class="text-2xl font-black text-white mt-1">Plano Família</h3>
+          <div class="my-4">
+            <span class="text-3xl font-extrabold text-amber-400">R$ 89</span>
+            <span class="text-xs text-gray-400">/trimestre</span>
+            <div class="text-[11px] text-emerald-400 font-semibold mt-1">Equivalente a R$ 29,66/mês</div>
+          </div>
+          <ul class="text-xs text-gray-300 space-y-2.5 my-6">
+            <li class="flex items-center gap-2 text-white font-semibold"><span>✓</span> 2 Telas Simultâneas</li>
+            <li class="flex items-center gap-2"><span>✓</span> Catálogo Completo 4K</li>
+            <li class="flex items-center gap-2"><span>✓</span> Guia de Programação (EPG)</li>
+            <li class="flex items-center gap-2"><span>✓</span> Atendimento Prioritário</li>
+          </ul>
+        </div>
+        <a href="#cadastro" class="w-full py-3 rounded-xl text-center text-xs font-black text-black gold-btn">
+          Testar Grátis Agora
+        </a>
+      </div>
+
+      <!-- Plano Anual -->
+      <div class="glass-card rounded-2xl p-6 border border-zinc-800 flex flex-col justify-between hover:border-zinc-700 transition">
+        <div>
+          <span class="text-xs uppercase font-bold text-gray-400 tracking-wider">Anual (12 Meses)</span>
+          <h3 class="text-2xl font-black text-white mt-1">Plano Master</h3>
+          <div class="my-4">
+            <span class="text-3xl font-extrabold text-white">R$ 249</span>
+            <span class="text-xs text-gray-400">/ano</span>
+            <div class="text-[11px] text-emerald-400 font-semibold mt-1">Economia de mais de 40%</div>
+          </div>
+          <ul class="text-xs text-gray-300 space-y-2.5 my-6">
+            <li class="flex items-center gap-2"><span>✓</span> 3 Telas Simultâneas</li>
+            <li class="flex items-center gap-2"><span>✓</span> Acesso Ilimitado em 4K</li>
+            <li class="flex items-center gap-2"><span>✓</span> Todos os Canais e VODs</li>
+            <li class="flex items-center gap-2"><span>✓</span> Suporte VIP 24h</li>
+          </ul>
+        </div>
+        <a href="#cadastro" class="w-full py-3 rounded-xl text-center text-xs font-bold text-white bg-zinc-800 hover:bg-zinc-700 transition">
+          Testar Primeiro por 24h
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       7. PERGUNTAS FREQUENTES (#faq)
+       ========================================================================= -->
+  <section id="faq" class="container mx-auto px-4 py-16 max-w-4xl scroll-mt-24 border-t border-zinc-900">
+    <div class="text-center mb-10">
+      <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">Tira-Dúvidas</span>
+      <h2 class="text-3xl font-extrabold text-white mt-1">Perguntas Frequentes</h2>
+    </div>
+
+    <div class="space-y-4">
+      <details class="glass-card p-5 rounded-2xl border border-zinc-800 group cursor-pointer">
+        <summary class="font-bold text-sm text-white flex justify-between items-center select-none">
+          <span>Preciso de antena ou equipamento especial?</span>
+          <span class="text-amber-400 group-open:rotate-180 transition">▼</span>
+        </summary>
+        <p class="text-xs text-gray-400 mt-3 leading-relaxed">
+          Não! Você só precisa de uma conexão com a internet (Wi-Fi ou cabo de rede) de pelo menos 15 Mbps e sua Smart TV, TV Box, celular ou computador.
+        </p>
+      </details>
+
+      <details class="glass-card p-5 rounded-2xl border border-zinc-800 group cursor-pointer">
+        <summary class="font-bold text-sm text-white flex justify-between items-center select-none">
+          <span>O teste realmente é 100% gratuito?</span>
+          <span class="text-amber-400 group-open:rotate-180 transition">▼</span>
+        </summary>
+        <p class="text-xs text-gray-400 mt-3 leading-relaxed">
+          Sim, exatamente 24 horas completas com todos os canais liberados sem solicitar cartão de crédito ou compromisso de pagamento.
+        </p>
+      </details>
+
+      <details class="glass-card p-5 rounded-2xl border border-zinc-800 group cursor-pointer">
+        <summary class="font-bold text-sm text-white flex justify-between items-center select-none">
+          <span>Como recebo os dados após me cadastrar?</span>
+          <span class="text-amber-400 group-open:rotate-180 transition">▼</span>
+        </summary>
+        <p class="text-xs text-gray-400 mt-3 leading-relaxed">
+          Os dados aparecem imediatamente na tela em um modal com botões de cópia e um botão direto para enviar todas as informações no seu WhatsApp.
+        </p>
+      </details>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       8. MODAL DE SUCESSO: CREDENCIAIS LIBERADAS
+       ========================================================================= -->
   <div id="modal-sucesso" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden">
     <div class="glass-card max-w-lg w-full rounded-2xl p-6 sm:p-8 border border-amber-500/40 shadow-2xl relative text-left">
       <div class="text-center mb-5">
@@ -289,7 +647,7 @@
           <span class="text-gray-400 block mb-1">🔗 Link M3U da Playlist:</span>
           <div class="flex items-center gap-2">
             <input type="text" id="res-m3u" readonly class="w-full bg-zinc-900 border border-zinc-700 px-3 py-2 rounded-lg text-amber-300 font-mono text-[11px] truncate" />
-            <button type="button" onclick="copiarCampo('res-m3u', this)" class="shrink-0 px-3 py-2 bg-amber-500 text-black font-bold rounded-lg hover:bg-amber-400">Copiar</button>
+            <button type="button" onclick="copiarCampo('res-m3u', this)" class="shrink-0 px-3 py-2 bg-amber-500 text-black font-bold rounded-lg hover:bg-amber-400 cursor-pointer">Copiar</button>
           </div>
         </div>
 
@@ -298,14 +656,14 @@
             <span class="text-gray-400 block mb-1">Servidor / Host:</span>
             <div class="flex items-center gap-1.5">
               <input type="text" id="res-host" readonly class="w-full bg-zinc-900 border border-zinc-700 px-2.5 py-1.5 rounded-lg text-white font-mono text-[11px] truncate" />
-              <button type="button" onclick="copiarCampo('res-host', this)" class="shrink-0 px-2 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg">📋</button>
+              <button type="button" onclick="copiarCampo('res-host', this)" class="shrink-0 px-2 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg cursor-pointer">📋</button>
             </div>
           </div>
           <div>
             <span class="text-gray-400 block mb-1">Usuário:</span>
             <div class="flex items-center gap-1.5">
               <input type="text" id="res-user" readonly class="w-full bg-zinc-900 border border-zinc-700 px-2.5 py-1.5 rounded-lg text-white font-mono text-[11px] truncate" />
-              <button type="button" onclick="copiarCampo('res-user', this)" class="shrink-0 px-2 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg">📋</button>
+              <button type="button" onclick="copiarCampo('res-user', this)" class="shrink-0 px-2 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg cursor-pointer">📋</button>
             </div>
           </div>
         </div>
@@ -315,7 +673,7 @@
             <span class="text-gray-400 block mb-1">Senha:</span>
             <div class="flex items-center gap-1.5">
               <input type="text" id="res-pass" readonly class="w-full bg-zinc-900 border border-zinc-700 px-2.5 py-1.5 rounded-lg text-white font-mono text-[11px] truncate" />
-              <button type="button" onclick="copiarCampo('res-pass', this)" class="shrink-0 px-2 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg">📋</button>
+              <button type="button" onclick="copiarCampo('res-pass', this)" class="shrink-0 px-2 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg cursor-pointer">📋</button>
             </div>
           </div>
           <div>
@@ -328,12 +686,12 @@
       <!-- Ações do Modal -->
       <div class="mt-5 space-y-2">
         <a id="btn-whatsapp-share" target="_blank" href="#"
-          class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition">
+          class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition shadow-lg shadow-emerald-600/30">
           <span>📲 Enviar para Meu WhatsApp</span>
         </a>
 
         <button type="button" onclick="fecharModalSucesso()"
-          class="w-full py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-gray-300 font-semibold rounded-xl text-xs transition">
+          class="w-full py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-gray-300 font-semibold rounded-xl text-xs transition cursor-pointer">
           Fechar e Assistir Agora
         </button>
       </div>
@@ -349,7 +707,7 @@
         <p>2. É proibido o compartilhamento simultâneo das credenciais com terceiros além do limite de conexões concedidas (1 tela).</p>
         <p>3. A estabilidade de reprodução depende da qualidade de banda larga e rede interna do usuário.</p>
       </div>
-      <button onclick="document.getElementById('modal-termos').classList.add('hidden')" class="mt-4 w-full py-2 bg-amber-500 text-black font-bold rounded-xl text-xs">Entendi e Fechar</button>
+      <button onclick="document.getElementById('modal-termos').classList.add('hidden')" class="mt-4 w-full py-2 bg-amber-500 text-black font-bold rounded-xl text-xs cursor-pointer">Entendi e Fechar</button>
     </div>
   </div>
 
@@ -359,20 +717,41 @@
       <h3 class="text-xl font-bold text-white mb-3">Política de Privacidade</h3>
       <div class="text-xs text-gray-300 space-y-2 overflow-y-auto pr-2 flex-1 leading-relaxed">
         <p>1. Coletamos nome, e-mail e telefone exclusivamente para a geração e entrega técnica das credenciais do teste.</p>
-        <p>2. Seus dados são salvos de forma encriptada e protegida no banco de dados local do servidor IPTV Manager.</p>
+        <p>2. Seus dados são salvos de forma protegida no banco de dados local do servidor IPTV Manager.</p>
         <p>3. Não compartilhamos, alugamos ou comercializamos informações pessoais com terceiros.</p>
       </div>
-      <button onclick="document.getElementById('modal-privacidade').classList.add('hidden')" class="mt-4 w-full py-2 bg-amber-500 text-black font-bold rounded-xl text-xs">Entendi e Fechar</button>
+      <button onclick="document.getElementById('modal-privacidade').classList.add('hidden')" class="mt-4 w-full py-2 bg-amber-500 text-black font-bold rounded-xl text-xs cursor-pointer">Entendi e Fechar</button>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="w-full border-t border-zinc-900 py-6 px-4 text-center text-xs text-gray-500">
-    <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 max-w-5xl">
-      <p>Todos os direitos reservados GoldCardTv © 2026</p>
-      <div class="flex items-center gap-4">
-        <button onclick="abrirModalPrivacidade()" class="hover:text-amber-400 underline">Política de Privacidade</button>
-        <button onclick="abrirModalTermos()" class="hover:text-amber-400 underline">Termos de Uso</button>
+  <!-- =========================================================================
+       9. BOTÃO FLUTUANTE DE WHATSAPP
+       ========================================================================= -->
+  <a href="https://api.whatsapp.com/send?phone=5511999999999&text=Ol%C3%A1,%20gostaria%20de%20ajuda%20com%20meu%20teste%20Gold%20Card%20TV!"
+    target="_blank" rel="noopener noreferrer"
+    class="fixed bottom-6 right-6 z-40 bg-emerald-500 hover:bg-emerald-400 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-2xl shadow-emerald-500/50 hover:scale-110 transition duration-300 group"
+    title="Falar no WhatsApp">
+    <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24">
+      <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.392-12.416c-6.627 0-12 5.373-12 12 0 2.146.568 4.161 1.558 5.91l-1.597 5.836 5.973-1.567c1.705.933 3.659 1.472 5.733 1.472 6.627 0 12-5.373 12-12s-5.373-12-12-12z"/>
+    </svg>
+  </a>
+
+  <!-- =========================================================================
+       10. FOOTER
+       ========================================================================= -->
+  <footer class="w-full border-t border-zinc-900 py-8 px-4 text-center text-xs text-gray-500">
+    <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 max-w-6xl">
+      <div class="flex items-center gap-2">
+        <span class="gold-gradient font-black text-sm">GOLD CARD TV</span>
+        <span>© 2026 • Todos os direitos reservados</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#cadastro" class="hover:text-amber-400">Ativar Teste</a>
+        <a href="#conteudos" class="hover:text-amber-400">Conteúdos</a>
+        <a href="#dispositivos" class="hover:text-amber-400">Dispositivos</a>
+        <a href="#planos" class="hover:text-amber-400">Planos</a>
+        <button onclick="abrirModalPrivacidade()" class="hover:text-amber-400 underline cursor-pointer">Privacidade</button>
+        <button onclick="abrirModalTermos()" class="hover:text-amber-400 underline cursor-pointer">Termos</button>
       </div>
       <div class="text-gray-400 flex items-center gap-1">
         <span>Powered by</span>
@@ -383,6 +762,24 @@
 
   <!-- Scripts Interativos -->
   <script>
+    // 0. Toggle Menu Mobile
+    function toggleMenuMobile() {
+      const drawer = document.getElementById('drawer-mobile');
+      const iconOpen = document.getElementById('icon-menu-open');
+      const iconClose = document.getElementById('icon-menu-close');
+      
+      const isHidden = drawer.classList.contains('hidden');
+      if (isHidden) {
+        drawer.classList.remove('hidden');
+        iconOpen.classList.add('hidden');
+        iconClose.classList.remove('hidden');
+      } else {
+        drawer.classList.add('hidden');
+        iconOpen.classList.remove('hidden');
+        iconClose.classList.add('hidden');
+      }
+    }
+
     // 1. DDI dinâmico baseado no select de país
     const paisSelect = document.getElementById('pais');
     const ddiBadge = document.getElementById('ddi-badge');
