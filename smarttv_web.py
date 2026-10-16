@@ -25,6 +25,7 @@ import httpx
 import uvicorn
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, HTMLResponse, FileResponse, Response, StreamingResponse
 from starlette.routing import Route
@@ -1741,6 +1742,7 @@ routes = [
 ]
 
 app = Starlette(debug=True, routes=routes, lifespan=lifespan)
+app.add_middleware(GZipMiddleware, minimum_size=500)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
