@@ -1639,11 +1639,46 @@ async def register_lead_handler(request: Request):
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
 
+async def get_leads_handler(request: Request):
+    """Retorna a lista de leads cadastrados na página de teste 24h."""
+    leads_file = BASE_DIR / "leads_cadastro.json"
+    leads = []
+    if leads_file.exists():
+        try:
+            leads = json.loads(leads_file.read_text(encoding="utf-8"))
+        except Exception:
+            leads = []
+    leads_sorted = sorted(leads, key=lambda x: x.get("timestamp", ""), reverse=True)
+    return JSONResponse({"success": True, "leads": leads_sorted, "total": len(leads_sorted)})
+
+
+async def delete_lead_handler(request: Request):
+    """Exclui um lead da lista."""
+    try:
+        body = await request.json()
+        target_timestamp = body.get("timestamp")
+        target_email = body.get("email")
+        leads_file = BASE_DIR / "leads_cadastro.json"
+        leads = []
+        if leads_file.exists():
+            leads = json.loads(leads_file.read_text(encoding="utf-8"))
+        novos_leads = [
+            l for l in leads
+            if not (l.get("timestamp") == target_timestamp or (target_email and l.get("email") == target_email))
+        ]
+        leads_file.write_text(json.dumps(novos_leads, indent=2, ensure_ascii=False), encoding="utf-8")
+        return JSONResponse({"success": True, "message": "Lead removido com sucesso."})
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
 routes = [
     Route("/", index_handler, methods=["GET"]),
     Route("/cadastro", cadastro_handler, methods=["GET"]),
     Route("/api/register", register_lead_handler, methods=["POST"]),
     Route("/api/public/register", register_lead_handler, methods=["POST"]),
+    Route("/api/leads", get_leads_handler, methods=["GET"]),
+    Route("/api/leads/delete", delete_lead_handler, methods=["POST"]),
     Route("/api/auth/login", auth_login_handler, methods=["POST"]),
     Route("/api/auth/status", auth_status_handler, methods=["GET"]),
     Route("/api/auth/logout", auth_logout_handler, methods=["POST"]),
