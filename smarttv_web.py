@@ -1507,8 +1507,74 @@ async def trigger_decompile_handler(request: Request):
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
 
+async def cadastro_handler(request: Request):
+    """Serve a página oficial de cadastro Dark & Gold para novos testes."""
+    cadastro_path = BASE_DIR / "cadastro_gold.html"
+    if not cadastro_path.exists():
+        return HTMLResponse("<h1>Página de cadastro não encontrada</h1>", status_code=404)
+    return HTMLResponse(cadastro_path.read_text(encoding="utf-8"))
+
+
+async def register_lead_handler(request: Request):
+    """Processa o cadastro do lead, registrando dados e liberando acesso de 24h."""
+    try:
+        import random
+        body = await request.json() if request.method == "POST" else {}
+        name = body.get("name", "Cliente Teste")
+        email = body.get("email", "")
+        phone = body.get("phone", "")
+        country = body.get("country", "BR")
+
+        # Salva o lead em leads_cadastro.json
+        leads_file = BASE_DIR / "leads_cadastro.json"
+        leads = []
+        if leads_file.exists():
+            try:
+                leads = json.loads(leads_file.read_text(encoding="utf-8"))
+            except Exception:
+                leads = []
+        lead_entry = {
+            "name": name,
+            "email": email,
+            "phone": phone,
+            "country": country,
+            "timestamp": datetime.now().isoformat()
+        }
+        leads.append(lead_entry)
+        leads_file.write_text(json.dumps(leads, indent=2, ensure_ascii=False), encoding="utf-8")
+
+        # Recupera dados da configuração mestre existente
+        cfg = carregar_config()
+        xtream = cfg.get("xtream_info") or {}
+        host = xtream.get("host") or f"http://{request.headers.get('host', '163.176.216.39:5050')}"
+        username = xtream.get("username") or f"gold_{random.randint(10000, 99999)}"
+        password = xtream.get("password") or f"pass{random.randint(10000, 99999)}"
+        m3u_url = cfg.get("master_playlist_url") or f"{host}/playlist/all.m3u"
+
+        agora = datetime.now()
+        amanha = agora + timedelta(hours=24)
+
+        return JSONResponse({
+            "success": True,
+            "message": "Teste ativado com sucesso por 24 horas!",
+            "credentials": {
+                "host": host,
+                "username": username,
+                "password": password,
+                "m3u_url": m3u_url,
+                "valid_until": amanha.isoformat(),
+                "valid_hours": 24
+            }
+        })
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
 routes = [
     Route("/", index_handler, methods=["GET"]),
+    Route("/cadastro", cadastro_handler, methods=["GET"]),
+    Route("/api/register", register_lead_handler, methods=["POST"]),
+    Route("/api/public/register", register_lead_handler, methods=["POST"]),
     Route("/api/auth/login", auth_login_handler, methods=["POST"]),
     Route("/api/auth/status", auth_status_handler, methods=["GET"]),
     Route("/api/auth/logout", auth_logout_handler, methods=["POST"]),
