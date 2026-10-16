@@ -21,11 +21,12 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
 if sys.stderr and hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
+import httpx
 import uvicorn
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse, HTMLResponse, FileResponse
+from starlette.responses import JSONResponse, HTMLResponse, FileResponse, Response, StreamingResponse
 from starlette.routing import Route
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -1515,8 +1516,62 @@ async def cadastro_handler(request: Request):
     return HTMLResponse(cadastro_path.read_text(encoding="utf-8"))
 
 
+IPTV_MANAGER_BACKEND = os.getenv("IPTV_MANAGER_BACKEND", "http://127.0.0.1:3000")
+
+
+async def iptv_proxy_handler(request: Request):
+    """Proxy reverso transparente para o IPTV-Manager (porta 3000)."""
+    path = request.url.path
+    if path == "/manager" or path == "/manager/":
+        path = "/"
+    elif path.startswith("/manager/"):
+        path = path[len("/manager"):]
+
+    query = str(request.url.query)
+    target_url = f"{IPTV_MANAGER_BACKEND}{path}"
+    if query:
+        target_url += f"?{query}"
+
+    req_headers = dict(request.headers)
+    req_headers.pop("host", None)
+    req_headers["x-forwarded-host"] = request.headers.get("host", "163.176.216.39:5050")
+    req_headers["x-forwarded-proto"] = request.url.scheme
+
+    body = await request.body()
+    client = httpx.AsyncClient(timeout=60.0)
+    try:
+        req = client.build_request(
+            method=request.method,
+            url=target_url,
+            headers=req_headers,
+            content=body
+        )
+        r = await client.send(req, stream=True)
+        resp_headers = dict(r.headers)
+        for h in ["content-encoding", "transfer-encoding", "content-length"]:
+            resp_headers.pop(h, None)
+
+        async def body_stream():
+            try:
+                async for chunk in r.aiter_bytes():
+                    yield chunk
+            finally:
+                await r.aclose()
+                await client.aclose()
+
+        return StreamingResponse(
+            body_stream(),
+            status_code=r.status_code,
+            headers=resp_headers,
+            media_type=r.headers.get("content-type")
+        )
+    except Exception as e:
+        await client.aclose()
+        return Response(f"Erro de conexão com o IPTV Manager (porta 3000): {e}", status_code=502)
+
+
 async def register_lead_handler(request: Request):
-    """Processa o cadastro do lead, registrando dados e liberando acesso de 24h."""
+    """Processa o cadastro do lead, registrando dados no IPTV-Manager e liberando acesso de 24h."""
     try:
         import random
         body = await request.json() if request.method == "POST" else {}
@@ -1543,7 +1598,21 @@ async def register_lead_handler(request: Request):
         leads.append(lead_entry)
         leads_file.write_text(json.dumps(leads, indent=2, ensure_ascii=False), encoding="utf-8")
 
-        # Recupera dados da configuração mestre existente
+        # 1. Tenta registrar o usuário real diretamente no IPTV-Manager (porta 3000)
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                iptv_resp = await client.post(
+                    f"{IPTV_MANAGER_BACKEND}/api/register",
+                    json=body,
+                    headers={"host": request.headers.get("host", "163.176.216.39:5050")}
+                )
+                if iptv_resp.status_code in (200, 201):
+                    iptv_data = iptv_resp.json()
+                    return JSONResponse(iptv_data, status_code=iptv_resp.status_code)
+        except Exception as ex_iptv:
+            print(f"[Aviso] IPTV-Manager offline ou não respondeu: {ex_iptv}. Usando gerador fallback.")
+
+        # 2. Fallback de contingência local caso o IPTV-Manager esteja temporariamente offline
         cfg = carregar_config()
         xtream = cfg.get("xtream_info") or {}
         host = xtream.get("host") or f"http://{request.headers.get('host', '163.176.216.39:5050')}"
@@ -1601,6 +1670,50 @@ routes = [
     Route("/playlist/{filename}", get_hosted_playlist_handler, methods=["GET"]),
     Route("/api/playlist/hosted/metadata", get_hosted_metadata_handler, methods=["GET"]),
     Route("/api/playlist/hosted/decompile", trigger_decompile_handler, methods=["POST"]),
+
+    # Rotas de Proxy e Gateway do IPTV-Manager (Bladestar2105)
+    Route("/manager", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/manager/{path:path}", iptv_proxy_handler, methods=["GET", "POST", "PUT", "DELETE"]),
+    Route("/player_api.php", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/get.php", iptv_proxy_handler, methods=["GET"]),
+    Route("/xmltv.php", iptv_proxy_handler, methods=["GET"]),
+    Route("/live/{path:path}", iptv_proxy_handler, methods=["GET"]),
+    Route("/movie/{path:path}", iptv_proxy_handler, methods=["GET"]),
+    Route("/series/{path:path}", iptv_proxy_handler, methods=["GET"]),
+    Route("/vendor/{path:path}", iptv_proxy_handler, methods=["GET"]),
+    Route("/c/{path:path}", iptv_proxy_handler, methods=["GET"]),
+    Route("/portal.php", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/server/load.php", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/stalker_portal/{path:path}", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/share/{slug}", iptv_proxy_handler, methods=["GET"]),
+    Route("/api/users", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/users/{path:path}", iptv_proxy_handler, methods=["GET", "POST", "PUT", "DELETE"]),
+    Route("/api/providers", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/providers/{path:path}", iptv_proxy_handler, methods=["GET", "POST", "PUT", "DELETE"]),
+    Route("/api/channels", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/channels/{path:path}", iptv_proxy_handler, methods=["GET", "POST", "PUT", "DELETE"]),
+    Route("/api/epg", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/epg/{path:path}", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/system", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/system/{path:path}", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/backups", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/backups/{path:path}", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/shares", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/shares/{path:path}", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/proxy/{path:path}", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/ai/{path:path}", iptv_proxy_handler, methods=["GET", "POST"]),
+    Route("/api/login", iptv_proxy_handler, methods=["POST"]),
+    Route("/api/verify-token", iptv_proxy_handler, methods=["GET"]),
+    Route("/api/change-password", iptv_proxy_handler, methods=["POST"]),
+    Route("/style.css", iptv_proxy_handler, methods=["GET"]),
+    Route("/app.js", iptv_proxy_handler, methods=["GET"]),
+    Route("/i18n.js", iptv_proxy_handler, methods=["GET"]),
+    Route("/ai.js", iptv_proxy_handler, methods=["GET"]),
+    Route("/ai-i18n.js", iptv_proxy_handler, methods=["GET"]),
+    Route("/logo.png", iptv_proxy_handler, methods=["GET"]),
+    Route("/player.html", iptv_proxy_handler, methods=["GET"]),
+    Route("/player.css", iptv_proxy_handler, methods=["GET"]),
+    Route("/player.js", iptv_proxy_handler, methods=["GET"]),
 ]
 
 app = Starlette(debug=True, routes=routes, lifespan=lifespan)
